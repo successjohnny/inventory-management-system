@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Inventory Management System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+
+<body>
+
+    <header>
+        <h1>Inventory Management System</h1>
+        <p>Manage your products and stock</p>
+    </header>
+
+    <main>
+
+        <section class="summary">
+            <div class="card">
+                <h2>{{ products|length }}</h2>
+                <p>Total Products</p>
+            </div>
+
+            <div class="card">
+                <h2>100</h2>
+                <p>Total Items</p>
+            </div>
+
+            <div class="card">
+                <h2>3</h2>
+                <p>Categories</p>
+            </div>
+        </section>
+
+
+        <section class="inventory">
+
+            <div class="section-header">
+                <h2>Products</h2>
+
+                <button>Add Product</button>
+            </div>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for product in products %}
+
+                    <tr>
+                        <td>{{ product["name"] }}</td>
+                        <td>₦{{ product["price"] }}</td>
+                        <td>{{ product["quantity"] }}</td>
+                        <td>{{ product["category"] }}</td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+</body>
+</html>
