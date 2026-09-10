@@ -6,3 +6,6 @@ source .venv/bin/activate
 
 # step 3
 pip install -r requirement.txt
+
+# step 4 
+pip install sqlalchemy

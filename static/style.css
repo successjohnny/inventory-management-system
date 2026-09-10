@@ -88,3 +88,39 @@ td {
 th {
     background: #f1f5f9;
 }
+
+.add-button {
+    background: #2563eb;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.form-container {
+    margin-top: 30px;
+    padding: 25px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.form-container h2 {
+    margin-bottom: 20px;
+}
+
+.form-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-container input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.form-container button {
+    width: fit-content;
+}
