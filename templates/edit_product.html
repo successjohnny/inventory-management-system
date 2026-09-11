@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Edit Product</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='style.css') }}"
+    >
+
 </head>
+
 
 <body>
 
     <header>
+
         <h1>Edit Product</h1>
+
         <p>Update product information</p>
+
     </header>
+
 
     <main>
 
@@ -22,9 +37,49 @@
 
             <h2>Edit {{ product.name }}</h2>
 
-            <form action="/edit-product/{{ product.id }}" method="post">
 
-                <label for="name">Product Name</label>
+            <!-- Validation Error -->
+
+            {% if error %}
+
+                <p class="error-message">
+
+                    {% if error == "insufficient_stock" %}
+                        Insufficient stock. You cannot remove more
+                        items than are currently available.
+
+                    {% elif error == "name_required" %}
+                        Product name is required.
+
+                    {% elif error == "invalid_price" %}
+                        Price must be greater than 0.
+
+                    {% elif error == "invalid_quantity" %}
+                        Quantity cannot be negative.
+
+                    {% elif error == "invalid_low_stock" %}
+                        Low stock level cannot be negative.
+
+                    {% elif error == "category_required" %}
+                        Category is required.
+
+                    {% endif %}
+
+                </p>
+
+            {% endif %}
+
+
+            <!-- Edit Product Form -->
+
+            <form
+                action="/edit-product/{{ product.id }}"
+                method="post"
+            >
+
+                <label for="name">
+                    Product Name
+                </label>
 
                 <input
                     type="text"
@@ -35,19 +90,23 @@
                 >
 
 
-                <label for="price">Price</label>
+                <label for="price">
+                    Price
+                </label>
 
                 <input
                     type="number"
                     id="price"
                     name="price"
                     value="{{ product.price }}"
-                    min="0"
+                    min="1"
                     required
                 >
 
 
-                <label for="quantity">Quantity</label>
+                <label for="quantity">
+                    Quantity
+                </label>
 
                 <input
                     type="number"
@@ -73,7 +132,9 @@
                 >
 
 
-                <label for="category">Category</label>
+                <label for="category">
+                    Category
+                </label>
 
                 <input
                     type="text"
@@ -90,9 +151,82 @@
 
             </form>
 
+
+            <hr>
+
+
+            <!-- Stock Movement -->
+
+            <h2>Stock Movement</h2>
+
+
+            <form
+                action="/stock-movement/{{ product.id }}"
+                method="post"
+            >
+
+                <label for="movement_type">
+                    Movement Type
+                </label>
+
+                <select
+                    id="movement_type"
+                    name="movement_type"
+                    required
+                >
+
+                    <option value="IN">
+                        Stock In
+                    </option>
+
+                    <option value="OUT">
+                        Stock Out
+                    </option>
+
+                </select>
+
+
+                <label for="movement_quantity">
+                    Quantity
+                </label>
+
+                <input
+                    type="number"
+                    id="movement_quantity"
+                    name="quantity"
+                    min="1"
+                    required
+                >
+
+
+                <label for="note">
+                    Note
+                </label>
+
+                <input
+                    type="text"
+                    id="note"
+                    name="note"
+                    placeholder="e.g. New shipment"
+                >
+
+
+                <button type="submit">
+                    Record Stock Movement
+                </button>
+
+            </form>
+
+
             <br>
 
-            <a href="/" class="back-button">
+
+            <!-- Back to Inventory -->
+
+            <a
+                href="/"
+                class="back-button"
+            >
                 Back to Inventory
             </a>
 
@@ -101,4 +235,5 @@
     </main>
 
 </body>
+
 </html>

@@ -16,9 +16,13 @@
         <p>Manage your products and stock</p>
     </header>
 
+
     <main>
 
+        <!-- Dashboard Summary -->
+
         <section class="summary">
+
             <div class="card">
                 <h2>{{ total_products }}</h2>
                 <p>Total Products</p>
@@ -38,38 +42,52 @@
                 <h2>{{ low_stock_products }}</h2>
                 <p>Low Stock</p>
             </div>
+
         </section>
 
+
+        <!-- Products Section -->
 
         <section class="inventory">
 
             <div class="section-header">
+
                 <h2>Products</h2>
 
-                <a href="#add-product" class="add-button">Add Product</a>
+                <a href="#add-product" class="add-button">
+                    Add Product
+                </a>
+
             </div>
 
-    <form action="/" method="get" class="search-form">
 
-        <input
-            type="text"
-            name="search"
-            placeholder="Search products..."
-            value="{{ request.query_params.get('search', '') }}"
-        >
+            <!-- Search -->
 
-        <button type="submit">Search</button>
+            <form action="/" method="get" class="search-form">
 
-        <a href="/" class="clear-button">
-            Clear
-        </a>
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search products..."
+                >
 
-    </form>
+                <button type="submit">
+                    Search
+                </button>
 
+                <a href="/" class="clear-button">
+                    Clear
+                </a>
+
+            </form>
+
+
+            <!-- Product Table -->
 
             <table>
 
                 <thead>
+
                     <tr>
                         <th>Name</th>
                         <th>Price</th>
@@ -79,7 +97,9 @@
                         <th>Stock Status</th>
                         <th>Action</th>
                     </tr>
+
                 </thead>
+
 
                 <tbody>
 
@@ -88,21 +108,52 @@
                         {% for product in products %}
 
                         <tr>
-                            <td>{{ product.name }}</td>
-                            <td>₦{{ product.price }}</td>
-                            <td>{{ product.quantity }}</td>
-                            <td>{{ product.low_stock_level }}</td>
-                            <td>{{ product.category }}</td>
+
                             <td>
-                                {% if product.quantity <= product.low_stock_level %}
-                                    <span class="low-stock">Low Stock</span>
-                                {% else %}
-                                    <span class="in-stock">In Stock</span>
-                                {% endif %}
+                                {{ product.name }}
                             </td>
 
                             <td>
-                                <a href="/edit-product/{{ product.id }}" class="edit-button">
+                                ₦{{ product.price }}
+                            </td>
+
+                            <td>
+                                {{ product.quantity }}
+                            </td>
+
+                            <td>
+                                {{ product.low_stock_level }}
+                            </td>
+
+                            <td>
+                                {{ product.category }}
+                            </td>
+
+                            <td>
+
+                                {% if product.quantity <= product.low_stock_level %}
+
+                                    <span class="low-stock">
+                                        Low Stock
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="in-stock">
+                                        In Stock
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                <a
+                                    href="/edit-product/{{ product.id }}"
+                                    class="edit-button"
+                                >
                                     Edit
                                 </a>
 
@@ -115,79 +166,237 @@
                                 >
                                     Delete
                                 </a>
+
                             </td>
+
                         </tr>
 
                         {% endfor %}
 
+
                     {% else %}
 
                         <tr>
-                            <td colspan="7" class="search-not-found">
+
+                            <td
+                                colspan="7"
+                                class="search-not-found"
+                            >
                                 Search not found.
                             </td>
+
                         </tr>
 
                     {% endif %}
 
+                </tbody>
+
+            </table>
+
+
+            <!-- Add Product Form -->
+
+            <div id="add-product" class="form-container">
+
+                <h2>Add New Product</h2>
+
+
+                <!-- Validation Error -->
+
+                {% if error %}
+
+                    <p class="error-message">
+
+                        {% if error == "name_required" %}
+                            Product name is required.
+
+                        {% elif error == "invalid_price" %}
+                            Price must be greater than 0.
+
+                        {% elif error == "invalid_quantity" %}
+                            Quantity cannot be negative.
+
+                        {% elif error == "invalid_low_stock" %}
+                            Low stock level cannot be negative.
+
+                        {% elif error == "category_required" %}
+                            Category is required.
+
+                        {% endif %}
+
+                    </p>
+
+                {% endif %}
+
+
+                <form action="/add-product" method="post">
+
+                    <label for="name">
+                        Product Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                    >
+
+
+                    <label for="price">
+                        Price
+                    </label>
+
+                    <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        min="0"
+                        required
+                    >
+
+
+                    <label for="quantity">
+                        Quantity
+                    </label>
+
+                    <input
+                        type="number"
+                        id="quantity"
+                        name="quantity"
+                        min="0"
+                        required
+                    >
+
+
+                    <label for="low_stock_level">
+                        Low Stock Level
+                    </label>
+
+                    <input
+                        type="number"
+                        id="low_stock_level"
+                        name="low_stock_level"
+                        min="0"
+                        required
+                    >
+
+
+                    <label for="category">
+                        Category
+                    </label>
+
+                    <input
+                        type="text"
+                        id="category"
+                        name="category"
+                        required
+                    >
+
+
+                    <button type="submit">
+                        Add Product
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- Stock Movement History -->
+
+        <section class="inventory">
+
+            <div class="section-header">
+
+                <h2>Stock Movement History</h2>
+
+            </div>
+
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Product</th>
+                        <th>Movement</th>
+                        <th>Quantity</th>
+                        <th>Note</th>
+                        <th>Date & Time</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% if movements %}
+
+                        {% for movement in movements %}
+
+                        <tr>
+
+                            <td>
+                                {{ movement.product.name }}
+                            </td>
+
+
+                            <td>
+
+                                {% if movement.movement_type == "IN" %}
+
+                                    <span class="in-stock">
+                                        Stock In
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="low-stock">
+                                        Stock Out
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+                                {{ movement.quantity }}
+                            </td>
+
+
+                            <td>
+                                {{ movement.note }}
+                            </td>
+
+
+                            <td>
+                                {{ movement.created_at.strftime("%d %b %Y, %I:%M %p") }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+
+                    {% else %}
+
+                        <tr>
+
+                            <td colspan="5">
+                                No stock movements recorded.
+                            </td>
+
+                        </tr>
+
+                    {% endif %}
 
                 </tbody>
 
             </table>
-            <div id="add-product" class="form-container">
-
-    <h2>Add New Product</h2>
-
-    <form action="/add-product" method="post">
-
-        <label for="name">Product Name</label>
-        <input
-            type="text"
-            id="name"
-            name="name"
-            required
-        >
-
-        <label for="price">Price</label>
-        <input
-            type="number"
-            id="price"
-            name="price"
-            min="0"
-            required
-        >
-
-        <label for="quantity">Quantity</label>
-        <input
-            type="number"
-            id="quantity"
-            name="quantity"
-            min="0"
-            required
-        >
-
-        <label for="low_stock_level">Low Stock Level</label>
-        <input
-            type="number"
-            id="low_stock_level"
-            name="low_stock_level"
-            min="0"
-            required
-        >
-
-        <label for="category">Category</label>
-        <input
-            type="text"
-            id="category"
-            name="category"
-            required
-        >
-
-        <button type="submit">Add Product</button>
-
-    </form>
-
-</div>
 
         </section>
 

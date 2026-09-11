@@ -188,3 +188,21 @@ th {
     color: #16a34a;
     font-weight: bold;
 }
+
+.error-message {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.error-message {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-weight: bold;
+}
