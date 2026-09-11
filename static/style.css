@@ -124,3 +124,67 @@ th {
 .form-container button {
     width: fit-content;
 }
+
+.edit-button {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.back-button {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.delete-button {
+    color: #dc2626;
+    text-decoration: none;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-form input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.search-form button {
+    padding: 10px 18px;
+}
+
+.search-not-found {
+    text-align: center;
+    padding: 25px;
+    color: #666;
+    font-style: italic;
+}
+
+.clear-button {
+    background: #6b7280;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.clear-button:hover {
+    background: #4b5563;
+}
+
+.low-stock {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.in-stock {
+    color: #16a34a;
+    font-weight: bold;
+}
