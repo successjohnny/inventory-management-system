@@ -10,7 +10,9 @@ from models import Product, StockMovement
 
 app = FastAPI()
 
+
 Base.metadata.create_all(bind=engine)
+
 
 app.mount(
     "/static",
@@ -18,7 +20,36 @@ app.mount(
     name="static"
 )
 
+
 templates = Jinja2Templates(directory="templates")
+
+
+def validate_product(
+    name,
+    price,
+    low_stock_level,
+    category,
+):
+    """
+    Validate product information.
+
+    Returns an error code if validation fails.
+    Returns None when all values are valid.
+    """
+
+    if not name.strip():
+        return "name_required"
+
+    if price <= 0:
+        return "invalid_price"
+
+    if low_stock_level < 0:
+        return "invalid_low_stock"
+
+    if not category.strip():
+        return "category_required"
+
+    return None
 
 
 @app.get("/")
@@ -95,17 +126,17 @@ def add_product(
     name = name.strip()
     category = category.strip()
 
-    # Validate product name
-    if not name:
-        return RedirectResponse(
-            url="/?error=name_required",
-            status_code=303,
-        )
+    # Validate product information
+    error = validate_product(
+        name,
+        price,
+        low_stock_level,
+        category,
+    )
 
-    # Validate price
-    if price <= 0:
+    if error:
         return RedirectResponse(
-            url="/?error=invalid_price",
+            url=f"/?error={error}",
             status_code=303,
         )
 
@@ -116,22 +147,22 @@ def add_product(
             status_code=303,
         )
 
-    # Validate low stock level
-    if low_stock_level < 0:
-        return RedirectResponse(
-            url="/?error=invalid_low_stock",
-            status_code=303,
-        )
-
-    # Validate category
-    if not category:
-        return RedirectResponse(
-            url="/?error=category_required",
-            status_code=303,
-        )
-
     db = SessionLocal()
 
+    # Check for duplicate product name
+    existing_product = db.query(Product).filter(
+        Product.name.ilike(name)
+    ).first()
+
+    if existing_product:
+        db.close()
+
+        return RedirectResponse(
+            url="/?error=duplicate_product",
+            status_code=303,
+        )
+
+    # Create new product
     product = Product(
         name=name,
         price=price,
@@ -165,6 +196,13 @@ def edit_product(
 
     db.close()
 
+    # Check that the product exists
+    if not product:
+        return RedirectResponse(
+            url="/?error=product_not_found",
+            status_code=303,
+        )
+
     return templates.TemplateResponse(
         request=request,
         name="edit_product.html",
@@ -180,7 +218,6 @@ def update_product(
     product_id: int,
     name: str = Form(...),
     price: int = Form(...),
-    quantity: int = Form(...),
     low_stock_level: int = Form(...),
     category: str = Form(...),
 ):
@@ -188,43 +225,27 @@ def update_product(
     name = name.strip()
     category = category.strip()
 
-    # Validate product name
-    if not name:
-        return RedirectResponse(
-            url=f"/edit-product/{product_id}?error=name_required",
-            status_code=303,
-        )
+    # Validate product information
+    error = validate_product(
+        name,
+        price,
+        low_stock_level,
+        category,
+    )
 
-    # Validate price
-    if price <= 0:
+    if error:
         return RedirectResponse(
-            url=f"/edit-product/{product_id}?error=invalid_price",
-            status_code=303,
-        )
-
-    # Validate quantity
-    if quantity < 0:
-        return RedirectResponse(
-            url=f"/edit-product/{product_id}?error=invalid_quantity",
-            status_code=303,
-        )
-
-    # Validate low stock level
-    if low_stock_level < 0:
-        return RedirectResponse(
-            url=f"/edit-product/{product_id}?error=invalid_low_stock",
-            status_code=303,
-        )
-
-    # Validate category
-    if not category:
-        return RedirectResponse(
-            url=f"/edit-product/{product_id}?error=category_required",
+            url=(
+                f"/edit-product/"
+                f"{product_id}"
+                f"?error={error}"
+            ),
             status_code=303,
         )
 
     db = SessionLocal()
 
+    # Find the product being edited
     product = db.query(Product).filter(
         Product.id == product_id
     ).first()
@@ -233,17 +254,38 @@ def update_product(
         db.close()
 
         return RedirectResponse(
-            url="/",
+            url="/?error=product_not_found",
             status_code=303,
         )
 
+    # Check for duplicate product name.
+    # Exclude the current product from the search.
+    existing_product = db.query(Product).filter(
+        Product.name.ilike(name),
+        Product.id != product_id
+    ).first()
+
+    if existing_product:
+        db.close()
+
+        return RedirectResponse(
+            url=(
+                f"/edit-product/"
+                f"{product_id}"
+                f"?error=duplicate_product"
+            ),
+            status_code=303,
+        )
+
+    # Update product information only.
+    # Quantity is changed through Stock Movement.
     product.name = name
     product.price = price
-    product.quantity = quantity
     product.low_stock_level = low_stock_level
     product.category = category
 
     db.commit()
+
     db.close()
 
     return RedirectResponse(
@@ -261,49 +303,80 @@ def stock_movement(
 ):
     db = SessionLocal()
 
+    # Find the product
     product = db.query(Product).filter(
         Product.id == product_id
     ).first()
 
-    if product and quantity > 0:
+    # Check that the product exists
+    if not product:
+        db.close()
 
-        if movement_type == "IN":
+        return RedirectResponse(
+            url="/?error=product_not_found",
+            status_code=303,
+        )
 
-            product.quantity += quantity
+    # Validate movement quantity
+    if quantity <= 0:
+        db.close()
 
-        elif movement_type == "OUT":
+        return RedirectResponse(
+            url=(
+                f"/edit-product/"
+                f"{product_id}"
+                f"?error=invalid_movement_quantity"
+            ),
+            status_code=303,
+        )
 
-            if quantity > product.quantity:
-                db.close()
+    # Validate movement type
+    if movement_type not in ("IN", "OUT"):
+        db.close()
 
-                return RedirectResponse(
-                    url=(
-                        f"/edit-product/"
-                        f"{product_id}"
-                        f"?error=insufficient_stock"
-                    ),
-                    status_code=303,
-                )
+        return RedirectResponse(
+            url=(
+                f"/edit-product/"
+                f"{product_id}"
+                f"?error=invalid_movement_type"
+            ),
+            status_code=303,
+        )
 
-            product.quantity -= quantity
+    # Stock In
+    if movement_type == "IN":
+        product.quantity += quantity
 
-        else:
+    # Stock Out
+    elif movement_type == "OUT":
+
+        if quantity > product.quantity:
             db.close()
 
             return RedirectResponse(
-                url=f"/edit-product/{product_id}",
+                url=(
+                    f"/edit-product/"
+                    f"{product_id}"
+                    f"?error=insufficient_stock"
+                ),
                 status_code=303,
             )
 
-        movement = StockMovement(
-            product_id=product_id,
-            movement_type=movement_type,
-            quantity=quantity,
-            note=note,
-        )
+        product.quantity -= quantity
 
-        db.add(movement)
-        db.commit()
+    # Remove unnecessary spaces from the note
+    note = note.strip()
+
+    # Create stock movement history record
+    movement = StockMovement(
+        product_id=product_id,
+        movement_type=movement_type,
+        quantity=quantity,
+        note=note,
+    )
+
+    db.add(movement)
+    db.commit()
 
     db.close()
 

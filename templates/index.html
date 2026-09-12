@@ -1,19 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Inventory Management System</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='style.css') }}"
+    >
+
 </head>
+
 
 <body>
 
     <header>
+
         <h1>Inventory Management System</h1>
+
         <p>Manage your products and stock</p>
+
     </header>
 
 
@@ -24,23 +38,38 @@
         <section class="summary">
 
             <div class="card">
+
                 <h2>{{ total_products }}</h2>
+
                 <p>Total Products</p>
+
             </div>
 
+
             <div class="card">
+
                 <h2>{{ total_items }}</h2>
+
                 <p>Total Items</p>
+
             </div>
 
+
             <div class="card">
+
                 <h2>{{ total_categories }}</h2>
+
                 <p>Categories</p>
+
             </div>
 
+
             <div class="card">
+
                 <h2>{{ low_stock_products }}</h2>
+
                 <p>Low Stock</p>
+
             </div>
 
         </section>
@@ -54,7 +83,10 @@
 
                 <h2>Products</h2>
 
-                <a href="#add-product" class="add-button">
+                <a
+                    href="#add-product"
+                    class="add-button"
+                >
                     Add Product
                 </a>
 
@@ -63,7 +95,11 @@
 
             <!-- Search -->
 
-            <form action="/" method="get" class="search-form">
+            <form
+                action="/"
+                method="get"
+                class="search-form"
+            >
 
                 <input
                     type="text"
@@ -75,7 +111,10 @@
                     Search
                 </button>
 
-                <a href="/" class="clear-button">
+                <a
+                    href="/"
+                    class="clear-button"
+                >
                     Clear
                 </a>
 
@@ -89,13 +128,21 @@
                 <thead>
 
                     <tr>
+
                         <th>Name</th>
+
                         <th>Price</th>
+
                         <th>Quantity</th>
+
                         <th>Low Stock Level</th>
+
                         <th>Category</th>
+
                         <th>Stock Status</th>
+
                         <th>Action</th>
+
                     </tr>
 
                 </thead>
@@ -113,21 +160,26 @@
                                 {{ product.name }}
                             </td>
 
+
                             <td>
                                 ₦{{ product.price }}
                             </td>
+
 
                             <td>
                                 {{ product.quantity }}
                             </td>
 
+
                             <td>
                                 {{ product.low_stock_level }}
                             </td>
 
+
                             <td>
                                 {{ product.category }}
                             </td>
+
 
                             <td>
 
@@ -196,7 +248,10 @@
 
             <!-- Add Product Form -->
 
-            <div id="add-product" class="form-container">
+            <div
+                id="add-product"
+                class="form-container"
+            >
 
                 <h2>Add New Product</h2>
 
@@ -208,19 +263,32 @@
                     <p class="error-message">
 
                         {% if error == "name_required" %}
+
                             Product name is required.
 
                         {% elif error == "invalid_price" %}
+
                             Price must be greater than 0.
 
                         {% elif error == "invalid_quantity" %}
+
                             Quantity cannot be negative.
 
                         {% elif error == "invalid_low_stock" %}
+
                             Low stock level cannot be negative.
 
                         {% elif error == "category_required" %}
+
                             Category is required.
+
+                        {% elif error == "duplicate_product" %}
+
+                            A product with this name already exists.
+
+                        {% elif error == "product_not_found" %}
+
+                            Product could not be found.
 
                         {% endif %}
 
@@ -229,7 +297,10 @@
                 {% endif %}
 
 
-                <form action="/add-product" method="post">
+                <form
+                    action="/add-product"
+                    method="post"
+                >
 
                     <label for="name">
                         Product Name
@@ -251,7 +322,7 @@
                         type="number"
                         id="price"
                         name="price"
-                        min="0"
+                        min="1"
                         required
                     >
 
@@ -321,11 +392,17 @@
                 <thead>
 
                     <tr>
+
                         <th>Product</th>
+
                         <th>Movement</th>
+
                         <th>Quantity</th>
+
                         <th>Note</th>
+
                         <th>Date & Time</th>
+
                     </tr>
 
                 </thead>
@@ -403,4 +480,5 @@
     </main>
 
 </body>
+
 </html>

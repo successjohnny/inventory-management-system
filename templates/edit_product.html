@@ -45,23 +45,42 @@
                 <p class="error-message">
 
                     {% if error == "insufficient_stock" %}
-                        Insufficient stock. You cannot remove more
-                        items than are currently available.
+
+                        Insufficient stock.
+                        You cannot remove more items
+                        than are currently available.
 
                     {% elif error == "name_required" %}
+
                         Product name is required.
 
                     {% elif error == "invalid_price" %}
+
                         Price must be greater than 0.
 
-                    {% elif error == "invalid_quantity" %}
-                        Quantity cannot be negative.
-
                     {% elif error == "invalid_low_stock" %}
+
                         Low stock level cannot be negative.
 
                     {% elif error == "category_required" %}
+
                         Category is required.
+
+                    {% elif error == "invalid_movement_quantity" %}
+
+                        Stock movement quantity must be greater than 0.
+
+                    {% elif error == "invalid_movement_type" %}
+
+                        Invalid stock movement type.
+
+                    {% elif error == "product_not_found" %}
+
+                        Product could not be found.
+
+                    {% elif error == "duplicate_product" %}
+
+                        A product with this name already exists.
 
                     {% endif %}
 
@@ -104,20 +123,6 @@
                 >
 
 
-                <label for="quantity">
-                    Quantity
-                </label>
-
-                <input
-                    type="number"
-                    id="quantity"
-                    name="quantity"
-                    value="{{ product.quantity }}"
-                    min="0"
-                    required
-                >
-
-
                 <label for="low_stock_level">
                     Low Stock Level
                 </label>
@@ -155,7 +160,7 @@
             <hr>
 
 
-            <!-- Stock Movement -->
+            <!-- Stock Movement Section -->
 
             <h2>Stock Movement</h2>
 
