@@ -18,6 +18,11 @@ class Product(Base):
     name = Column(
         String,
         nullable=False,
+    )
+
+    normalized_name = Column(
+        String,
+        nullable=False,
         unique=True,
     )
 
@@ -39,6 +44,11 @@ class Product(Base):
     category = Column(
         String,
         nullable=False,
+    )
+
+    supplier = Column(
+        String,
+        nullable=True,
     )
 
     stock_movements = relationship(

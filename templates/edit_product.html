@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -16,85 +14,27 @@
         rel="stylesheet"
         href="{{ url_for('static', path='style.css') }}"
     >
-
 </head>
-
 
 <body>
 
-    <header>
+    <div class="container">
 
         <h1>Edit Product</h1>
 
-        <p>Update product information</p>
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
 
-    </header>
+        <form
+            action="/edit-product/{{ product.id }}"
+            method="post"
+            class="product-form"
+        >
 
-
-    <main>
-
-        <section class="form-container">
-
-            <h2>Edit {{ product.name }}</h2>
-
-
-            <!-- Validation Error -->
-
-            {% if error %}
-
-                <p class="error-message">
-
-                    {% if error == "insufficient_stock" %}
-
-                        Insufficient stock.
-                        You cannot remove more items
-                        than are currently available.
-
-                    {% elif error == "name_required" %}
-
-                        Product name is required.
-
-                    {% elif error == "invalid_price" %}
-
-                        Price must be greater than 0.
-
-                    {% elif error == "invalid_low_stock" %}
-
-                        Low stock level cannot be negative.
-
-                    {% elif error == "category_required" %}
-
-                        Category is required.
-
-                    {% elif error == "invalid_movement_quantity" %}
-
-                        Stock movement quantity must be greater than 0.
-
-                    {% elif error == "invalid_movement_type" %}
-
-                        Invalid stock movement type.
-
-                    {% elif error == "product_not_found" %}
-
-                        Product could not be found.
-
-                    {% elif error == "duplicate_product" %}
-
-                        A product with this name already exists.
-
-                    {% endif %}
-
-                </p>
-
-            {% endif %}
-
-
-            <!-- Edit Product Form -->
-
-            <form
-                action="/edit-product/{{ product.id }}"
-                method="post"
-            >
+            <div class="form-group">
 
                 <label for="name">
                     Product Name
@@ -108,6 +48,10 @@
                     required
                 >
 
+            </div>
+
+
+            <div class="form-group">
 
                 <label for="price">
                     Price
@@ -122,6 +66,10 @@
                     required
                 >
 
+            </div>
+
+
+            <div class="form-group">
 
                 <label for="low_stock_level">
                     Low Stock Level
@@ -136,6 +84,10 @@
                     required
                 >
 
+            </div>
+
+
+            <div class="form-group">
 
                 <label for="category">
                     Category
@@ -149,26 +101,59 @@
                     required
                 >
 
+            </div>
 
-                <button type="submit">
-                    Save Changes
+
+            <div class="form-group">
+
+                <label for="supplier">
+                    Supplier
+                </label>
+
+                <input
+                    type="text"
+                    id="supplier"
+                    name="supplier"
+                    value="{{ product.supplier or '' }}"
+                    placeholder="e.g. ABC Electronics"
+                >
+
+            </div>
+
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="btn-primary"
+                >
+                    Update Product
                 </button>
 
-            </form>
+                <a
+                    href="/"
+                    class="btn-secondary"
+                >
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
 
 
-            <hr>
+        <hr>
 
 
-            <!-- Stock Movement Section -->
+        <h2>Stock Movement</h2>
 
-            <h2>Stock Movement</h2>
+        <form
+            action="/stock-movement/{{ product.id }}"
+            method="post"
+            class="product-form"
+        >
 
-
-            <form
-                action="/stock-movement/{{ product.id }}"
-                method="post"
-            >
+            <div class="form-group">
 
                 <label for="movement_type">
                     Movement Type
@@ -190,19 +175,27 @@
 
                 </select>
 
+            </div>
 
-                <label for="movement_quantity">
+
+            <div class="form-group">
+
+                <label for="quantity">
                     Quantity
                 </label>
 
                 <input
                     type="number"
-                    id="movement_quantity"
+                    id="quantity"
                     name="quantity"
                     min="1"
                     required
                 >
 
+            </div>
+
+
+            <div class="form-group">
 
                 <label for="note">
                     Note
@@ -212,33 +205,48 @@
                     type="text"
                     id="note"
                     name="note"
-                    placeholder="e.g. New shipment"
+                    placeholder="e.g. New delivery"
                 >
 
+            </div>
 
-                <button type="submit">
-                    Record Stock Movement
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="btn-primary"
+                >
+                    Record Movement
                 </button>
 
-            </form>
+            </div>
+
+        </form>
 
 
-            <br>
+        <div class="product-information">
 
+            <h2>Current Stock</h2>
 
-            <!-- Back to Inventory -->
+            <p>
+                <strong>Product:</strong>
+                {{ product.name }}
+            </p>
 
-            <a
-                href="/"
-                class="back-button"
-            >
-                Back to Inventory
-            </a>
+            <p>
+                <strong>Current Quantity:</strong>
+                {{ product.quantity }}
+            </p>
 
-        </section>
+            <p>
+                <strong>Low Stock Level:</strong>
+                {{ product.low_stock_level }}
+            </p>
 
-    </main>
+        </div>
+
+    </div>
 
 </body>
-
 </html>

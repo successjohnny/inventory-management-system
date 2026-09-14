@@ -139,6 +139,8 @@
 
                         <th>Category</th>
 
+                        <th>Supplier</th>
+
                         <th>Stock Status</th>
 
                         <th>Action</th>
@@ -179,6 +181,8 @@
                             <td>
                                 {{ product.category }}
                             </td>
+
+                            <td>{{ product.supplier or "Not specified" }}</td>
 
 
                             <td>
@@ -231,7 +235,7 @@
                         <tr>
 
                             <td
-                                colspan="7"
+                                colspan="8"
                                 class="search-not-found"
                             >
                                 Search not found.
@@ -362,6 +366,14 @@
                         id="category"
                         name="category"
                         required
+                    >
+
+                    <label for="supplier">Supplier</label>
+                    <input
+                        type="text"
+                        id="supplier"
+                        name="supplier"
+                        placeholder="e.g. ABC Electronics"
                     >
 
 
