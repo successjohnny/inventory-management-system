@@ -19,3 +19,12 @@ alembic init alembic
 bash: alembic revision --autogenerate -m "initial database"
 check migration py file for upgrade or downgrade
 bash: alembic upgrade head
+
+# step 6
+pip install pytest
+
+# step 7
+pip install httpx2
+
+pip freeze > requirements.txt
+cat requirements.txt
