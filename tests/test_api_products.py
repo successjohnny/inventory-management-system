@@ -136,3 +136,54 @@ def test_create_duplicate_product_api(client):
     data = second_response.json()
 
     assert data["detail"] == "duplicate_product"
+
+def test_create_product_negative_price(client):
+    test_client, db = client
+
+    response = test_client.post(
+        "/api/products/",
+        json={
+            "name": "Invalid Product",
+            "price": -5000,
+            "quantity": 10,
+            "low_stock_level": 5,
+            "category": "Electronics",
+            "supplier": "Test Supplier",
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_create_product_negative_quantity(client):
+    test_client, db = client
+
+    response = test_client.post(
+        "/api/products/",
+        json={
+            "name": "Invalid Product",
+            "price": 5000,
+            "quantity": -10,
+            "low_stock_level": 5,
+            "category": "Electronics",
+            "supplier": "Test Supplier",
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_create_product_negative_low_stock_level(client):
+    test_client, db = client
+
+    response = test_client.post(
+        "/api/products/",
+        json={
+            "name": "Invalid Product",
+            "price": 5000,
+            "quantity": 10,
+            "low_stock_level": -5,
+            "category": "Electronics",
+            "supplier": "Test Supplier",
+        },
+    )
+
+    assert response.status_code == 422
