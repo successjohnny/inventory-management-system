@@ -206,3 +206,24 @@ th {
     border-radius: 5px;
     font-weight: bold;
 }
+
+/* Delete product form */
+
+.delete-form {
+    display: inline;
+    margin: 0;
+}
+
+.delete-btn {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+}
+
+.delete-btn:hover {
+    background: #b91c1c;
+}

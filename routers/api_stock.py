@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from schemas import StockMovementCreate
+from models import StockMovement
+from schemas import (
+    StockMovementCreate,
+    StockMovementResponse,
+)
 from services.inventory_service import process_stock_movement
 
 
@@ -10,6 +14,25 @@ router = APIRouter(
     prefix="/api/stock-movements",
     tags=["Stock Movements API"],
 )
+
+
+@router.get(
+    "/",
+    response_model=list[StockMovementResponse],
+)
+def get_stock_movements(
+    db: Session = Depends(get_db),
+):
+    movements = (
+        db.query(StockMovement)
+        .order_by(
+            StockMovement.created_at.desc(),
+            StockMovement.id.desc(),
+        )
+        .all()
+    )
+
+    return movements
 
 
 @router.post(

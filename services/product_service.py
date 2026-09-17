@@ -157,3 +157,25 @@ def update_product(
     db.refresh(product)
 
     return product
+
+def delete_product(db: Session, product_id: int):
+    """
+    Delete a product by its ID.
+
+    Returns None on success or an error code if
+    the product does not exist.
+    """
+
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id)
+        .first()
+    )
+
+    if product is None:
+        return "product_not_found"
+
+    db.delete(product)
+    db.commit()
+
+    return None

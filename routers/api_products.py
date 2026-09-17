@@ -2,9 +2,21 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Product
-from schemas import ProductCreate, ProductResponse
-from services.product_service import create_product
+from models import Product, StockMovement
+
+from schemas import (
+    ProductCreate,
+    ProductUpdate,
+    ProductResponse,
+    StockMovementResponse,
+)
+
+from services.product_service import (
+    create_product,
+    update_product,
+    validate_product,
+    delete_product
+)
 
 
 router = APIRouter(
@@ -46,6 +58,39 @@ def get_product(
     return product
 
 
+@router.get(
+    "/{product_id}/stock-movements",
+    response_model=list[StockMovementResponse],
+)
+def get_product_stock_movements(
+    product_id: int,
+    db: Session = Depends(get_db),
+):
+    product = db.query(Product).filter(
+        Product.id == product_id
+    ).first()
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found",
+        )
+
+    movements = (
+        db.query(StockMovement)
+        .filter(
+            StockMovement.product_id == product_id
+        )
+        .order_by(
+            StockMovement.created_at.desc(),
+            StockMovement.id.desc(),
+        )
+        .all()
+    )
+
+    return movements
+
+
 @router.post(
     "/",
     response_model=ProductResponse,
@@ -72,3 +117,71 @@ def create_product_api(
         )
 
     return result
+
+
+@router.put(
+    "/{product_id}",
+    response_model=ProductResponse,
+)
+def update_product_api(
+    product_id: int,
+    product_data: ProductUpdate,
+    db: Session = Depends(get_db),
+):
+    error = validate_product(
+        product_data.name,
+        product_data.price,
+        product_data.low_stock_level,
+        product_data.category,
+    )
+
+    if error:
+        raise HTTPException(
+            status_code=400,
+            detail=error,
+        )
+
+    result = update_product(
+        db,
+        product_id,
+        product_data.name,
+        product_data.price,
+        product_data.low_stock_level,
+        product_data.category,
+        product_data.supplier or "",
+    )
+
+    if result == "product_not_found":
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found",
+        )
+
+    if isinstance(result, str):
+        raise HTTPException(
+            status_code=400,
+            detail=result,
+        )
+
+    return result
+
+@router.delete(
+    "/{product_id}",
+    status_code=204,
+)
+def delete_product_api(
+    product_id: int,
+    db: Session = Depends(get_db),
+):
+    error = delete_product(
+        db,
+        product_id,
+    )
+
+    if error == "product_not_found":
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found",
+        )
+
+    return None

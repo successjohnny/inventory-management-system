@@ -6,18 +6,23 @@ from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from models import Product, StockMovement
 from services.error_messages import ERROR_MESSAGES
+
 from services.product_service import (
     create_product,
     update_product,
     validate_product,
+    delete_product,
 )
 
 
 router = APIRouter()
 
-
 templates = Jinja2Templates(directory="templates")
 
+
+# =====================================================
+# HOME / DASHBOARD
+# =====================================================
 
 @router.get("/")
 def home(
@@ -41,11 +46,15 @@ def home(
 
     # Search products using normalized_name
     if normalized_search:
-        products = db.query(Product).filter(
-            Product.normalized_name.ilike(
-                f"%{normalized_search}%"
+        products = (
+            db.query(Product)
+            .filter(
+                Product.normalized_name.ilike(
+                    f"%{normalized_search}%"
+                )
             )
-        ).all()
+            .all()
+        )
     else:
         products = all_products
 
@@ -85,6 +94,10 @@ def home(
         },
     )
 
+
+# =====================================================
+# ADD PRODUCT
+# =====================================================
 
 @router.post("/add-product")
 def add_product(
@@ -140,6 +153,10 @@ def add_product(
     )
 
 
+# =====================================================
+# EDIT PRODUCT PAGE
+# =====================================================
+
 @router.get("/edit-product/{product_id}")
 def edit_product(
     request: Request,
@@ -147,9 +164,11 @@ def edit_product(
     error: str = "",
     db: Session = Depends(get_db),
 ):
-    product = db.query(Product).filter(
-        Product.id == product_id
-    ).first()
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id)
+        .first()
+    )
 
     if not product:
         return RedirectResponse(
@@ -166,6 +185,10 @@ def edit_product(
         },
     )
 
+
+# =====================================================
+# UPDATE PRODUCT
+# =====================================================
 
 @router.post("/edit-product/{product_id}")
 def update_product_route(
@@ -222,18 +245,26 @@ def update_product_route(
     )
 
 
-@router.get("/delete-product/{product_id}")
-def delete_product(
+# =====================================================
+# DELETE PRODUCT
+# =====================================================
+
+@router.post("/delete-product/{product_id}")
+def delete_product_route(
     product_id: int,
     db: Session = Depends(get_db),
 ):
-    product = db.query(Product).filter(
-        Product.id == product_id
-    ).first()
+    # Reuse the deletion service
+    error = delete_product(
+        db,
+        product_id,
+    )
 
-    if product:
-        db.delete(product)
-        db.commit()
+    if error == "product_not_found":
+        return RedirectResponse(
+            url="/?error=product_not_found",
+            status_code=303,
+        )
 
     return RedirectResponse(
         url="/",

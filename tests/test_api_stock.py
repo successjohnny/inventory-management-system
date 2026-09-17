@@ -163,3 +163,90 @@ def test_stock_movement_invalid_type(client):
     assert response.json()["detail"] == (
         "invalid_movement_type"
     )
+
+def test_get_stock_movements_empty(client):
+    test_client, db = client
+
+    response = test_client.get(
+        "/api/stock-movements/"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_get_stock_movements(client):
+    test_client, db = client
+
+    product_id = create_test_product(test_client)
+
+    create_response = test_client.post(
+        f"/api/stock-movements/{product_id}",
+        json={
+            "movement_type": "IN",
+            "quantity": 5,
+            "note": "New shipment",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    response = test_client.get(
+        "/api/stock-movements/"
+    )
+
+    assert response.status_code == 200
+
+    movements = response.json()
+
+    assert len(movements) == 1
+
+    movement = movements[0]
+
+    assert "id" in movement
+    assert movement["product_id"] == product_id
+    assert movement["movement_type"] == "IN"
+    assert movement["quantity"] == 5
+    assert movement["note"] == "New shipment"
+    assert "created_at" in movement
+
+
+def test_get_stock_movements_newest_first(client):
+    test_client, db = client
+
+    product_id = create_test_product(test_client)
+
+    first_response = test_client.post(
+        f"/api/stock-movements/{product_id}",
+        json={
+            "movement_type": "IN",
+            "quantity": 5,
+            "note": "First movement",
+        },
+    )
+
+    assert first_response.status_code == 201
+
+    second_response = test_client.post(
+        f"/api/stock-movements/{product_id}",
+        json={
+            "movement_type": "OUT",
+            "quantity": 3,
+            "note": "Second movement",
+        },
+    )
+
+    assert second_response.status_code == 201
+
+    response = test_client.get(
+        "/api/stock-movements/"
+    )
+
+    assert response.status_code == 200
+
+    movements = response.json()
+
+    assert len(movements) == 2
+
+    assert movements[0]["note"] == "Second movement"
+    assert movements[1]["note"] == "First movement"

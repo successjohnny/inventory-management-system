@@ -1,10 +1,22 @@
-from pydantic import BaseModel, Field
+from datetime import datetime
+
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ProductCreate(BaseModel):
     name: str
     price: int = Field(gt=0)
     quantity: int = Field(ge=0)
+    low_stock_level: int = Field(ge=0)
+    category: str
+    supplier: str | None = None
+
+
+class ProductUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    price: int = Field(gt=0)
     low_stock_level: int = Field(ge=0)
     category: str
     supplier: str | None = None
@@ -28,3 +40,17 @@ class StockMovementCreate(BaseModel):
     movement_type: str
     quantity: int = Field(gt=0)
     note: str | None = None
+
+
+class StockMovementResponse(BaseModel):
+    id: int
+    product_id: int
+    movement_type: str
+    quantity: int
+    note: str | None = None
+    created_at: datetime
+
+    model_config = {
+        "from_attributes": True
+    }
+    
