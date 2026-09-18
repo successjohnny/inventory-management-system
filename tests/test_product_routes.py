@@ -1,16 +1,16 @@
 from models import Product, StockMovement
 
-def test_home_page(client):
+def test_home_page(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     response = test_client.get("/")
 
     assert response.status_code == 200
 
-def test_add_product(client):
+def test_add_product(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     response = test_client.post(
 
@@ -58,9 +58,9 @@ def test_add_product(client):
 
     assert product.supplier == "ABC Electronics"
 
-def test_add_duplicate_product(client):
+def test_add_duplicate_product(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     # Create the first product
 
@@ -136,9 +136,9 @@ def test_add_duplicate_product(client):
 
     assert len(products) == 1
 
-def test_add_product_invalid_price(client):
+def test_add_product_invalid_price(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     response = test_client.post(
 
@@ -182,9 +182,9 @@ def test_add_product_invalid_price(client):
 
     assert product is None
 
-def test_add_product_invalid_quantity(client):
+def test_add_product_invalid_quantity(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     response = test_client.post(
 
@@ -228,9 +228,9 @@ def test_add_product_invalid_quantity(client):
 
     assert product is None
 
-def test_edit_product(client):
+def test_edit_product(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     # Create a product first
 
@@ -300,9 +300,9 @@ def test_edit_product(client):
 
     assert product.supplier == "XYZ Electronics"
 
-def test_edit_product_not_found(client):
+def test_edit_product_not_found(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     response = test_client.post(
 
@@ -336,8 +336,8 @@ def test_edit_product_not_found(client):
 
     )
 
-def test_delete_product(client):
-    test_client, db = client
+def test_delete_product(authenticated_client):
+    test_client, db = authenticated_client
     product = Product(
         name="Laptop", normalized_name="laptop", price=100000,
         quantity=10, low_stock_level=5, category="Electronics",
@@ -355,9 +355,9 @@ def test_delete_product(client):
     assert response.headers["location"] == "/"
     assert db.query(Product).filter(Product.id == product_id).first() is None
 
-def test_dashboard_displays_products(client):
+def test_dashboard_displays_products(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     product = Product(
 
@@ -391,9 +391,9 @@ def test_dashboard_displays_products(client):
 
     assert "ABC Electronics" in response.text
 
-def test_dashboard_search(client):
+def test_dashboard_search(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     laptop = Product(
 
@@ -447,9 +447,9 @@ def test_dashboard_search(client):
 
     assert "Keyboard" not in response.text
 
-def test_dashboard_search_not_found(client):
+def test_dashboard_search_not_found(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     product = Product(
 
@@ -485,8 +485,8 @@ def test_dashboard_search_not_found(client):
 
     assert "search not found" in response.text.lower()
 
-def test_dashboard_statistics(client):
-    test_client, db = client
+def test_dashboard_statistics(authenticated_client):
+    test_client, db = authenticated_client
     laptop = Product(
         name="Laptop", normalized_name="laptop", price=100000,
         quantity=10, low_stock_level=5, category="Electronics",
@@ -511,9 +511,9 @@ def test_dashboard_statistics(client):
     assert "2" in response.text
     assert "1" in response.text
 
-def test_dashboard_displays_stock_movement(client):
+def test_dashboard_displays_stock_movement(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     product = Product(
 
@@ -571,9 +571,9 @@ def test_dashboard_displays_stock_movement(client):
 
     assert "New shipment received" in dashboard_response.text
 
-def test_delete_product_deletes_stock_movements(client):
+def test_delete_product_deletes_stock_movements(authenticated_client):
 
-    test_client, db = client
+    test_client, db = authenticated_client
 
     product = Product(
 
@@ -661,8 +661,8 @@ def test_delete_product_deletes_stock_movements(client):
 
     assert remaining_movements == 0
 
-def test_delete_product_get_not_allowed(client):
-    test_client, db = client
+def test_delete_product_get_not_allowed(authenticated_client):
+    test_client, db = authenticated_client
     product = Product(
         name="Monitor", normalized_name="monitor", price=50000,
         quantity=5, low_stock_level=2, category="Electronics",

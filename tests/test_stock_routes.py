@@ -19,8 +19,8 @@ def create_product(db):
     return product
 
 
-def test_stock_in(client):
-    test_client, db = client
+def test_stock_in(authenticated_client):
+    test_client, db = authenticated_client
 
     product = create_product(db)
 
@@ -51,8 +51,8 @@ def test_stock_in(client):
     assert movement.note == "New stock received"
 
 
-def test_stock_out(client):
-    test_client, db = client
+def test_stock_out(authenticated_client):
+    test_client, db = authenticated_client
 
     product = create_product(db)
 
@@ -83,8 +83,8 @@ def test_stock_out(client):
     assert movement.note == "Customer sale"
 
 
-def test_stock_out_insufficient_stock(client):
-    test_client, db = client
+def test_stock_out_insufficient_stock(authenticated_client):
+    test_client, db = authenticated_client
 
     product = create_product(db)
 
@@ -115,8 +115,8 @@ def test_stock_out_insufficient_stock(client):
     assert movement is None
 
 
-def test_stock_invalid_quantity(client):
-    test_client, db = client
+def test_stock_invalid_quantity(authenticated_client):
+    test_client, db = authenticated_client
 
     product = create_product(db)
 
@@ -141,8 +141,8 @@ def test_stock_invalid_quantity(client):
     assert product.quantity == 10
 
 
-def test_stock_product_not_found(client):
-    test_client, db = client
+def test_stock_product_not_found(authenticated_client):
+    test_client, db = authenticated_client
 
     response = test_client.post(
         "/stock-movement/9999",

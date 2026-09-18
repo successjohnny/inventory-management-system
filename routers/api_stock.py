@@ -1,12 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
 from models import StockMovement
-from schemas import (
-    StockMovementCreate,
-    StockMovementResponse,
-)
+from schemas import StockMovementCreate, StockMovementResponse
 from services.inventory_service import process_stock_movement
 
 
@@ -23,8 +20,17 @@ router = APIRouter(
 def get_stock_movements(
     db: Session = Depends(get_db),
 ):
+    """
+    Return all stock movements.
+
+    Newest stock movements are returned first.
+    """
+
     movements = (
         db.query(StockMovement)
+        .options(
+            joinedload(StockMovement.product)
+        )
         .order_by(
             StockMovement.created_at.desc(),
             StockMovement.id.desc(),
@@ -37,36 +43,46 @@ def get_stock_movements(
 
 @router.post(
     "/{product_id}",
-    status_code=201,
+    status_code=status.HTTP_201_CREATED,
 )
 def create_stock_movement(
     product_id: int,
-    movement_data: StockMovementCreate,
+    movement: StockMovementCreate,
     db: Session = Depends(get_db),
 ):
+    """
+    Create a stock IN or OUT movement for a product.
+    """
+
     error = process_stock_movement(
         db,
         product_id,
-        movement_data.movement_type,
-        movement_data.quantity,
-        movement_data.note or "",
+        movement.movement_type,
+        movement.quantity,
+        movement.note or "",
     )
 
     if error == "product_not_found":
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Product not found",
         )
 
     if error == "insufficient_stock":
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Not enough stock available.",
+        )
+
+    if error == "invalid_movement_type":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid_movement_type",
         )
 
     if error:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=error,
         )
 

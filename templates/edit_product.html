@@ -2,14 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
-
     <title>Edit Product</title>
-
     <link
         rel="stylesheet"
         href="{{ url_for('static', path='style.css') }}"
@@ -17,9 +14,7 @@
 </head>
 
 <body>
-
     <div class="container">
-
         <h1>Edit Product</h1>
 
         {% if error %}
@@ -28,14 +23,19 @@
             </div>
         {% endif %}
 
+        <!-- Edit Product Form -->
         <form
             action="/edit-product/{{ product.id }}"
             method="post"
             class="product-form"
         >
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token }}"
+            >
 
             <div class="form-group">
-
                 <label for="name">
                     Product Name
                 </label>
@@ -47,12 +47,9 @@
                     value="{{ product.name }}"
                     required
                 >
-
             </div>
 
-
             <div class="form-group">
-
                 <label for="price">
                     Price
                 </label>
@@ -65,12 +62,9 @@
                     min="1"
                     required
                 >
-
             </div>
 
-
             <div class="form-group">
-
                 <label for="low_stock_level">
                     Low Stock Level
                 </label>
@@ -83,12 +77,9 @@
                     min="0"
                     required
                 >
-
             </div>
 
-
             <div class="form-group">
-
                 <label for="category">
                     Category
                 </label>
@@ -100,12 +91,9 @@
                     value="{{ product.category }}"
                     required
                 >
-
             </div>
 
-
             <div class="form-group">
-
                 <label for="supplier">
                     Supplier
                 </label>
@@ -117,12 +105,9 @@
                     value="{{ product.supplier or '' }}"
                     placeholder="e.g. ABC Electronics"
                 >
-
             </div>
 
-
             <div class="form-actions">
-
                 <button
                     type="submit"
                     class="btn-primary"
@@ -136,15 +121,12 @@
                 >
                     Cancel
                 </a>
-
             </div>
-
         </form>
-
 
         <hr>
 
-
+        <!-- Stock Movement Form -->
         <h2>Stock Movement</h2>
 
         <form
@@ -152,9 +134,13 @@
             method="post"
             class="product-form"
         >
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token }}"
+            >
 
             <div class="form-group">
-
                 <label for="movement_type">
                     Movement Type
                 </label>
@@ -164,7 +150,6 @@
                     name="movement_type"
                     required
                 >
-
                     <option value="IN">
                         Stock In
                     </option>
@@ -172,14 +157,10 @@
                     <option value="OUT">
                         Stock Out
                     </option>
-
                 </select>
-
             </div>
 
-
             <div class="form-group">
-
                 <label for="quantity">
                     Quantity
                 </label>
@@ -191,12 +172,9 @@
                     min="1"
                     required
                 >
-
             </div>
 
-
             <div class="form-group">
-
                 <label for="note">
                     Note
                 </label>
@@ -207,26 +185,20 @@
                     name="note"
                     placeholder="e.g. New delivery"
                 >
-
             </div>
 
-
             <div class="form-actions">
-
                 <button
                     type="submit"
                     class="btn-primary"
                 >
                     Record Movement
                 </button>
-
             </div>
-
         </form>
 
-
+        <!-- Current Stock Information -->
         <div class="product-information">
-
             <h2>Current Stock</h2>
 
             <p>
@@ -243,10 +215,7 @@
                 <strong>Low Stock Level:</strong>
                 {{ product.low_stock_level }}
             </p>
-
         </div>
-
     </div>
-
 </body>
 </html>

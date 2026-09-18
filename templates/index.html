@@ -1,584 +1,324 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta
-
         name="viewport"
-
         content="width=device-width, initial-scale=1.0"
-
     >
-
     <title>Inventory Management System</title>
-
     <link
-
         rel="stylesheet"
-
         href="{{ url_for('static', path='style.css') }}"
-
     >
-
 </head>
 
 <body>
-
     <header>
-
         <h1>Inventory Management System</h1>
-
         <p>Manage your products and stock</p>
 
+        <form action="/logout" method="post">
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token }}"
+            >
+            <button type="submit">Log Out</button>
+        </form>
     </header>
 
     <main>
-
         <!-- Dashboard Summary -->
-
         <section class="summary">
-
             <div class="card">
-
                 <h2>{{ total_products }}</h2>
-
                 <p>Total Products</p>
-
             </div>
 
             <div class="card">
-
                 <h2>{{ total_items }}</h2>
-
                 <p>Total Items</p>
-
             </div>
 
             <div class="card">
-
                 <h2>{{ total_categories }}</h2>
-
                 <p>Categories</p>
-
             </div>
 
             <div class="card">
-
                 <h2>{{ low_stock_products }}</h2>
-
                 <p>Low Stock</p>
-
             </div>
-
         </section>
 
         <!-- Products Section -->
-
         <section class="inventory">
-
             <div class="section-header">
-
                 <h2>Products</h2>
 
-                <a
-
-                    href="#add-product"
-
-                    class="add-button"
-
-                >
-
+                <a href="#add-product" class="add-button">
                     Add Product
-
                 </a>
-
             </div>
 
             <!-- Search -->
-
             <form
-
                 action="/"
-
                 method="get"
-
                 class="search-form"
-
             >
-
                 <input
-
                     type="text"
-
                     name="search"
-
+                    value="{{ search }}"
                     placeholder="Search products..."
-
                 >
 
-                <button type="submit">
+                <button type="submit">Search</button>
 
-                    Search
-
-                </button>
-
-                <a
-
-                    href="/"
-
-                    class="clear-button"
-
-                >
-
+                <a href="/" class="clear-button">
                     Clear
-
                 </a>
-
             </form>
 
             <!-- Product Table -->
-
             <table>
-
                 <thead>
-
                     <tr>
-
                         <th>Name</th>
-
                         <th>Price</th>
-
                         <th>Quantity</th>
-
                         <th>Low Stock Level</th>
-
                         <th>Category</th>
-
                         <th>Supplier</th>
-
                         <th>Stock Status</th>
-
                         <th>Action</th>
-
                     </tr>
-
                 </thead>
 
                 <tbody>
-
                     {% if products %}
-
                         {% for product in products %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>₦{{ product.price }}</td>
+                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.low_stock_level }}</td>
+                                <td>{{ product.category }}</td>
 
-                        <tr>
+                                <td>
+                                    {{ product.supplier or "Not specified" }}
+                                </td>
 
-                            <td>
+                                <td>
+                                    {% if product.quantity <= product.low_stock_level %}
+                                        <span class="low-stock">
+                                            Low Stock
+                                        </span>
+                                    {% else %}
+                                        <span class="in-stock">
+                                            In Stock
+                                        </span>
+                                    {% endif %}
+                                </td>
 
-                                {{ product.name }}
+                                <td>
+                                    <a
+                                        href="/edit-product/{{ product.id }}"
+                                        class="edit-button"
+                                    >
+                                        Edit
+                                    </a>
 
-                            </td>
+                                    <span>/</span>
 
-                            <td>
+                                    <form
+                                        action="/delete-product/{{ product.id }}"
+                                        method="post"
+                                        style="display: inline; margin: 0;"
+                                        onsubmit="return confirm('Are you sure you want to delete this product?');"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token }}"
+                                        >
 
-                                ₦{{ product.price }}
-
-                            </td>
-
-                            <td>
-
-                                {{ product.quantity }}
-
-                            </td>
-
-                            <td>
-
-                                {{ product.low_stock_level }}
-
-                            </td>
-
-                            <td>
-
-                                {{ product.category }}
-
-                            </td>
-
-                            <td>{{ product.supplier or "Not specified" }}</td>
-
-                            <td>
-
-                                {% if product.quantity <= product.low_stock_level %}
-
-                                    <span class="low-stock">
-
-                                        Low Stock
-
-                                    </span>
-
-                                {% else %}
-
-                                    <span class="in-stock">
-
-                                        In Stock
-
-                                    </span>
-
-                                {% endif %}
-
-                            </td>
-
-                            <td>
-
-                                <a
-
-                                    href="/edit-product/{{ product.id }}"
-
-                                    class="edit-button"
-
-                                >
-
-                                    Edit
-
-                                </a>
-
-                                <span>/</span>
-
-                                <form
-                                    action="/delete-product/{{ product.id }}"
-                                    method="post"
-                                    style="display: inline; margin: 0;"
-                                    onsubmit="return confirm('Are you sure you want to delete this product?');"
-                                >
-                                    <button type="submit" class="delete-button">
-                                        Delete
-                                    </button>
-                                </form>
-
-                            </td>
-
-                        </tr>
-
+                                        <button
+                                            type="submit"
+                                            class="delete-button"
+                                        >
+                                            Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
                         {% endfor %}
-
                     {% else %}
-
                         <tr>
-
                             <td
-
-                                colspan="8"
-
+                                colspan="9"
                                 class="search-not-found"
-
                             >
-
                                 Search not found.
-
                             </td>
-
                         </tr>
-
                     {% endif %}
-
                 </tbody>
-
             </table>
 
             <!-- Add Product Form -->
-
             <div
-
                 id="add-product"
-
                 class="form-container"
-
             >
-
                 <h2>Add New Product</h2>
 
-                <!-- Validation Error -->
-
                 {% if error %}
-
                     <p class="error-message">
-
-                        {% if error == "name_required" %}
-
-                            Product name is required.
-
-                        {% elif error == "invalid_price" %}
-
-                            Price must be greater than 0.
-
-                        {% elif error == "invalid_quantity" %}
-
-                            Quantity cannot be negative.
-
-                        {% elif error == "invalid_low_stock" %}
-
-                            Low stock level cannot be negative.
-
-                        {% elif error == "category_required" %}
-
-                            Category is required.
-
-                        {% elif error == "duplicate_product" %}
-
-                            A product with this name already exists.
-
-                        {% elif error == "product_not_found" %}
-
-                            Product could not be found.
-
-                        {% endif %}
-
+                        {{ error }}
                     </p>
-
                 {% endif %}
 
-                <form
-
-                    action="/add-product"
-
-                    method="post"
-
-                >
+                <form action="/add-product" method="post">
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token }}"
+                    >
 
                     <label for="name">
-
                         Product Name
-
                     </label>
 
                     <input
-
                         type="text"
-
                         id="name"
-
                         name="name"
-
                         required
-
                     >
 
                     <label for="price">
-
                         Price
-
                     </label>
 
                     <input
-
                         type="number"
-
                         id="price"
-
                         name="price"
-
                         min="1"
-
                         required
-
                     >
 
                     <label for="quantity">
-
                         Quantity
-
                     </label>
 
                     <input
-
                         type="number"
-
                         id="quantity"
-
                         name="quantity"
-
                         min="0"
-
                         required
-
                     >
 
                     <label for="low_stock_level">
-
                         Low Stock Level
-
                     </label>
 
                     <input
-
                         type="number"
-
                         id="low_stock_level"
-
                         name="low_stock_level"
-
                         min="0"
-
                         required
-
                     >
 
                     <label for="category">
-
                         Category
-
                     </label>
 
                     <input
-
                         type="text"
-
                         id="category"
-
                         name="category"
-
                         required
-
                     >
 
-                    <label for="supplier">Supplier</label>
+                    <label for="supplier">
+                        Supplier
+                    </label>
 
                     <input
-
                         type="text"
-
                         id="supplier"
-
                         name="supplier"
-
                         placeholder="e.g. ABC Electronics"
-
                     >
 
                     <button type="submit">
-
                         Add Product
-
                     </button>
-
                 </form>
-
             </div>
-
         </section>
 
         <!-- Stock Movement History -->
-
         <section class="inventory">
-
             <div class="section-header">
-
                 <h2>Stock Movement History</h2>
-
             </div>
 
             <table>
-
                 <thead>
-
                     <tr>
-
                         <th>Product</th>
-
                         <th>Movement</th>
-
                         <th>Quantity</th>
-
                         <th>Note</th>
-
-                        <th>Date & Time</th>
-
+                        <th>Date &amp; Time</th>
                     </tr>
-
                 </thead>
 
                 <tbody>
-
                     {% if movements %}
-
                         {% for movement in movements %}
+                            <tr>
+                                <td>
+                                    {{ movement.product.name }}
+                                </td>
 
-                        <tr>
+                                <td>
+                                    {% if movement.movement_type == "IN" %}
+                                        <span class="in-stock">
+                                            Stock In
+                                        </span>
+                                    {% else %}
+                                        <span class="low-stock">
+                                            Stock Out
+                                        </span>
+                                    {% endif %}
+                                </td>
 
-                            <td>
+                                <td>{{ movement.quantity }}</td>
+                                <td>{{ movement.note }}</td>
 
-                                {{ movement.product.name }}
-
-                            </td>
-
-                            <td>
-
-                                {% if movement.movement_type == "IN" %}
-
-                                    <span class="in-stock">
-
-                                        Stock In
-
-                                    </span>
-
-                                {% else %}
-
-                                    <span class="low-stock">
-
-                                        Stock Out
-
-                                    </span>
-
-                                {% endif %}
-
-                            </td>
-
-                            <td>
-
-                                {{ movement.quantity }}
-
-                            </td>
-
-                            <td>
-
-                                {{ movement.note }}
-
-                            </td>
-
-                            <td>
-
-                                {{ movement.created_at.strftime("%d %b %Y, %I:%M %p") }}
-
-                            </td>
-
-                        </tr>
-
+                                <td>
+                                    {{ movement.created_at.strftime("%d %b %Y, %I:%M %p") }}
+                                </td>
+                            </tr>
                         {% endfor %}
-
                     {% else %}
-
                         <tr>
-
                             <td colspan="5">
-
                                 No stock movements recorded.
-
                             </td>
-
                         </tr>
-
                     {% endif %}
-
                 </tbody>
-
             </table>
-
         </section>
-
     </main>
-
 </body>
-
 </html>
