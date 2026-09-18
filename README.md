@@ -28,3 +28,7 @@ pip install httpx2
 
 pip freeze > requirements.txt
 cat requirements.txt
+
+# step 8
+python -m pip install itsdangerous
+python -m pip freeze | grep -i '^itsdangerous=='
