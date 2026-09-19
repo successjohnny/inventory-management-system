@@ -32,3 +32,6 @@ cat requirements.txt
 # step 8
 python -m pip install itsdangerous
 python -m pip freeze | grep -i '^itsdangerous=='
+
+#step 9 Install the PostgreSQL driver
+python -m pip install "psycopg[binary]"

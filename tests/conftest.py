@@ -60,6 +60,9 @@ def client():
     Create an unauthenticated FastAPI test client
     using a temporary in-memory database.
 
+    Use an HTTPS base URL so that session cookies
+    marked Secure are returned by the test client.
+
     This fixture is also used for API tests and
     security tests.
     """
@@ -88,7 +91,10 @@ def client():
     app.dependency_overrides[get_db] = override_get_db
 
     try:
-        with TestClient(app) as test_client:
+        with TestClient(
+            app,
+            base_url="https://testserver",
+        ) as test_client:
             yield test_client, db
 
     finally:
@@ -258,7 +264,8 @@ def authenticated_client(
         dashboard.text
     )
 
-    # Step 6: Wrap the authenticated client.
+    # Step 6: Return the authenticated client
+    # and temporary database.
     authenticated_test_client = AuthenticatedInventoryClient(
         test_client,
         dashboard_token,
@@ -266,32 +273,27 @@ def authenticated_client(
 
     return authenticated_test_client, db
 
-# ==========================================
-# API AUTHENTICATION TEST FIXTURE
-# ==========================================
-
-TEST_API_TOKEN = "test-only-api-token-for-inventory-security-2026"
-
-
 @pytest.fixture
 def api_client(client, monkeypatch):
     """
-    Return a test client with a valid API bearer token.
+    Return an API test client with a valid bearer token.
 
-    The original client fixture remains unauthenticated
-    for security regression tests.
+    Reuse the temporary database provided by the
+    client fixture.
     """
 
     test_client, db = client
 
+    test_token = "test-api-token-for-inventory-tests-123456789"
+
     monkeypatch.setenv(
         "API_TOKEN",
-        TEST_API_TOKEN,
+        test_token,
     )
 
     test_client.headers.update(
         {
-            "Authorization": f"Bearer {TEST_API_TOKEN}",
+            "Authorization": f"Bearer {test_token}",
         }
     )
 
