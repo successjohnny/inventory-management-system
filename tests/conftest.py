@@ -265,3 +265,34 @@ def authenticated_client(
     )
 
     return authenticated_test_client, db
+
+# ==========================================
+# API AUTHENTICATION TEST FIXTURE
+# ==========================================
+
+TEST_API_TOKEN = "test-only-api-token-for-inventory-security-2026"
+
+
+@pytest.fixture
+def api_client(client, monkeypatch):
+    """
+    Return a test client with a valid API bearer token.
+
+    The original client fixture remains unauthenticated
+    for security regression tests.
+    """
+
+    test_client, db = client
+
+    monkeypatch.setenv(
+        "API_TOKEN",
+        TEST_API_TOKEN,
+    )
+
+    test_client.headers.update(
+        {
+            "Authorization": f"Bearer {TEST_API_TOKEN}",
+        }
+    )
+
+    return test_client, db

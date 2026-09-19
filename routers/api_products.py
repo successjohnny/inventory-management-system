@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from api_security import require_api_token
 from database import get_db
 from models import Product, StockMovement
 
@@ -15,13 +16,14 @@ from services.product_service import (
     create_product,
     update_product,
     validate_product,
-    delete_product
+    delete_product,
 )
 
 
 router = APIRouter(
     prefix="/api/products",
     tags=["Products API"],
+    dependencies=[Depends(require_api_token)],
 )
 
 
@@ -164,6 +166,7 @@ def update_product_api(
         )
 
     return result
+
 
 @router.delete(
     "/{product_id}",

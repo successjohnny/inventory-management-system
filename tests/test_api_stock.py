@@ -16,8 +16,8 @@ def create_test_product(test_client):
     return response.json()["id"]
 
 
-def test_stock_in(client):
-    test_client, db = client
+def test_stock_in(api_client):
+    test_client, db = api_client
 
     product_id = create_test_product(test_client)
 
@@ -44,8 +44,8 @@ def test_stock_in(client):
     assert product_response.json()["quantity"] == 15
 
 
-def test_stock_out(client):
-    test_client, db = client
+def test_stock_out(api_client):
+    test_client, db = api_client
 
     product_id = create_test_product(test_client)
 
@@ -72,8 +72,8 @@ def test_stock_out(client):
     assert product_response.json()["quantity"] == 6
 
 
-def test_stock_out_insufficient_stock(client):
-    test_client, db = client
+def test_stock_out_insufficient_stock(api_client):
+    test_client, db = api_client
 
     product_id = create_test_product(test_client)
 
@@ -93,8 +93,8 @@ def test_stock_out_insufficient_stock(client):
     )
 
 
-def test_stock_movement_product_not_found(client):
-    test_client, db = client
+def test_stock_movement_product_not_found(api_client):
+    test_client, db = api_client
 
     response = test_client.post(
         "/api/stock-movements/9999",
@@ -110,8 +110,8 @@ def test_stock_movement_product_not_found(client):
     assert response.json()["detail"] == "Product not found"
 
 
-def test_stock_movement_zero_quantity(client):
-    test_client, db = client
+def test_stock_movement_zero_quantity(api_client):
+    test_client, db = api_client
 
     product_id = create_test_product(test_client)
 
@@ -127,8 +127,8 @@ def test_stock_movement_zero_quantity(client):
     assert response.status_code == 422
 
 
-def test_stock_movement_negative_quantity(client):
-    test_client, db = client
+def test_stock_movement_negative_quantity(api_client):
+    test_client, db = api_client
 
     product_id = create_test_product(test_client)
 
@@ -144,8 +144,8 @@ def test_stock_movement_negative_quantity(client):
     assert response.status_code == 422
 
 
-def test_stock_movement_invalid_type(client):
-    test_client, db = client
+def test_stock_movement_invalid_type(api_client):
+    test_client, db = api_client
 
     product_id = create_test_product(test_client)
 
@@ -164,8 +164,8 @@ def test_stock_movement_invalid_type(client):
         "invalid_movement_type"
     )
 
-def test_get_stock_movements_empty(client):
-    test_client, db = client
+def test_get_stock_movements_empty(api_client):
+    test_client, db = api_client
 
     response = test_client.get(
         "/api/stock-movements/"
@@ -175,8 +175,8 @@ def test_get_stock_movements_empty(client):
     assert response.json() == []
 
 
-def test_get_stock_movements(client):
-    test_client, db = client
+def test_get_stock_movements(api_client):
+    test_client, db = api_client
 
     product_id = create_test_product(test_client)
 
@@ -211,8 +211,8 @@ def test_get_stock_movements(client):
     assert "created_at" in movement
 
 
-def test_get_stock_movements_newest_first(client):
-    test_client, db = client
+def test_get_stock_movements_newest_first(api_client):
+    test_client, db = api_client
 
     product_id = create_test_product(test_client)
 

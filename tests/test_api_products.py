@@ -1,8 +1,8 @@
 from models import Product
 
 
-def test_get_products(client):
-    test_client, db = client
+def test_get_products(api_client):
+    test_client, db = api_client
 
     product = Product(
         name="Laptop",
@@ -31,8 +31,8 @@ def test_get_products(client):
 
     assert "normalized_name" not in data[0]
 
-def test_get_product_by_id(client):
-    test_client, db = client
+def test_get_product_by_id(api_client):
+    test_client, db = api_client
 
     product = Product(
         name="Laptop",
@@ -62,8 +62,8 @@ def test_get_product_by_id(client):
 
     assert "normalized_name" not in data
 
-def test_get_product_not_found(client):
-    test_client, db = client
+def test_get_product_not_found(api_client):
+    test_client, db = api_client
 
     response = test_client.get(
         "/api/products/999"
@@ -75,8 +75,8 @@ def test_get_product_not_found(client):
 
     assert data["detail"] == "Product not found"
 
-def test_create_product_api(client):
-    test_client, db = client
+def test_create_product_api(api_client):
+    test_client, db = api_client
 
     response = test_client.post(
         "/api/products/",
@@ -102,8 +102,8 @@ def test_create_product_api(client):
 
     assert "normalized_name" not in data
 
-def test_create_duplicate_product_api(client):
-    test_client, db = client
+def test_create_duplicate_product_api(api_client):
+    test_client, db = api_client
 
     first_response = test_client.post(
         "/api/products/",
@@ -137,8 +137,8 @@ def test_create_duplicate_product_api(client):
 
     assert data["detail"] == "duplicate_product"
 
-def test_create_product_negative_price(client):
-    test_client, db = client
+def test_create_product_negative_price(api_client):
+    test_client, db = api_client
 
     response = test_client.post(
         "/api/products/",
@@ -154,8 +154,8 @@ def test_create_product_negative_price(client):
 
     assert response.status_code == 422
 
-def test_create_product_negative_quantity(client):
-    test_client, db = client
+def test_create_product_negative_quantity(api_client):
+    test_client, db = api_client
 
     response = test_client.post(
         "/api/products/",
@@ -171,8 +171,8 @@ def test_create_product_negative_quantity(client):
 
     assert response.status_code == 422
 
-def test_create_product_negative_low_stock_level(client):
-    test_client, db = client
+def test_create_product_negative_low_stock_level(api_client):
+    test_client, db = api_client
 
     response = test_client.post(
         "/api/products/",
@@ -188,8 +188,8 @@ def test_create_product_negative_low_stock_level(client):
 
     assert response.status_code == 422
 
-def test_get_product_stock_movements(client):
-    test_client, db = client
+def test_get_product_stock_movements(api_client):
+    test_client, db = api_client
 
     # Create the first product.
     first_product = test_client.post(
@@ -266,8 +266,8 @@ def test_get_product_stock_movements(client):
     assert movements[0]["note"] == "Laptop shipment"
 
 
-def test_get_product_stock_movements_empty(client):
-    test_client, db = client
+def test_get_product_stock_movements_empty(api_client):
+    test_client, db = api_client
 
     response = test_client.post(
         "/api/products/",
@@ -293,8 +293,8 @@ def test_get_product_stock_movements_empty(client):
     assert history_response.json() == []
 
 
-def test_get_product_stock_movements_not_found(client):
-    test_client, db = client
+def test_get_product_stock_movements_not_found(api_client):
+    test_client, db = api_client
 
     response = test_client.get(
         "/api/products/9999/stock-movements"
@@ -304,8 +304,8 @@ def test_get_product_stock_movements_not_found(client):
 
     assert response.json()["detail"] == "Product not found"
 
-def test_update_product_api(client):
-    test_client, db = client
+def test_update_product_api(api_client):
+    test_client, db = api_client
 
     create_response = test_client.post(
         "/api/products/",
@@ -348,8 +348,8 @@ def test_update_product_api(client):
     assert data["quantity"] == 10
 
 
-def test_update_product_not_found(client):
-    test_client, db = client
+def test_update_product_not_found(api_client):
+    test_client, db = api_client
 
     response = test_client.put(
         "/api/products/9999",
@@ -366,8 +366,8 @@ def test_update_product_not_found(client):
     assert response.json()["detail"] == "Product not found"
 
 
-def test_update_product_invalid_price(client):
-    test_client, db = client
+def test_update_product_invalid_price(api_client):
+    test_client, db = api_client
 
     response = test_client.put(
         "/api/products/9999",
@@ -383,8 +383,8 @@ def test_update_product_invalid_price(client):
     assert response.status_code == 422
 
 
-def test_update_product_duplicate_name(client):
-    test_client, db = client
+def test_update_product_duplicate_name(api_client):
+    test_client, db = api_client
 
     first = test_client.post(
         "/api/products/",
@@ -426,8 +426,8 @@ def test_update_product_duplicate_name(client):
     assert response.status_code == 400
     assert response.json()["detail"] == "duplicate_product"
 
-def test_delete_product_api(client):
-    test_client, db = client
+def test_delete_product_api(api_client):
+    test_client, db = api_client
 
     create_response = test_client.post(
         "/api/products/",
@@ -458,8 +458,8 @@ def test_delete_product_api(client):
     assert get_response.status_code == 404
 
 
-def test_delete_product_not_found(client):
-    test_client, db = client
+def test_delete_product_not_found(api_client):
+    test_client, db = api_client
 
     response = test_client.delete(
         "/api/products/9999"
@@ -469,8 +469,8 @@ def test_delete_product_not_found(client):
     assert response.json()["detail"] == "Product not found"
 
 
-def test_delete_product_removes_stock_movements(client):
-    test_client, db = client
+def test_delete_product_removes_stock_movements(api_client):
+    test_client, db = api_client
 
     create_response = test_client.post(
         "/api/products/",

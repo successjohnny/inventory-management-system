@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
+from api_security import require_api_token
 from database import get_db
 from models import StockMovement
 from schemas import StockMovementCreate, StockMovementResponse
@@ -10,6 +11,7 @@ from services.inventory_service import process_stock_movement
 router = APIRouter(
     prefix="/api/stock-movements",
     tags=["Stock Movements API"],
+    dependencies=[Depends(require_api_token)],
 )
 
 
