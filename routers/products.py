@@ -91,7 +91,7 @@ def add_product(
     low_stock_level: int = Form(...),
     category: str = Form(...),
     supplier: str = Form(""),
-    csrf_token: str = Form(...),
+    csrf_token: str = Form(""),
     db: Session = Depends(get_db),
 ):
     redirect = require_admin(request)
@@ -178,7 +178,7 @@ def update_product_route(
     low_stock_level: int = Form(...),
     category: str = Form(...),
     supplier: str = Form(""),
-    csrf_token: str = Form(...),
+    csrf_token: str = Form(""),
     db: Session = Depends(get_db),
 ):
     redirect = require_admin(request)
@@ -220,7 +220,7 @@ def update_product_route(
 def delete_product_route(
     request: Request,
     product_id: int,
-    csrf_token: str = Form(...),
+    csrf_token: str = Form(""),
     db: Session = Depends(get_db),
 ):
     redirect = require_admin(request)
