@@ -1,6 +1,6 @@
 import pytest
 
-from models import Product
+from models import Product, StockMovement
 from services.product_service import create_product
 
 
@@ -24,6 +24,15 @@ def make_product(db):
     return product
 
 
+def assert_login_redirect(response):
+    """
+    Verify that a request redirects to the login page.
+    """
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login"
+
+
 # ==========================================
 # ANONYMOUS ACCESS
 # ==========================================
@@ -36,8 +45,7 @@ def test_anonymous_user_cannot_access_dashboard(client):
         follow_redirects=False,
     )
 
-    assert response.status_code == 303
-    assert response.headers["location"] == "/login"
+    assert_login_redirect(response)
 
 
 def test_anonymous_user_cannot_access_edit_page(client):
@@ -50,8 +58,7 @@ def test_anonymous_user_cannot_access_edit_page(client):
         follow_redirects=False,
     )
 
-    assert response.status_code == 303
-    assert response.headers["location"] == "/login"
+    assert_login_redirect(response)
 
 
 def test_anonymous_user_cannot_create_product(client):
@@ -71,8 +78,7 @@ def test_anonymous_user_cannot_create_product(client):
         follow_redirects=False,
     )
 
-    assert response.status_code == 303
-    assert response.headers["location"] == "/login"
+    assert_login_redirect(response)
 
     assert db.query(Product).count() == 0
 
@@ -95,8 +101,7 @@ def test_anonymous_user_cannot_edit_product(client):
         follow_redirects=False,
     )
 
-    assert response.status_code == 303
-    assert response.headers["location"] == "/login"
+    assert_login_redirect(response)
 
     db.refresh(product)
 
@@ -118,8 +123,7 @@ def test_anonymous_user_cannot_delete_product(client):
         follow_redirects=False,
     )
 
-    assert response.status_code == 303
-    assert response.headers["location"] == "/login"
+    assert_login_redirect(response)
 
     assert db.get(Product, product_id) is not None
 
@@ -140,12 +144,12 @@ def test_anonymous_user_cannot_change_stock(client):
         follow_redirects=False,
     )
 
-    assert response.status_code == 303
-    assert response.headers["location"] == "/login"
+    assert_login_redirect(response)
 
     db.refresh(product)
 
     assert product.quantity == 10
+    assert db.query(StockMovement).count() == 0
 
 
 # ==========================================
@@ -163,7 +167,7 @@ def test_authenticated_user_can_access_dashboard(
 
 
 # ==========================================
-# CSRF PROTECTION
+# PRODUCT CREATION CSRF TESTS
 # ==========================================
 
 @pytest.mark.parametrize(
@@ -195,13 +199,98 @@ def test_invalid_csrf_blocks_product_creation(
 
     assert response.status_code == 403
 
-    assert (
-        db.query(Product)
-        .filter(Product.name == "Blocked Product")
-        .first()
-        is None
+    assert db.query(Product).count() == 0
+
+
+def test_missing_csrf_blocks_product_creation(
+    authenticated_client,
+):
+    """
+    Omit the CSRF field entirely.
+    """
+
+    wrapped_client, db = authenticated_client
+
+    response = wrapped_client.test_client.post(
+        "/add-product",
+        data={
+            "name": "Missing Token Product",
+            "price": 100,
+            "quantity": 10,
+            "low_stock_level": 2,
+            "category": "Testing",
+            "supplier": "",
+        },
+        follow_redirects=False,
     )
 
+    assert response.status_code == 403
+
+    assert db.query(Product).count() == 0
+
+
+# ==========================================
+# PRODUCT EDITING CSRF TEST
+# ==========================================
+
+def test_invalid_csrf_blocks_product_edit(
+    authenticated_client,
+):
+    wrapped_client, db = authenticated_client
+
+    product = make_product(db)
+
+    response = wrapped_client.test_client.post(
+        f"/edit-product/{product.id}",
+        data={
+            "name": "Hacked Product",
+            "price": 999,
+            "low_stock_level": 1,
+            "category": "Changed Category",
+            "supplier": "",
+            "csrf_token": "invalid-token",
+        },
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 403
+
+    db.refresh(product)
+
+    assert product.name == "Security Test Product"
+    assert product.price == 100
+    assert product.low_stock_level == 2
+    assert product.category == "Testing"
+
+
+# ==========================================
+# PRODUCT DELETION CSRF TEST
+# ==========================================
+
+def test_invalid_csrf_blocks_product_deletion(
+    authenticated_client,
+):
+    wrapped_client, db = authenticated_client
+
+    product = make_product(db)
+    product_id = product.id
+
+    response = wrapped_client.test_client.post(
+        f"/delete-product/{product_id}",
+        data={
+            "csrf_token": "invalid-token",
+        },
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 403
+
+    assert db.get(Product, product_id) is not None
+
+
+# ==========================================
+# STOCK MOVEMENT CSRF TESTS
+# ==========================================
 
 def test_invalid_csrf_blocks_stock_movement(
     authenticated_client,
@@ -227,9 +316,44 @@ def test_invalid_csrf_blocks_stock_movement(
 
     assert product.quantity == 10
 
+    assert db.query(StockMovement).count() == 0
+
+
+def test_missing_csrf_blocks_stock_movement(
+    authenticated_client,
+):
+    """
+    A stock movement without a CSRF token must fail.
+
+    Both the product quantity and movement history
+    must remain unchanged.
+    """
+
+    wrapped_client, db = authenticated_client
+
+    product = make_product(db)
+
+    response = wrapped_client.test_client.post(
+        f"/stock-movement/{product.id}",
+        data={
+            "movement_type": "OUT",
+            "quantity": 5,
+            "note": "Missing CSRF test",
+        },
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 403
+
+    db.refresh(product)
+
+    assert product.quantity == 10
+
+    assert db.query(StockMovement).count() == 0
+
 
 # ==========================================
-# LOGOUT
+# LOGOUT TESTS
 # ==========================================
 
 def test_logout_prevents_dashboard_access(
@@ -253,8 +377,7 @@ def test_logout_prevents_dashboard_access(
         follow_redirects=False,
     )
 
-    assert dashboard.status_code == 303
-    assert dashboard.headers["location"] == "/login"
+    assert_login_redirect(dashboard)
 
 
 def test_invalid_csrf_blocks_logout(

@@ -17,23 +17,23 @@ def stock_movement(
     movement_type: str = Form(...),
     quantity: int = Form(...),
     note: str = Form(""),
-    csrf_token: str = Form(...),
+    csrf_token: str = Form(""),
     db: Session = Depends(get_db),
 ):
     """
-    Process a stock movement through the browser.
+    Process a browser stock movement.
 
-    Only authenticated administrators with a valid
-    CSRF token can change stock quantities.
+    Authentication and CSRF validation must succeed
+    before inventory data can be modified.
     """
 
-    # Step 1: Check authentication.
+    # Step 1: Require an authenticated administrator.
     redirect = require_admin(request)
 
     if redirect is not None:
         return redirect
 
-    # Step 2: Verify the submitted CSRF token.
+    # Step 2: Validate the CSRF token.
     require_csrf(request, csrf_token)
 
     # Step 3: Process the stock movement.
