@@ -27,3 +27,5 @@ htmlcov/
 # Editor and operating system files
 .vscode/
 .DS_Store
+# Database backups
+*.db.backup

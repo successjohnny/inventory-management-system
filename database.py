@@ -1,15 +1,40 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 
-DATABASE_URL = "sqlite:///./inventory.db"
+# ==========================================
+# DATABASE CONFIGURATION
+# ==========================================
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite:///./inventory.db",
+)
+
+
+# ==========================================
+# DATABASE ENGINE
+# ==========================================
+
+engine_options = {}
+
+if DATABASE_URL.startswith("sqlite"):
+    engine_options["connect_args"] = {
+        "check_same_thread": False,
+    }
 
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},
+    **engine_options,
 )
 
+
+# ==========================================
+# DATABASE SESSION
+# ==========================================
 
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -18,8 +43,16 @@ SessionLocal = sessionmaker(
 )
 
 
+# ==========================================
+# DATABASE MODELS BASE
+# ==========================================
+
 Base = declarative_base()
 
+
+# ==========================================
+# DATABASE DEPENDENCY
+# ==========================================
 
 def get_db():
     """
@@ -28,9 +61,11 @@ def get_db():
     The session is automatically closed after
     the request has finished.
     """
+
     db = SessionLocal()
 
     try:
         yield db
+
     finally:
         db.close()
