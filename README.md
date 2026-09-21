@@ -33,5 +33,13 @@ cat requirements.txt
 python -m pip install itsdangerous
 python -m pip freeze | grep -i '^itsdangerous=='
 
-#step 9 Install the PostgreSQL driver
+# step 9 Install the PostgreSQL driver
 python -m pip install "psycopg[binary]"
+
+# step 10 Install PostgreSQL backup tools
+sudo apt update
+sudo apt install postgresql-client
+Do you want to continue? [Y/n]
+
+# step 11 backup command
+bash "$HOME/inventory-backups/scripts/backup.sh"
