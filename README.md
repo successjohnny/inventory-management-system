@@ -5,7 +5,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # step 3
-pip install -r requirement.txt
+pip install -r requirements.txt
 
 # step 4 
 pip install sqlalchemy
@@ -43,3 +43,11 @@ Do you want to continue? [Y/n]
 
 # step 11 backup command
 bash "$HOME/inventory-backups/scripts/backup.sh"
+
+# step 12 back up aiven in future
+"$HOME/inventory-backups/scripts/backup.sh"
+Then:
+1. Paste the current Aiven Service URI when prompted. It stays hidden.
+2. Enter your GPG backup passphrase when requested.
+3. Wait for: SUCCESS
+Then uploaded the new file to google drive
