@@ -69,6 +69,27 @@ The application includes a REST API for programmatic inventory management.
 | GET | `/api/stock-movements/` | List stock movements |
 | POST | `/api/stock-movements/{product_id}` | Create a stock movement |
 
+### System Health
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/health` | Check application and database health |
+
+The health endpoint verifies that the application is running and can successfully communicate with the database.
+
+A healthy response returns:
+
+```json
+{
+  "status": "healthy",
+  "database": "connected"
+}
+```
+
+If the application cannot communicate with the database, the endpoint returns HTTP **503 Service Unavailable**.
+
+The health endpoint is publicly accessible and does not require bearer-token authentication.
+
 Interactive Swagger documentation is available at:
 
 https://inventory-management-system-ycyy.onrender.com/docs
@@ -147,6 +168,20 @@ inventory-management-system/
 ├── static/
 ├── templates/
 ├── tests/
+│   ├── conftest.py
+│   ├── test_api_config.py
+│   ├── test_api_products.py
+│   ├── test_api_security.py
+│   ├── test_api_stock.py
+│   ├── test_auth_credentials.py
+│   ├── test_auth_routes.py
+│   ├── test_browser_route_security.py
+│   ├── test_browser_security.py
+│   ├── test_health.py
+│   ├── test_inventory_service.py
+│   ├── test_product_routes.py
+│   ├── test_product_service.py
+│   └── test_stock_routes.py
 ├── alembic.ini
 ├── api_security.py
 ├── auth_config.py
@@ -227,6 +262,12 @@ Swagger API documentation:
 http://127.0.0.1:8000/docs
 ```
 
+Health endpoint:
+
+```text
+http://127.0.0.1:8000/health
+```
+
 ## Running Tests
 
 Run the complete automated test suite with:
@@ -235,7 +276,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **130 automated tests** covering application functionality, API behavior, authentication, security, and inventory operations.
+The project currently contains **132 automated tests** covering application functionality, API behavior, authentication, security, inventory operations, and application/database health checks.
 
 ## Database Backups
 
@@ -280,7 +321,15 @@ OpenAPI schema:
 /openapi.json
 ```
 
-Browser-only dashboard routes are excluded from the OpenAPI schema so the documentation remains focused on the public REST API.
+The API documentation includes:
+
+- System health monitoring
+- Product management endpoints
+- Stock movement endpoints
+- Request and response schemas
+- Bearer-token authentication for protected API endpoints
+
+Browser-only dashboard routes are excluded from the OpenAPI schema so the documentation remains focused on the REST API.
 
 ## Security
 
@@ -297,6 +346,31 @@ Security measures implemented in the project include:
 - Encrypted database backups
 
 Production secrets are stored outside the source code and are not committed to Git.
+
+## Health Monitoring
+
+The application provides a database-aware health endpoint:
+
+```text
+GET /health
+```
+
+A successful response returns HTTP **200 OK**:
+
+```json
+{
+  "status": "healthy",
+  "database": "connected"
+}
+```
+
+The health check executes a lightweight database query to verify that both the FastAPI application and its database connection are operational.
+
+If the database cannot be reached, the endpoint returns HTTP **503 Service Unavailable** instead of reporting a false healthy state.
+
+Production health endpoint:
+
+https://inventory-management-system-ycyy.onrender.com/health
 
 ## Future Improvements
 
