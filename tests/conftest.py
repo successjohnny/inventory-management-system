@@ -1,3 +1,4 @@
+import os
 import re
 
 import pytest
@@ -9,14 +10,46 @@ from sqlalchemy.pool import StaticPool
 
 from auth_credentials import hash_password
 from database import Base, get_db
+
+
+# ==========================================
+# TEST ENVIRONMENT CONFIGURATION
+# ==========================================
+
+# These credentials are for automated tests only.
+# Never use production secrets in the test suite.
+#
+# They must exist before importing main.py because
+# the application validates its security configuration
+# during startup.
+
+os.environ.setdefault(
+    "SESSION_SECRET_KEY",
+    "pytest-only-session-secret-do-not-use-in-production",
+)
+
+os.environ.setdefault(
+    "API_TOKEN",
+    "pytest-api-token-only-do-not-use-in-production-123456789",
+)
+
+
 from main import app
 
+
+# ==========================================
+# TEST CREDENTIALS
+# ==========================================
 
 # Test credentials only.
 # Never use your real administrator password in tests.
 TEST_ADMIN_USERNAME = "test_admin"
 TEST_ADMIN_PASSWORD = "test-password-for-pytest"
 
+
+# ==========================================
+# DATABASE FIXTURE
+# ==========================================
 
 @pytest.fixture
 def db_session():
@@ -53,6 +86,10 @@ def db_session():
 
         engine.dispose()
 
+
+# ==========================================
+# UNAUTHENTICATED TEST CLIENT
+# ==========================================
 
 @pytest.fixture
 def client():
@@ -107,6 +144,10 @@ def client():
         engine.dispose()
 
 
+# ==========================================
+# CSRF HELPER
+# ==========================================
+
 def extract_csrf_token(html: str) -> str:
     """
     Extract a CSRF token from an HTML form.
@@ -124,6 +165,10 @@ def extract_csrf_token(html: str) -> str:
 
     return match.group(1)
 
+
+# ==========================================
+# AUTHENTICATED CLIENT WRAPPER
+# ==========================================
 
 class AuthenticatedInventoryClient:
     """
@@ -192,6 +237,10 @@ class AuthenticatedInventoryClient:
             name,
         )
 
+
+# ==========================================
+# AUTHENTICATED BROWSER CLIENT
+# ==========================================
 
 @pytest.fixture
 def authenticated_client(
@@ -273,8 +322,16 @@ def authenticated_client(
 
     return authenticated_test_client, db
 
+
+# ==========================================
+# AUTHENTICATED API CLIENT
+# ==========================================
+
 @pytest.fixture
-def api_client(client, monkeypatch):
+def api_client(
+    client,
+    monkeypatch,
+):
     """
     Return an API test client with a valid bearer token.
 
@@ -284,7 +341,9 @@ def api_client(client, monkeypatch):
 
     test_client, db = client
 
-    test_token = "test-api-token-for-inventory-tests-123456789"
+    test_token = (
+        "test-api-token-for-inventory-tests-123456789"
+    )
 
     monkeypatch.setenv(
         "API_TOKEN",
