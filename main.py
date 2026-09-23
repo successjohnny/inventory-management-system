@@ -2,12 +2,16 @@ import os
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
 from api_security import get_api_token
 from auth_config import get_session_secret
+from database import get_db
 
 from routers import (
     products,
@@ -78,6 +82,41 @@ app.mount(
     StaticFiles(directory="static"),
     name="static",
 )
+
+
+# ==========================================
+# HEALTH CHECK
+# ==========================================
+
+@app.get(
+    "/health",
+    tags=["System"],
+    summary="Check application health",
+    description=(
+        "Check whether the application is running and can "
+        "successfully communicate with the database."
+    ),
+)
+def health_check(
+    db: Session = Depends(get_db),
+):
+    """
+    Verify application and database availability.
+    """
+
+    try:
+        db.execute(text("SELECT 1"))
+
+    except SQLAlchemyError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database unavailable",
+        )
+
+    return {
+        "status": "healthy",
+        "database": "connected",
+    }
 
 
 # ==========================================
