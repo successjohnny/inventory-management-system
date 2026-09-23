@@ -2,12 +2,20 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
-from browser_security import require_admin, require_csrf
+from browser_security import (
+    require_admin,
+    require_csrf,
+)
 from database import get_db
-from services.inventory_service import process_stock_movement
+from services.inventory_service import (
+    process_stock_movement,
+)
 
 
-router = APIRouter()
+# Browser-only routes are excluded from the OpenAPI/Swagger schema.
+router = APIRouter(
+    include_in_schema=False,
+)
 
 
 @router.post("/stock-movement/{product_id}")
@@ -34,7 +42,10 @@ def stock_movement(
         return redirect
 
     # Step 2: Validate the CSRF token.
-    require_csrf(request, csrf_token)
+    require_csrf(
+        request,
+        csrf_token,
+    )
 
     # Step 3: Process the stock movement.
     error = process_stock_movement(
@@ -54,7 +65,10 @@ def stock_movement(
             )
 
         return RedirectResponse(
-            url=f"/edit-product/{product_id}?error={error}",
+            url=(
+                f"/edit-product/{product_id}"
+                f"?error={error}"
+            ),
             status_code=303,
         )
 

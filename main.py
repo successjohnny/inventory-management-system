@@ -18,10 +18,15 @@ from routers import (
 )
 
 
+# ==========================================
+# APPLICATION LIFESPAN
+# ==========================================
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Validate required API configuration at startup.
+    Validate required application configuration
+    when the FastAPI application starts.
     """
 
     get_api_token()
@@ -29,10 +34,26 @@ async def lifespan(app: FastAPI):
     yield
 
 
+# ==========================================
+# FASTAPI APPLICATION
+# ==========================================
+
 app = FastAPI(
+    title="Inventory Management System API",
+    description=(
+        "REST API for managing inventory products and stock movements. "
+        "The API supports product creation, retrieval, updating and deletion, "
+        "as well as stock-in and stock-out operations with movement history. "
+        "Protected API endpoints require bearer-token authentication."
+    ),
+    version="1.0.0",
     lifespan=lifespan,
 )
 
+
+# ==========================================
+# SESSION MIDDLEWARE
+# ==========================================
 
 app.add_middleware(
     SessionMiddleware,
@@ -48,6 +69,10 @@ app.add_middleware(
 )
 
 
+# ==========================================
+# STATIC FILES
+# ==========================================
+
 app.mount(
     "/static",
     StaticFiles(directory="static"),
@@ -55,11 +80,20 @@ app.mount(
 )
 
 
+# ==========================================
+# BROWSER ROUTES
+# ==========================================
+
 app.include_router(auth.router)
 
 app.include_router(products.router)
 
 app.include_router(stock.router)
+
+
+# ==========================================
+# REST API ROUTES
+# ==========================================
 
 app.include_router(api_products.router)
 

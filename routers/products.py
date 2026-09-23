@@ -19,7 +19,11 @@ from services.product_service import (
 )
 
 
-router = APIRouter()
+# Browser-only routes are excluded from the OpenAPI/Swagger schema.
+router = APIRouter(
+    include_in_schema=False,
+)
+
 templates = Jinja2Templates(directory="templates")
 
 
@@ -31,6 +35,7 @@ def home(
     db: Session = Depends(get_db),
 ):
     redirect = require_admin(request)
+
     if redirect is not None:
         return redirect
 
@@ -38,7 +43,9 @@ def home(
 
     movements = (
         db.query(StockMovement)
-        .options(joinedload(StockMovement.product))
+        .options(
+            joinedload(StockMovement.product)
+        )
         .all()
     )
 
@@ -64,20 +71,30 @@ def home(
             "products": products,
             "total_products": len(all_products),
             "total_items": sum(
-                product.quantity for product in all_products
+                product.quantity
+                for product in all_products
             ),
-            "total_categories": len({
-                product.category for product in all_products
-            }),
+            "total_categories": len(
+                {
+                    product.category
+                    for product in all_products
+                }
+            ),
             "low_stock_products": sum(
                 1
                 for product in all_products
-                if product.quantity <= product.low_stock_level
+                if product.quantity
+                <= product.low_stock_level
             ),
             "movements": movements,
-            "error": ERROR_MESSAGES.get(error, error),
+            "error": ERROR_MESSAGES.get(
+                error,
+                error,
+            ),
             "search": search,
-            "csrf_token": get_csrf_token(request),
+            "csrf_token": get_csrf_token(
+                request
+            ),
         },
     )
 
@@ -95,13 +112,20 @@ def add_product(
     db: Session = Depends(get_db),
 ):
     redirect = require_admin(request)
+
     if redirect is not None:
         return redirect
 
-    require_csrf(request, csrf_token)
+    require_csrf(
+        request,
+        csrf_token,
+    )
 
     error = validate_product(
-        name, price, low_stock_level, category
+        name,
+        price,
+        low_stock_level,
+        category,
     )
 
     if error:
@@ -132,7 +156,10 @@ def add_product(
             status_code=303,
         )
 
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(
+        url="/",
+        status_code=303,
+    )
 
 
 @router.get("/edit-product/{product_id}")
@@ -143,12 +170,15 @@ def edit_product(
     db: Session = Depends(get_db),
 ):
     redirect = require_admin(request)
+
     if redirect is not None:
         return redirect
 
     product = (
         db.query(Product)
-        .filter(Product.id == product_id)
+        .filter(
+            Product.id == product_id
+        )
         .first()
     )
 
@@ -163,8 +193,13 @@ def edit_product(
         name="edit_product.html",
         context={
             "product": product,
-            "error": ERROR_MESSAGES.get(error, error),
-            "csrf_token": get_csrf_token(request),
+            "error": ERROR_MESSAGES.get(
+                error,
+                error,
+            ),
+            "csrf_token": get_csrf_token(
+                request
+            ),
         },
     )
 
@@ -182,18 +217,28 @@ def update_product_route(
     db: Session = Depends(get_db),
 ):
     redirect = require_admin(request)
+
     if redirect is not None:
         return redirect
 
-    require_csrf(request, csrf_token)
+    require_csrf(
+        request,
+        csrf_token,
+    )
 
     error = validate_product(
-        name, price, low_stock_level, category
+        name,
+        price,
+        low_stock_level,
+        category,
     )
 
     if error:
         return RedirectResponse(
-            url=f"/edit-product/{product_id}?error={error}",
+            url=(
+                f"/edit-product/{product_id}"
+                f"?error={error}"
+            ),
             status_code=303,
         )
 
@@ -209,11 +254,17 @@ def update_product_route(
 
     if isinstance(result, str):
         return RedirectResponse(
-            url=f"/edit-product/{product_id}?error={result}",
+            url=(
+                f"/edit-product/{product_id}"
+                f"?error={result}"
+            ),
             status_code=303,
         )
 
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(
+        url="/",
+        status_code=303,
+    )
 
 
 @router.post("/delete-product/{product_id}")
@@ -224,12 +275,19 @@ def delete_product_route(
     db: Session = Depends(get_db),
 ):
     redirect = require_admin(request)
+
     if redirect is not None:
         return redirect
 
-    require_csrf(request, csrf_token)
+    require_csrf(
+        request,
+        csrf_token,
+    )
 
-    error = delete_product(db, product_id)
+    error = delete_product(
+        db,
+        product_id,
+    )
 
     if error == "product_not_found":
         return RedirectResponse(
@@ -237,4 +295,7 @@ def delete_product_route(
             status_code=303,
         )
 
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(
+        url="/",
+        status_code=303,
+    )
