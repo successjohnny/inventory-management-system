@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from math import ceil
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from api_security import require_api_token
@@ -7,6 +9,7 @@ from models import Product, StockMovement
 
 from schemas import (
     ProductCreate,
+    ProductListResponse,
     ProductUpdate,
     ProductResponse,
     StockMovementResponse,
@@ -29,18 +32,53 @@ router = APIRouter(
 
 @router.get(
     "/",
-    response_model=list[ProductResponse],
+    response_model=ProductListResponse,
     summary="List products",
     description=(
-        "Return all products currently stored in the inventory."
+        "Return a paginated list of inventory products. "
+        "Use the page and page_size query parameters to "
+        "control pagination."
     ),
 )
 def get_products(
+    page: int = Query(
+        default=1,
+        ge=1,
+        description="Page number starting from 1.",
+    ),
+    page_size: int = Query(
+        default=10,
+        ge=1,
+        le=100,
+        description="Number of products returned per page.",
+    ),
     db: Session = Depends(get_db),
 ):
-    products = db.query(Product).all()
+    total_items = db.query(Product).count()
 
-    return products
+    total_pages = (
+        ceil(total_items / page_size)
+        if total_items > 0
+        else 0
+    )
+
+    offset = (page - 1) * page_size
+
+    products = (
+        db.query(Product)
+        .order_by(Product.id.asc())
+        .offset(offset)
+        .limit(page_size)
+        .all()
+    )
+
+    return {
+        "items": products,
+        "page": page,
+        "page_size": page_size,
+        "total_items": total_items,
+        "total_pages": total_pages,
+    }
 
 
 @router.get(

@@ -23,13 +23,78 @@ def test_get_products(api_client):
 
     data = response.json()
 
-    assert len(data) == 1
+    assert data["page"] == 1
+    assert data["page_size"] == 10
+    assert data["total_items"] == 1
+    assert data["total_pages"] == 1
 
-    assert data[0]["name"] == "Laptop"
-    assert data[0]["price"] == 200000
-    assert data[0]["quantity"] == 110
+    assert len(data["items"]) == 1
 
-    assert "normalized_name" not in data[0]
+    item = data["items"][0]
+
+    assert item["name"] == "Laptop"
+    assert item["price"] == 200000
+    assert item["quantity"] == 110
+
+    assert "normalized_name" not in item
+
+
+def test_get_products_pagination(api_client):
+    test_client, db = api_client
+
+    for number in range(1, 6):
+        product = Product(
+            name=f"Product {number}",
+            normalized_name=f"product {number}",
+            price=1000 * number,
+            quantity=10 * number,
+            low_stock_level=2,
+            category="Test",
+            supplier="Test Supplier",
+        )
+
+        db.add(product)
+
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?page=2&page_size=2"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["page"] == 2
+    assert data["page_size"] == 2
+    assert data["total_items"] == 5
+    assert data["total_pages"] == 3
+
+    assert len(data["items"]) == 2
+
+    assert data["items"][0]["name"] == "Product 3"
+    assert data["items"][1]["name"] == "Product 4"
+
+
+def test_get_products_page_must_be_positive(api_client):
+    test_client, db = api_client
+
+    response = test_client.get(
+        "/api/products/?page=0"
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_products_page_size_limit(api_client):
+    test_client, db = api_client
+
+    response = test_client.get(
+        "/api/products/?page_size=101"
+    )
+
+    assert response.status_code == 422
+
 
 def test_get_product_by_id(api_client):
     test_client, db = api_client
@@ -62,6 +127,7 @@ def test_get_product_by_id(api_client):
 
     assert "normalized_name" not in data
 
+
 def test_get_product_not_found(api_client):
     test_client, db = api_client
 
@@ -74,6 +140,7 @@ def test_get_product_not_found(api_client):
     data = response.json()
 
     assert data["detail"] == "Product not found"
+
 
 def test_create_product_api(api_client):
     test_client, db = api_client
@@ -101,6 +168,7 @@ def test_create_product_api(api_client):
     assert data["supplier"] == "ABC Supplies"
 
     assert "normalized_name" not in data
+
 
 def test_create_duplicate_product_api(api_client):
     test_client, db = api_client
@@ -137,6 +205,7 @@ def test_create_duplicate_product_api(api_client):
 
     assert data["detail"] == "duplicate_product"
 
+
 def test_create_product_negative_price(api_client):
     test_client, db = api_client
 
@@ -153,6 +222,7 @@ def test_create_product_negative_price(api_client):
     )
 
     assert response.status_code == 422
+
 
 def test_create_product_negative_quantity(api_client):
     test_client, db = api_client
@@ -171,6 +241,7 @@ def test_create_product_negative_quantity(api_client):
 
     assert response.status_code == 422
 
+
 def test_create_product_negative_low_stock_level(api_client):
     test_client, db = api_client
 
@@ -187,6 +258,7 @@ def test_create_product_negative_low_stock_level(api_client):
     )
 
     assert response.status_code == 422
+
 
 def test_get_product_stock_movements(api_client):
     test_client, db = api_client
@@ -303,6 +375,7 @@ def test_get_product_stock_movements_not_found(api_client):
     assert response.status_code == 404
 
     assert response.json()["detail"] == "Product not found"
+
 
 def test_update_product_api(api_client):
     test_client, db = api_client
@@ -425,6 +498,7 @@ def test_update_product_duplicate_name(api_client):
 
     assert response.status_code == 400
     assert response.json()["detail"] == "duplicate_product"
+
 
 def test_delete_product_api(api_client):
     test_client, db = api_client

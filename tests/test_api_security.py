@@ -123,7 +123,15 @@ def test_valid_token_allows_product_listing(api_client):
     response = test_client.get("/api/products/")
 
     assert response.status_code == 200
-    assert response.json() == []
+
+    assert response.json() == {
+        "items": [],
+        "page": 1,
+        "page_size": 10,
+        "total_items": 0,
+        "total_pages": 0,
+    }
+
 
 def test_invalid_token_cannot_modify_existing_stock(
     configured_client,

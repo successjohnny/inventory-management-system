@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProductCreate(BaseModel):
@@ -13,7 +13,9 @@ class ProductCreate(BaseModel):
 
 
 class ProductUpdate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid"
+    )
 
     name: str
     price: int = Field(gt=0)
@@ -31,9 +33,17 @@ class ProductResponse(BaseModel):
     category: str
     supplier: str | None = None
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+
+class ProductListResponse(BaseModel):
+    items: list[ProductResponse]
+    page: int
+    page_size: int
+    total_items: int
+    total_pages: int
 
 
 class StockMovementCreate(BaseModel):
@@ -50,7 +60,6 @@ class StockMovementResponse(BaseModel):
     note: str | None = None
     created_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
-    
+    model_config = ConfigDict(
+        from_attributes=True
+    )
