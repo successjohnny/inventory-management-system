@@ -30,6 +30,10 @@ router = APIRouter(
 @router.get(
     "/",
     response_model=list[ProductResponse],
+    summary="List products",
+    description=(
+        "Return all products currently stored in the inventory."
+    ),
 )
 def get_products(
     db: Session = Depends(get_db),
@@ -42,14 +46,22 @@ def get_products(
 @router.get(
     "/{product_id}",
     response_model=ProductResponse,
+    summary="Get product",
+    description=(
+        "Return a single inventory product using its product ID."
+    ),
 )
 def get_product(
     product_id: int,
     db: Session = Depends(get_db),
 ):
-    product = db.query(Product).filter(
-        Product.id == product_id
-    ).first()
+    product = (
+        db.query(Product)
+        .filter(
+            Product.id == product_id
+        )
+        .first()
+    )
 
     if not product:
         raise HTTPException(
@@ -63,14 +75,23 @@ def get_product(
 @router.get(
     "/{product_id}/stock-movements",
     response_model=list[StockMovementResponse],
+    summary="Get product stock movements",
+    description=(
+        "Return the stock movement history for a specific product. "
+        "The newest movements are returned first."
+    ),
 )
 def get_product_stock_movements(
     product_id: int,
     db: Session = Depends(get_db),
 ):
-    product = db.query(Product).filter(
-        Product.id == product_id
-    ).first()
+    product = (
+        db.query(Product)
+        .filter(
+            Product.id == product_id
+        )
+        .first()
+    )
 
     if not product:
         raise HTTPException(
@@ -97,6 +118,11 @@ def get_product_stock_movements(
     "/",
     response_model=ProductResponse,
     status_code=201,
+    summary="Create product",
+    description=(
+        "Create a new inventory product with its initial quantity, "
+        "price, category, supplier and low-stock level."
+    ),
 )
 def create_product_api(
     product_data: ProductCreate,
@@ -124,6 +150,11 @@ def create_product_api(
 @router.put(
     "/{product_id}",
     response_model=ProductResponse,
+    summary="Update product",
+    description=(
+        "Update an existing product's name, price, category, "
+        "supplier and low-stock level."
+    ),
 )
 def update_product_api(
     product_id: int,
@@ -171,6 +202,10 @@ def update_product_api(
 @router.delete(
     "/{product_id}",
     status_code=204,
+    summary="Delete product",
+    description=(
+        "Delete an inventory product using its product ID."
+    ),
 )
 def delete_product_api(
     product_id: int,

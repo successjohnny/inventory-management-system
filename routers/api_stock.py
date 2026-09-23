@@ -1,11 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
 from sqlalchemy.orm import Session, joinedload
 
 from api_security import require_api_token
 from database import get_db
 from models import StockMovement
-from schemas import StockMovementCreate, StockMovementResponse
-from services.inventory_service import process_stock_movement
+from schemas import (
+    StockMovementCreate,
+    StockMovementResponse,
+)
+from services.inventory_service import (
+    process_stock_movement,
+)
 
 
 router = APIRouter(
@@ -18,6 +28,11 @@ router = APIRouter(
 @router.get(
     "/",
     response_model=list[StockMovementResponse],
+    summary="List stock movements",
+    description=(
+        "Return the complete stock movement history. "
+        "The newest stock movements are returned first."
+    ),
 )
 def get_stock_movements(
     db: Session = Depends(get_db),
@@ -31,7 +46,9 @@ def get_stock_movements(
     movements = (
         db.query(StockMovement)
         .options(
-            joinedload(StockMovement.product)
+            joinedload(
+                StockMovement.product
+            )
         )
         .order_by(
             StockMovement.created_at.desc(),
@@ -46,6 +63,13 @@ def get_stock_movements(
 @router.post(
     "/{product_id}",
     status_code=status.HTTP_201_CREATED,
+    summary="Create stock movement",
+    description=(
+        "Create a stock IN or OUT movement for a product. "
+        "Stock IN increases the product quantity, while stock OUT "
+        "decreases it. Stock OUT is rejected when there is "
+        "insufficient inventory."
+    ),
 )
 def create_stock_movement(
     product_id: int,
@@ -89,5 +113,7 @@ def create_stock_movement(
         )
 
     return {
-        "message": "Stock movement created successfully."
+        "message": (
+            "Stock movement created successfully."
+        )
     }
