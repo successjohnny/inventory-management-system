@@ -1,4 +1,5 @@
 from math import ceil
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
@@ -37,7 +38,8 @@ router = APIRouter(
     summary="List products",
     description=(
         "Return a paginated list of inventory products. "
-        "Products can be filtered by name and category. "
+        "Products can be filtered by name and category and "
+        "sorted by name, price, quantity, or category. "
         "Use the page and page_size query parameters to "
         "control pagination."
     ),
@@ -64,6 +66,26 @@ def get_products(
         default=None,
         description=(
             "Case-insensitive filter by product category."
+        ),
+    ),
+    sort_by: Literal[
+        "name",
+        "price",
+        "quantity",
+        "category",
+    ] | None = Query(
+        default=None,
+        description=(
+            "Product field used for sorting."
+        ),
+    ),
+    sort_order: Literal[
+        "asc",
+        "desc",
+    ] = Query(
+        default="asc",
+        description=(
+            "Sort direction: ascending or descending."
         ),
     ),
     db: Session = Depends(get_db),
@@ -99,13 +121,40 @@ def get_products(
 
     offset = (page - 1) * page_size
 
-    products = (
-        query
-        .order_by(Product.id.asc())
-        .offset(offset)
-        .limit(page_size)
-        .all()
-    )
+    sort_columns = {
+        "name": func.lower(Product.name),
+        "price": Product.price,
+        "quantity": Product.quantity,
+        "category": func.lower(Product.category),
+    }
+
+    if sort_by:
+        sort_column = sort_columns[sort_by]
+
+        if sort_order == "desc":
+            order_by = sort_column.desc()
+        else:
+            order_by = sort_column.asc()
+
+        products = (
+            query
+            .order_by(
+                order_by,
+                Product.id.asc(),
+            )
+            .offset(offset)
+            .limit(page_size)
+            .all()
+        )
+
+    else:
+        products = (
+            query
+            .order_by(Product.id.asc())
+            .offset(offset)
+            .limit(page_size)
+            .all()
+        )
 
     return {
         "items": products,

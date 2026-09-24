@@ -342,6 +342,370 @@ def test_get_products_filter_with_pagination(api_client):
     assert data["items"][0]["name"] == "Laptop 3"
     assert data["items"][1]["name"] == "Laptop 4"
 
+def test_get_products_sort_by_name_ascending(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=10000,
+            quantity=30,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=350000,
+            quantity=10,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Keyboard",
+            normalized_name="keyboard",
+            price=15000,
+            quantity=20,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?sort_by=name&sort_order=asc"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total_items"] == 3
+
+    names = [
+        item["name"]
+        for item in data["items"]
+    ]
+
+    assert names == [
+        "Keyboard",
+        "Laptop",
+        "Mouse",
+    ]
+
+def test_get_products_sort_by_name_descending(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=10000,
+            quantity=30,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=350000,
+            quantity=10,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Keyboard",
+            normalized_name="keyboard",
+            price=15000,
+            quantity=20,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?sort_by=name&sort_order=desc"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    names = [
+        item["name"]
+        for item in data["items"]
+    ]
+
+    assert names == [
+        "Mouse",
+        "Laptop",
+        "Keyboard",
+    ]
+
+def test_get_products_sort_by_price_ascending(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=350000,
+            quantity=10,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=10000,
+            quantity=30,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Keyboard",
+            normalized_name="keyboard",
+            price=15000,
+            quantity=20,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?sort_by=price&sort_order=asc"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    prices = [
+        item["price"]
+        for item in data["items"]
+    ]
+
+    assert prices == [
+        10000,
+        15000,
+        350000,
+    ]
+
+def test_get_products_sort_by_quantity_descending(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=350000,
+            quantity=10,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=10000,
+            quantity=30,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Keyboard",
+            normalized_name="keyboard",
+            price=15000,
+            quantity=20,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?sort_by=quantity&sort_order=desc"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    quantities = [
+        item["quantity"]
+        for item in data["items"]
+    ]
+
+    assert quantities == [
+        30,
+        20,
+        10,
+    ]
+
+def test_get_products_sort_by_category_ascending(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Office Chair",
+            normalized_name="office chair",
+            price=50000,
+            quantity=8,
+            low_stock_level=2,
+            category="Furniture",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=350000,
+            quantity=10,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=10000,
+            quantity=30,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?sort_by=category&sort_order=asc"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    categories = [
+        item["category"]
+        for item in data["items"]
+    ]
+
+    assert categories == [
+        "Accessories",
+        "Computers",
+        "Furniture",
+    ]
+
+def test_get_products_rejects_invalid_sort_by(api_client):
+    test_client, db = api_client
+
+    response = test_client.get(
+        "/api/products/?sort_by=supplier"
+    )
+
+    assert response.status_code == 422
+
+def test_get_products_rejects_invalid_sort_order(api_client):
+    test_client, db = api_client
+
+    response = test_client.get(
+        "/api/products/?sort_by=name&sort_order=random"
+    )
+
+    assert response.status_code == 422
+
+def test_get_products_filter_sort_and_paginate(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Gaming Laptop",
+            normalized_name="gaming laptop",
+            price=350000,
+            quantity=10,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Business Laptop",
+            normalized_name="business laptop",
+            price=250000,
+            quantity=15,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Student Laptop",
+            normalized_name="student laptop",
+            price=180000,
+            quantity=20,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier C",
+        ),
+        Product(
+            name="Laptop Stand",
+            normalized_name="laptop stand",
+            price=15000,
+            quantity=30,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier D",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/"
+        "?search=laptop"
+        "&category=computers"
+        "&sort_by=price"
+        "&sort_order=desc"
+        "&page=2"
+        "&page_size=2"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["page"] == 2
+    assert data["page_size"] == 2
+    assert data["total_items"] == 3
+    assert data["total_pages"] == 2
+
+    assert len(data["items"]) == 1
+
+    assert data["items"][0]["name"] == "Student Laptop"
+    assert data["items"][0]["price"] == 180000
+
 
 def test_get_products_page_must_be_positive(api_client):
     test_client, db = api_client
