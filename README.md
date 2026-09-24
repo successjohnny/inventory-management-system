@@ -55,12 +55,53 @@ The application includes a REST API for programmatic inventory management.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/api/products/` | List all products |
+| GET | `/api/products/` | List products with pagination |
 | POST | `/api/products/` | Create a product |
 | GET | `/api/products/{product_id}` | Get a product |
 | PUT | `/api/products/{product_id}` | Update a product |
 | DELETE | `/api/products/{product_id}` | Delete a product |
 | GET | `/api/products/{product_id}/stock-movements` | Get a product's stock movement history |
+
+### Product Pagination
+
+The product-list endpoint supports server-side pagination:
+
+```text
+GET /api/products/?page=1&page_size=10
+```
+
+Pagination parameters:
+
+| Parameter | Default | Validation | Description |
+| --- | ---: | --- | --- |
+| `page` | `1` | Minimum `1` | Page number to retrieve |
+| `page_size` | `10` | Minimum `1`, maximum `100` | Number of products per page |
+
+Example response:
+
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "name": "Laptop",
+      "price": 200000,
+      "quantity": 10,
+      "low_stock_level": 3,
+      "category": "Electronics",
+      "supplier": "Example Supplier"
+    }
+  ],
+  "page": 1,
+  "page_size": 10,
+  "total_items": 1,
+  "total_pages": 1
+}
+```
+
+The response includes the requested page, page size, total number of products, and total number of pages.
+
+Products are returned in ascending product-ID order to provide deterministic pagination.
 
 ### Stock Movement Endpoints
 
@@ -103,7 +144,7 @@ Example request:
 ```bash
 curl \
   -H "Authorization: Bearer YOUR_API_TOKEN" \
-  https://inventory-management-system-ycyy.onrender.com/api/products/
+  "https://inventory-management-system-ycyy.onrender.com/api/products/?page=1&page_size=10"
 ```
 
 Never commit real API tokens or other credentials to the repository.
@@ -276,7 +317,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **132 automated tests** covering application functionality, API behavior, authentication, security, inventory operations, and application/database health checks.
+The project currently contains **135 automated tests** covering application functionality, API behavior, pagination, authentication, security, inventory operations, and application/database health checks.
 
 ## Database Backups
 
@@ -325,6 +366,7 @@ The API documentation includes:
 
 - System health monitoring
 - Product management endpoints
+- Product pagination parameters and response schema
 - Stock movement endpoints
 - Request and response schemas
 - Bearer-token authentication for protected API endpoints
@@ -378,7 +420,6 @@ Possible future enhancements include:
 
 - Role-based access control
 - Multiple user accounts
-- Product pagination
 - Advanced inventory reporting
 - CSV/PDF report exports
 - Dashboard charts
