@@ -1,7 +1,10 @@
+from datetime import date, datetime, time, timezone
+
 from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
+    Query,
     status,
 )
 from sqlalchemy.orm import Session, joinedload
@@ -30,26 +33,51 @@ router = APIRouter(
     response_model=list[StockMovementResponse],
     summary="List stock movements",
     description=(
-        "Return the complete stock movement history. "
+        "Return the stock movement history. "
+        "Results can optionally be filtered by start date. "
         "The newest stock movements are returned first."
     ),
 )
 def get_stock_movements(
+    start_date: date | None = Query(
+        default=None,
+        description=(
+            "Return stock movements on or after this date."
+        ),
+    ),
     db: Session = Depends(get_db),
 ):
     """
-    Return all stock movements.
+    Return stock movements.
+
+    When start_date is supplied, only movements on or after
+    that date are returned.
 
     Newest stock movements are returned first.
     """
 
-    movements = (
+    query = (
         db.query(StockMovement)
         .options(
             joinedload(
                 StockMovement.product
             )
         )
+    )
+
+    if start_date is not None:
+        start_datetime = datetime.combine(
+            start_date,
+            time.min,
+            tzinfo=timezone.utc,
+        )
+
+        query = query.filter(
+            StockMovement.created_at >= start_datetime
+        )
+
+    movements = (
+        query
         .order_by(
             StockMovement.created_at.desc(),
             StockMovement.id.desc(),

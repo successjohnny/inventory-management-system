@@ -1,3 +1,7 @@
+from datetime import datetime, timezone
+
+from models import StockMovement
+
 def create_test_product(test_client):
     response = test_client.post(
         "/api/products/",
@@ -250,3 +254,68 @@ def test_get_stock_movements_newest_first(api_client):
 
     assert movements[0]["note"] == "Second movement"
     assert movements[1]["note"] == "First movement"
+
+def test_get_stock_movements_filter_by_start_date(api_client):
+    test_client, db = api_client
+
+    product_id = create_test_product(test_client)
+
+    first_response = test_client.post(
+        f"/api/stock-movements/{product_id}",
+        json={
+            "movement_type": "IN",
+            "quantity": 5,
+            "note": "August shipment",
+        },
+    )
+
+    assert first_response.status_code == 201
+
+    second_response = test_client.post(
+        f"/api/stock-movements/{product_id}",
+        json={
+            "movement_type": "IN",
+            "quantity": 5,
+            "note": "September shipment",
+        },
+    )
+
+    assert second_response.status_code == 201
+
+    movements = (
+        db.query(StockMovement)
+        .order_by(StockMovement.id.asc())
+        .all()
+    )
+
+    movements[0].created_at = datetime(
+        2026,
+        8,
+        15,
+        12,
+        0,
+        tzinfo=timezone.utc,
+    )
+
+    movements[1].created_at = datetime(
+        2026,
+        9,
+        15,
+        12,
+        0,
+        tzinfo=timezone.utc,
+    )
+
+    db.commit()
+
+    response = test_client.get(
+        "/api/stock-movements/"
+        "?start_date=2026-09-01"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["note"] == "September shipment"
