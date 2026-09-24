@@ -1,6 +1,7 @@
 from math import ceil
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from api_security import require_api_token
@@ -36,6 +37,7 @@ router = APIRouter(
     summary="List products",
     description=(
         "Return a paginated list of inventory products. "
+        "Products can be filtered by name and category. "
         "Use the page and page_size query parameters to "
         "control pagination."
     ),
@@ -52,9 +54,42 @@ def get_products(
         le=100,
         description="Number of products returned per page.",
     ),
+    search: str | None = Query(
+        default=None,
+        description=(
+            "Case-insensitive partial search by product name."
+        ),
+    ),
+    category: str | None = Query(
+        default=None,
+        description=(
+            "Case-insensitive filter by product category."
+        ),
+    ),
     db: Session = Depends(get_db),
 ):
-    total_items = db.query(Product).count()
+    query = db.query(Product)
+
+    if search:
+        search_value = search.strip().lower()
+
+        if search_value:
+            query = query.filter(
+                func.lower(Product.name).contains(
+                    search_value
+                )
+            )
+
+    if category:
+        category_value = category.strip().lower()
+
+        if category_value:
+            query = query.filter(
+                func.lower(Product.category)
+                == category_value
+            )
+
+    total_items = query.count()
 
     total_pages = (
         ceil(total_items / page_size)
@@ -65,7 +100,7 @@ def get_products(
     offset = (page - 1) * page_size
 
     products = (
-        db.query(Product)
+        query
         .order_by(Product.id.asc())
         .offset(offset)
         .limit(page_size)

@@ -75,6 +75,273 @@ def test_get_products_pagination(api_client):
     assert data["items"][0]["name"] == "Product 3"
     assert data["items"][1]["name"] == "Product 4"
 
+def test_get_products_search_by_name(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Gaming Laptop",
+            normalized_name="gaming laptop",
+            price=350000,
+            quantity=10,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Laptop Stand",
+            normalized_name="laptop stand",
+            price=15000,
+            quantity=20,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Wireless Mouse",
+            normalized_name="wireless mouse",
+            price=10000,
+            quantity=30,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?search=laptop"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["page"] == 1
+    assert data["page_size"] == 10
+    assert data["total_items"] == 2
+    assert data["total_pages"] == 1
+
+    assert len(data["items"]) == 2
+
+    assert data["items"][0]["name"] == "Gaming Laptop"
+    assert data["items"][1]["name"] == "Laptop Stand"
+
+def test_get_products_search_is_case_insensitive(api_client):
+    test_client, db = api_client
+
+    product = Product(
+        name="Gaming Laptop",
+        normalized_name="gaming laptop",
+        price=350000,
+        quantity=10,
+        low_stock_level=3,
+        category="Computers",
+        supplier="Supplier A",
+    )
+
+    db.add(product)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?search=GAMING"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total_items"] == 1
+    assert len(data["items"]) == 1
+    assert data["items"][0]["name"] == "Gaming Laptop"
+
+def test_get_products_filter_by_category(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=10,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Keyboard",
+            normalized_name="keyboard",
+            price=15000,
+            quantity=20,
+            low_stock_level=5,
+            category="Electronics",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Office Chair",
+            normalized_name="office chair",
+            price=50000,
+            quantity=8,
+            low_stock_level=2,
+            category="Furniture",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?category=ELECTRONICS"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["page"] == 1
+    assert data["page_size"] == 10
+    assert data["total_items"] == 2
+    assert data["total_pages"] == 1
+
+    assert len(data["items"]) == 2
+
+    assert data["items"][0]["name"] == "Laptop"
+    assert data["items"][1]["name"] == "Keyboard"
+
+def test_get_products_combined_search_and_category(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Gaming Laptop",
+            normalized_name="gaming laptop",
+            price=350000,
+            quantity=10,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Laptop Stand",
+            normalized_name="laptop stand",
+            price=15000,
+            quantity=20,
+            low_stock_level=5,
+            category="Accessories",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Gaming Mouse",
+            normalized_name="gaming mouse",
+            price=12000,
+            quantity=25,
+            low_stock_level=5,
+            category="Computers",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?search=gaming&category=computers"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total_items"] == 2
+    assert data["total_pages"] == 1
+    assert len(data["items"]) == 2
+
+    assert data["items"][0]["name"] == "Gaming Laptop"
+    assert data["items"][1]["name"] == "Gaming Mouse"
+
+def test_get_products_filter_no_matches(api_client):
+    test_client, db = api_client
+
+    product = Product(
+        name="Laptop",
+        normalized_name="laptop",
+        price=200000,
+        quantity=10,
+        low_stock_level=3,
+        category="Electronics",
+        supplier="Supplier A",
+    )
+
+    db.add(product)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/?search=projector"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["items"] == []
+    assert data["page"] == 1
+    assert data["page_size"] == 10
+    assert data["total_items"] == 0
+    assert data["total_pages"] == 0
+
+def test_get_products_filter_with_pagination(api_client):
+    test_client, db = api_client
+
+    for number in range(1, 6):
+        product = Product(
+            name=f"Laptop {number}",
+            normalized_name=f"laptop {number}",
+            price=100000 * number,
+            quantity=10,
+            low_stock_level=3,
+            category="Computers",
+            supplier="Test Supplier",
+        )
+
+        db.add(product)
+
+    other_product = Product(
+        name="Office Chair",
+        normalized_name="office chair",
+        price=50000,
+        quantity=10,
+        low_stock_level=2,
+        category="Furniture",
+        supplier="Test Supplier",
+    )
+
+    db.add(other_product)
+    db.commit()
+
+    response = test_client.get(
+        "/api/products/"
+        "?search=laptop"
+        "&page=2"
+        "&page_size=2"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["page"] == 2
+    assert data["page_size"] == 2
+    assert data["total_items"] == 5
+    assert data["total_pages"] == 3
+
+    assert len(data["items"]) == 2
+
+    assert data["items"][0]["name"] == "Laptop 3"
+    assert data["items"][1]["name"] == "Laptop 4"
+
 
 def test_get_products_page_must_be_positive(api_client):
     test_client, db = api_client
