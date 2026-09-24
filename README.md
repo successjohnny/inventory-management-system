@@ -46,6 +46,7 @@ https://inventory-management-system-ycyy.onrender.com/docs
 - Store movement notes
 - Record movement date and time
 - View movement history for individual products
+- Paginate individual product stock-movement history
 
 ### Dashboard
 
@@ -74,7 +75,7 @@ The application includes a token-secured REST API for programmatic inventory man
 | GET | `/api/products/{product_id}` | Get a product |
 | PUT | `/api/products/{product_id}` | Update a product |
 | DELETE | `/api/products/{product_id}` | Delete a product |
-| GET | `/api/products/{product_id}/stock-movements` | Get a product's stock movement history |
+| GET | `/api/products/{product_id}/stock-movements` | Get a product's paginated stock movement history |
 
 ### Product Pagination
 
@@ -316,6 +317,85 @@ GET /api/products/?search=laptop&category=Computers&sort_by=price&sort_order=des
 ```
 
 The API returns HTTP `422 Unprocessable Entity` when an unsupported `sort_by` or `sort_order` value is supplied.
+
+### Product Stock Movement History Pagination
+
+The stock-movement-history endpoint for an individual product supports server-side pagination:
+
+```text
+GET /api/products/{product_id}/stock-movements?page=1&page_size=10
+```
+
+Pagination parameters:
+
+| Parameter | Default | Validation | Description |
+| --- | ---: | --- | --- |
+| `page` | `1` | Minimum `1` | Page number to retrieve |
+| `page_size` | `10` | Minimum `1`, maximum `100` | Number of stock movements per page |
+
+Stock movements are returned from newest to oldest. When two movements have the same timestamp, movement ID is used as a secondary descending sort to keep the order deterministic.
+
+Example response:
+
+```json
+{
+  "items": [
+    {
+      "id": 5,
+      "product_id": 1,
+      "movement_type": "IN",
+      "quantity": 5,
+      "note": "New shipment",
+      "created_at": "2026-09-24T09:00:00Z"
+    }
+  ],
+  "page": 1,
+  "page_size": 10,
+  "total_items": 1,
+  "total_pages": 1
+}
+```
+
+The response includes:
+
+- `items` — stock movements on the requested page
+- `page` — requested page number
+- `page_size` — requested page size
+- `total_items` — total stock movements for the product
+- `total_pages` — total number of available pages
+
+A product with no stock-movement history returns HTTP `200 OK` with:
+
+```json
+{
+  "items": [],
+  "page": 1,
+  "page_size": 10,
+  "total_items": 0,
+  "total_pages": 0
+}
+```
+
+Requesting a valid page number beyond the available results also returns HTTP `200 OK` with an empty `items` list while preserving the correct `total_items` and `total_pages`.
+
+For example:
+
+```json
+{
+  "items": [],
+  "page": 5,
+  "page_size": 10,
+  "total_items": 1,
+  "total_pages": 1
+}
+```
+
+Invalid pagination parameters are rejected automatically:
+
+- `page` below `1` returns HTTP `422 Unprocessable Entity`.
+- `page_size` below `1` or above `100` returns HTTP `422 Unprocessable Entity`.
+
+A request for a product that does not exist returns HTTP `404 Not Found`.
 
 ### Stock Movement Endpoints
 
@@ -572,7 +652,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **153 automated tests** covering areas including:
+The project currently contains **157 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -602,6 +682,10 @@ The project currently contains **153 automated tests** covering areas including:
 - Stock-out operations
 - Insufficient-stock validation
 - Stock movement history
+- Product stock-movement-history pagination
+- Invalid stock-movement pagination validation
+- Empty stock-movement history pagination
+- Out-of-range stock-movement history pages
 - API authentication
 - Browser authentication
 - Security behavior
@@ -612,7 +696,7 @@ The project currently contains **153 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-153 passed
+157 passed
 ```
 
 ---
@@ -679,6 +763,8 @@ The documentation includes:
 - Product sorting parameters
 - Ascending and descending product sorting
 - Combined filtering, sorting, and pagination
+- Product stock-movement-history pagination
+- Stock-movement pagination parameters and response schema
 - Request schemas
 - Response schemas
 - Validation rules
@@ -751,7 +837,6 @@ This endpoint can be used by deployment platforms and external monitoring servic
 
 Possible future improvements include:
 
-- Pagination for stock movement history
 - Date-range filtering for stock movements
 - Inventory reporting and export
 - Role-based user accounts
