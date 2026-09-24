@@ -65,7 +65,7 @@ The application includes a token-secured REST API for programmatic inventory man
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/api/products/` | List products with pagination, search, and category filtering |
+| GET | `/api/products/` | List products with pagination, search, category filtering, and sorting |
 | POST | `/api/products/` | Create a product |
 | GET | `/api/products/{product_id}` | Get a product |
 | PUT | `/api/products/{product_id}` | Update a product |
@@ -111,7 +111,7 @@ Example response:
 
 The response includes the requested page, page size, total number of matching products, and total number of pages.
 
-Products are returned in ascending product-ID order to provide deterministic pagination.
+When no explicit sorting field is supplied, products are returned in ascending product-ID order to provide deterministic pagination.
 
 ### Product Filtering
 
@@ -181,6 +181,61 @@ Example:
   "total_pages": 0
 }
 ```
+
+### Product Sorting
+
+The product-list endpoint supports optional server-side sorting by product name, price, quantity, or category.
+
+Sort products by name in ascending order:
+
+```text
+GET /api/products/?sort_by=name&sort_order=asc
+```
+
+Sort products by price in descending order:
+
+```text
+GET /api/products/?sort_by=price&sort_order=desc
+```
+
+Sorting parameters:
+
+| Parameter | Default | Allowed Values | Description |
+| --- | --- | --- | --- |
+| `sort_by` | None | `name`, `price`, `quantity`, `category` | Product field used for sorting |
+| `sort_order` | `asc` | `asc`, `desc` | Sort direction |
+
+Name and category sorting are case-insensitive.
+
+When products have the same value for the selected sorting field, product ID is used as a secondary ascending sort to keep the result order deterministic.
+
+If `sort_by` is omitted, products retain the default ascending product-ID order.
+
+Sorting can be combined with filtering:
+
+```text
+GET /api/products/?search=laptop&category=Electronics&sort_by=price&sort_order=desc
+```
+
+Sorting can also be combined with pagination:
+
+```text
+GET /api/products/?sort_by=quantity&sort_order=asc&page=1&page_size=10
+```
+
+All three features can be used together:
+
+```text
+GET /api/products/?search=laptop&category=Computers&sort_by=price&sort_order=desc&page=1&page_size=10
+```
+
+When filtering, sorting, and pagination are combined, the API processes the request in this order:
+
+1. Filter the matching products.
+2. Sort the filtered products.
+3. Paginate the sorted result.
+
+The API returns HTTP `422 Unprocessable Entity` when an unsupported `sort_by` or `sort_order` value is supplied.
 
 ### Stock Movement Endpoints
 
@@ -437,7 +492,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **141 automated tests** covering areas including:
+The project currently contains **149 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -451,6 +506,13 @@ The project currently contains **141 automated tests** covering areas including:
 - Combined search and category filtering
 - Filtering with pagination
 - Empty filtered results
+- Product sorting by name
+- Product sorting by price
+- Product sorting by quantity
+- Product sorting by category
+- Ascending and descending sort order
+- Invalid sorting-parameter validation
+- Combined filtering, sorting, and pagination
 - Stock-in operations
 - Stock-out operations
 - Insufficient-stock validation
@@ -465,7 +527,7 @@ The project currently contains **141 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-141 passed
+149 passed
 ```
 
 ---
@@ -528,6 +590,9 @@ The documentation includes:
 - Product search parameter
 - Product category filter
 - Combined filtering and pagination
+- Product sorting parameters
+- Ascending and descending product sorting
+- Combined filtering, sorting, and pagination
 - Request schemas
 - Response schemas
 - Validation rules
@@ -600,7 +665,6 @@ This endpoint can be used by deployment platforms and external monitoring servic
 
 Possible future improvements include:
 
-- Sorting products by name, price, quantity, or category
 - Filtering products by low-stock status
 - Pagination for stock movement history
 - Date-range filtering for stock movements
