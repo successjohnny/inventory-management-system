@@ -38,8 +38,9 @@ router = APIRouter(
     summary="List products",
     description=(
         "Return a paginated list of inventory products. "
-        "Products can be filtered by name and category and "
-        "sorted by name, price, quantity, or category. "
+        "Products can be filtered by name, category, and "
+        "low-stock status and sorted by name, price, "
+        "quantity, or category. "
         "Use the page and page_size query parameters to "
         "control pagination."
     ),
@@ -66,6 +67,14 @@ def get_products(
         default=None,
         description=(
             "Case-insensitive filter by product category."
+        ),
+    ),
+    low_stock: bool | None = Query(
+        default=None,
+        description=(
+            "Filter products by low-stock status. "
+            "A product is low stock when its quantity is "
+            "less than or equal to its low-stock level."
         ),
     ),
     sort_by: Literal[
@@ -110,6 +119,16 @@ def get_products(
                 func.lower(Product.category)
                 == category_value
             )
+
+    if low_stock is True:
+        query = query.filter(
+            Product.quantity <= Product.low_stock_level
+        )
+
+    elif low_stock is False:
+        query = query.filter(
+            Product.quantity > Product.low_stock_level
+        )
 
     total_items = query.count()
 
