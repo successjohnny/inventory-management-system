@@ -1,61 +1,71 @@
 # Inventory Management System
 
-A full-stack inventory management application built with **FastAPI, PostgreSQL, SQLAlchemy, Jinja2, and Alembic**.
+A full-stack inventory management application built with **Python, FastAPI, SQLAlchemy, PostgreSQL, Jinja2, HTML, and CSS**.
 
-The system provides a browser-based inventory dashboard together with a secured REST API for managing products and stock movements.
+The system manages products, tracks stock movements, monitors low-stock levels, provides inventory dashboard statistics, and exposes a secure REST API for programmatic access.
+
+---
 
 ## Live Application
 
-Production application:
+The application is deployed on Render:
 
 https://inventory-management-system-ycyy.onrender.com
 
-Interactive API documentation:
+Interactive Swagger API documentation:
 
 https://inventory-management-system-ycyy.onrender.com/docs
+
+---
 
 ## Features
 
 ### Inventory Management
 
-- Create inventory products
+- Add new products
 - Edit existing products
 - Delete products
-- Search products by name
-- Organize products by category
-- Record supplier information
-- Configure individual low-stock thresholds
-- Display low-stock status
+- Search products
+- Product categories
+- Supplier information
+- Configurable low-stock level for each product
+- Duplicate product-name protection
+- Product validation
+- Case-insensitive product-name handling
 
 ### Stock Management
 
 - Record stock-in transactions
 - Record stock-out transactions
-- Prevent stock-out when inventory is insufficient
-- Maintain stock movement history
-- Track movement date and time
-- Add notes to stock movements
+- Prevent stock from going below zero
+- Track stock movement history
+- Store movement notes
+- Record movement date and time
+- View movement history for individual products
 
 ### Dashboard
 
-The browser dashboard displays:
+The browser dashboard provides inventory statistics including:
 
 - Total products
 - Total inventory items
 - Total categories
 - Low-stock products
-- Product inventory
+- Product inventory table
+- Product search
 - Stock movement history
+
+---
 
 ## REST API
 
-The application includes a REST API for programmatic inventory management.
+The application includes a token-secured REST API for programmatic inventory management.
 
 ### Product Endpoints
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/api/products/` | List products with pagination |
+| GET | `/api/products/` | List products with pagination, search, and category filtering |
 | POST | `/api/products/` | Create a product |
 | GET | `/api/products/{product_id}` | Get a product |
 | PUT | `/api/products/{product_id}` | Update a product |
@@ -99,9 +109,78 @@ Example response:
 }
 ```
 
-The response includes the requested page, page size, total number of products, and total number of pages.
+The response includes the requested page, page size, total number of matching products, and total number of pages.
 
 Products are returned in ascending product-ID order to provide deterministic pagination.
+
+### Product Filtering
+
+The product-list endpoint supports optional server-side filtering by product name and category.
+
+Search for products by name:
+
+```text
+GET /api/products/?search=laptop
+```
+
+The `search` parameter performs a case-insensitive partial match on the product name.
+
+For example:
+
+```text
+search=laptop
+```
+
+can match product names such as:
+
+```text
+Laptop
+Gaming Laptop
+Laptop Stand
+```
+
+Filter products by category:
+
+```text
+GET /api/products/?category=Electronics
+```
+
+Category matching is case-insensitive and uses an exact category match.
+
+The filters can be combined:
+
+```text
+GET /api/products/?search=laptop&category=Electronics
+```
+
+Filtering can also be combined with pagination:
+
+```text
+GET /api/products/?search=laptop&category=Electronics&page=1&page_size=10
+```
+
+Filtering is applied **before pagination**. Therefore, `total_items` and `total_pages` describe the filtered result set rather than all products in the database.
+
+Filtering parameters:
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `search` | No | Case-insensitive partial match on product name |
+| `category` | No | Case-insensitive exact match on product category |
+
+If no products match the filters, the API returns HTTP `200 OK` with an empty `items` list and zero result totals.
+
+Example:
+
+```json
+{
+  "items": [],
+  "page": 1,
+  "page_size": 10,
+  "total_items": 0,
+  "total_pages": 0
+}
+```
 
 ### Stock Movement Endpoints
 
@@ -135,11 +214,19 @@ Interactive Swagger documentation is available at:
 
 https://inventory-management-system-ycyy.onrender.com/docs
 
+---
+
 ## API Authentication
 
-REST API endpoints are protected using **Bearer Token authentication**.
+REST API endpoints are protected using bearer-token authentication.
 
-Example request:
+Clients must send the configured API token in the `Authorization` header:
+
+```text
+Authorization: Bearer YOUR_API_TOKEN
+```
+
+Example:
 
 ```bash
 curl \
@@ -147,19 +234,30 @@ curl \
   "https://inventory-management-system-ycyy.onrender.com/api/products/?page=1&page_size=10"
 ```
 
-Never commit real API tokens or other credentials to the repository.
+The API token is stored in an environment variable and is not committed to the repository.
+
+The `/health` endpoint is intentionally public so deployment and monitoring systems can check application availability without an API token.
+
+---
 
 ## Browser Security
 
-The browser interface includes:
+The browser interface includes several security protections:
 
 - Administrator authentication
 - Password hashing
 - Session-based authentication
 - Secure session configuration
-- CSRF protection for state-changing browser requests
+- CSRF protection for browser forms
+- Environment-based secret configuration
+- Protected inventory-management routes
+- Token-secured REST API endpoints
+- Validation of user input
+- Database constraints for product uniqueness
 
-The REST API uses separate bearer-token authentication.
+Sensitive credentials and application secrets are stored in environment variables rather than source code.
+
+---
 
 ## Technology Stack
 
@@ -167,74 +265,85 @@ The REST API uses separate bearer-token authentication.
 
 - Python
 - FastAPI
-- SQLAlchemy
+- SQLAlchemy ORM
 - Pydantic
 - Uvicorn
+- Alembic
 
 ### Frontend
 
-- HTML
-- CSS
-- Jinja2 Templates
+- Jinja2 templates
+- HTML5
+- CSS3
 
 ### Database
 
 - PostgreSQL
 - Aiven PostgreSQL
+- SQLite for isolated automated tests
+- SQLAlchemy ORM
 - Alembic database migrations
 
 ### Testing
 
 - Pytest
 - FastAPI TestClient
-- In-memory SQLite test database
+- HTTPX
+- Isolated test database
 
 ### Deployment
 
-- Render
+- Render web service
 - Aiven PostgreSQL
+- GitHub
+
+---
 
 ## Project Structure
 
 ```text
 inventory-management-system/
+│
 ├── alembic/
+│   └── versions/
+│
 ├── routers/
 │   ├── api_products.py
 │   ├── api_stock.py
 │   ├── auth.py
 │   ├── products.py
 │   └── stock.py
+│
 ├── services/
+│   └── product_service.py
+│
 ├── static/
+│   └── style.css
+│
 ├── templates/
+│   ├── index.html
+│   ├── edit_product.html
+│   └── login.html
+│
 ├── tests/
 │   ├── conftest.py
-│   ├── test_api_config.py
 │   ├── test_api_products.py
 │   ├── test_api_security.py
-│   ├── test_api_stock.py
-│   ├── test_auth_credentials.py
-│   ├── test_auth_routes.py
-│   ├── test_browser_route_security.py
-│   ├── test_browser_security.py
 │   ├── test_health.py
-│   ├── test_inventory_service.py
-│   ├── test_product_routes.py
-│   ├── test_product_service.py
-│   └── test_stock_routes.py
+│   └── ...
+│
 ├── alembic.ini
 ├── api_security.py
 ├── auth_config.py
-├── auth_credentials.py
-├── browser_security.py
 ├── database.py
 ├── main.py
 ├── models.py
-├── schemas.py
 ├── requirements.txt
+├── schemas.py
 └── README.md
 ```
+
+---
 
 ## Local Development
 
@@ -248,13 +357,19 @@ cd inventory-management-system
 ### 2. Create a virtual environment
 
 ```bash
-python3 -m venv .venv
+python -m venv .venv
 ```
 
-Activate it:
+Activate it on Linux or macOS:
 
 ```bash
 source .venv/bin/activate
+```
+
+On Windows:
+
+```powershell
+.venv\Scripts\activate
 ```
 
 ### 3. Install dependencies
@@ -267,17 +382,20 @@ pip install -r requirements.txt
 
 The application requires environment variables for database access and security.
 
-Example:
+Example names:
 
-```bash
-export DATABASE_URL="postgresql+psycopg://USER:PASSWORD@HOST:PORT/DATABASE"
-export SESSION_SECRET_KEY="your-secret-session-key"
-export API_TOKEN="your-api-token"
-export ADMIN_USERNAME="your-admin-username"
-export ADMIN_PASSWORD_HASH="your-password-hash"
+```text
+DATABASE_URL
+SESSION_SECRET_KEY
+API_TOKEN
+ADMIN_USERNAME
+ADMIN_PASSWORD_HASH
+SESSION_HTTPS_ONLY
 ```
 
-Do not store real production credentials in the repository.
+Do not commit real credentials or secrets to Git.
+
+For local development, configure appropriate development values in your environment.
 
 ### 5. Apply database migrations
 
@@ -291,23 +409,25 @@ alembic upgrade head
 uvicorn main:app --reload
 ```
 
-Then open:
+Open the application in your browser:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Swagger API documentation:
+Swagger documentation is available locally at:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-Health endpoint:
+The health endpoint is available at:
 
 ```text
 http://127.0.0.1:8000/health
 ```
+
+---
 
 ## Running Tests
 
@@ -317,87 +437,147 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **135 automated tests** covering application functionality, API behavior, pagination, authentication, security, inventory operations, and application/database health checks.
+The project currently contains **141 automated tests** covering areas including:
+
+- Product creation
+- Product retrieval
+- Product updates
+- Product deletion
+- Duplicate-product validation
+- Product pagination
+- Product-name search
+- Case-insensitive product search
+- Category filtering
+- Combined search and category filtering
+- Filtering with pagination
+- Empty filtered results
+- Stock-in operations
+- Stock-out operations
+- Insufficient-stock validation
+- Stock movement history
+- API authentication
+- Browser authentication
+- Security behavior
+- Database behavior
+- Application health checks
+- Database health failure handling
+
+The latest complete test run passed:
+
+```text
+141 passed
+```
+
+---
 
 ## Database Backups
 
-Production PostgreSQL data is protected with a backup workflow that:
+Production PostgreSQL data is backed up using PostgreSQL backup tools.
 
-- Creates PostgreSQL database dumps
-- Verifies backup integrity
-- Encrypts backups using GPG AES-256
-- Supports off-site backup storage
+The backup workflow:
 
-Credentials and encryption secrets are intentionally excluded from this repository.
+1. Creates a PostgreSQL custom-format dump.
+2. Verifies that the dump can be read.
+3. Encrypts the backup.
+4. Verifies the encrypted backup.
+5. Keeps the backup credentials outside the repository.
+
+Database credentials, encryption passphrases, and production secrets must never be committed to Git.
+
+---
 
 ## Database Migrations
 
-Database schema changes are managed with Alembic.
+Database schema changes are managed using Alembic.
 
-Create a migration:
-
-```bash
-alembic revision --autogenerate -m "migration description"
-```
-
-Apply migrations:
+Apply all migrations:
 
 ```bash
 alembic upgrade head
 ```
 
+Check the current migration:
+
+```bash
+alembic current
+```
+
+View migration history:
+
+```bash
+alembic history
+```
+
+Production migrations should be applied before the application begins serving requests that depend on new schema changes.
+
+---
+
 ## API Documentation
 
-FastAPI automatically generates OpenAPI documentation for the REST API.
+FastAPI automatically generates interactive OpenAPI documentation.
 
-Swagger UI:
+Production Swagger UI:
 
-```text
-/docs
-```
+https://inventory-management-system-ycyy.onrender.com/docs
 
-OpenAPI schema:
+The documentation includes:
 
-```text
-/openapi.json
-```
-
-The API documentation includes:
-
-- System health monitoring
-- Product management endpoints
+- Product API endpoints
+- Stock movement API endpoints
 - Product pagination parameters and response schema
-- Stock movement endpoints
-- Request and response schemas
-- Bearer-token authentication for protected API endpoints
+- Product search parameter
+- Product category filter
+- Combined filtering and pagination
+- Request schemas
+- Response schemas
+- Validation rules
+- Bearer-token authentication
+- System health endpoint
 
-Browser-only dashboard routes are excluded from the OpenAPI schema so the documentation remains focused on the REST API.
+API endpoints are organized into Swagger sections including:
+
+- Products API
+- Stock Movements API
+- System
+
+Browser-only routes are excluded from the public OpenAPI schema.
+
+---
 
 ## Security
 
-Security measures implemented in the project include:
+The project uses multiple security layers:
 
-- Hashed administrator passwords
+- Administrator login
+- Hashed administrator password
 - Session authentication
+- Secure session secret
 - CSRF protection
-- Bearer-token API authentication
-- Environment-based secret management
-- HTTPS-only production session cookies
+- Bearer-token REST API authentication
+- Environment-based secrets
+- HTTPS-only production sessions
 - Input validation
-- Protected state-changing operations
-- Encrypted database backups
+- Product uniqueness enforcement
+- Protected browser routes
 
-Production secrets are stored outside the source code and are not committed to Git.
+Production secrets are configured through deployment environment variables and are not stored in the source repository.
+
+---
 
 ## Health Monitoring
 
-The application provides a database-aware health endpoint:
+The application exposes:
 
 ```text
 GET /health
 ```
 
-A successful response returns HTTP **200 OK**:
+This endpoint verifies both:
+
+1. The FastAPI application is running.
+2. The application can communicate with PostgreSQL.
+
+Healthy response:
 
 ```json
 {
@@ -406,35 +586,39 @@ A successful response returns HTTP **200 OK**:
 }
 ```
 
-The health check executes a lightweight database query to verify that both the FastAPI application and its database connection are operational.
+If the database check fails, the application returns:
 
-If the database cannot be reached, the endpoint returns HTTP **503 Service Unavailable** instead of reporting a false healthy state.
+```text
+503 Service Unavailable
+```
 
-Production health endpoint:
+This endpoint can be used by deployment platforms and external monitoring services to check application availability.
 
-https://inventory-management-system-ycyy.onrender.com/health
+---
 
 ## Future Improvements
 
-Possible future enhancements include:
+Possible future improvements include:
 
-- Role-based access control
-- Multiple user accounts
-- Advanced inventory reporting
-- CSV/PDF report exports
-- Dashboard charts
+- Sorting products by name, price, quantity, or category
+- Filtering products by low-stock status
+- Pagination for stock movement history
+- Date-range filtering for stock movements
+- Inventory reporting and export
+- Role-based user accounts
 - Audit logging
-- Automated scheduled backups
+- Automated backup scheduling
+- Continuous integration with GitHub Actions
 - AI-assisted inventory insights and forecasting
+
+---
 
 ## Author
 
 **John Ikwuobe**
 
-AI-Native Full-Stack Developer & Software Engineer
+AI-Native Full-Stack Developer · Software Engineer
 
 GitHub: https://github.com/successjohnny
 
 LinkedIn: https://linkedin.com/in/engr-john-ikwuobemnse-78a806b3
-
-Portfolio: https://successjohnny.github.io/my-portfolio/
