@@ -47,6 +47,7 @@ https://inventory-management-system-ycyy.onrender.com/docs
 - Record movement date and time
 - View movement history for individual products
 - Paginate individual product stock-movement history
+- Filter stock movement history by start date and end date
 
 ### Dashboard
 
@@ -401,8 +402,51 @@ A request for a product that does not exist returns HTTP `404 Not Found`.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/api/stock-movements/` | List stock movements |
+| GET | `/api/stock-movements/` | List stock movements with optional date-range filtering |
 | POST | `/api/stock-movements/{product_id}` | Create a stock movement |
+
+### Stock Movement Date-Range Filtering
+
+The stock-movement-list endpoint supports optional filtering by start date and end date.
+
+Filter movements from a specific date onward:
+
+```text
+GET /api/stock-movements/?start_date=2026-09-01
+```
+
+Filter movements through a specific date:
+
+```text
+GET /api/stock-movements/?end_date=2026-09-30
+```
+
+Filter movements within a date range:
+
+```text
+GET /api/stock-movements/?start_date=2026-09-01&end_date=2026-09-30
+```
+
+Date-filtering parameters:
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `start_date` | No | Return stock movements on or after this date |
+| `end_date` | No | Return stock movements on or before this date |
+
+Dates use the `YYYY-MM-DD` format.
+
+Both date boundaries are inclusive at the date level. For example, `end_date=2026-09-30` includes stock movements throughout September 30.
+
+Either parameter can be used independently, or both can be supplied together.
+
+If neither parameter is supplied, the endpoint returns the stock movement history without date filtering.
+
+Stock movements remain ordered from newest to oldest.
+
+If `start_date` is later than `end_date`, the API returns HTTP `422 Unprocessable Entity`.
+
+Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 
 ### System Health
 
@@ -652,7 +696,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **157 automated tests** covering areas including:
+The project currently contains **162 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -682,6 +726,11 @@ The project currently contains **157 automated tests** covering areas including:
 - Stock-out operations
 - Insufficient-stock validation
 - Stock movement history
+- Stock movement start-date filtering
+- Stock movement end-date filtering
+- Combined stock movement date-range filtering
+- Invalid stock movement date-range validation
+- Invalid stock movement date-format validation
 - Product stock-movement-history pagination
 - Invalid stock-movement pagination validation
 - Empty stock-movement history pagination
@@ -696,7 +745,7 @@ The project currently contains **157 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-157 passed
+162 passed
 ```
 
 ---
@@ -765,6 +814,8 @@ The documentation includes:
 - Combined filtering, sorting, and pagination
 - Product stock-movement-history pagination
 - Stock-movement pagination parameters and response schema
+- Stock movement start-date and end-date filtering
+- Stock movement date-range validation
 - Request schemas
 - Response schemas
 - Validation rules
@@ -837,7 +888,6 @@ This endpoint can be used by deployment platforms and external monitoring servic
 
 Possible future improvements include:
 
-- Date-range filtering for stock movements
 - Inventory reporting and export
 - Role-based user accounts
 - Audit logging
