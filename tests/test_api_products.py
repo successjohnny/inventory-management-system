@@ -1173,7 +1173,14 @@ def test_get_product_stock_movements(api_client):
 
     assert response.status_code == 200
 
-    movements = response.json()
+    data = response.json()
+
+    assert data["page"] == 1
+    assert data["page_size"] == 10
+    assert data["total_items"] == 1
+    assert data["total_pages"] == 1
+
+    movements = data["items"]
 
     assert len(movements) == 1
 
@@ -1207,7 +1214,14 @@ def test_get_product_stock_movements_empty(api_client):
     )
 
     assert history_response.status_code == 200
-    assert history_response.json() == []
+
+    data = history_response.json()
+
+    assert data["items"] == []
+    assert data["page"] == 1
+    assert data["page_size"] == 10
+    assert data["total_items"] == 0
+    assert data["total_pages"] == 0
 
 
 def test_get_product_stock_movements_not_found(api_client):
@@ -1220,6 +1234,155 @@ def test_get_product_stock_movements_not_found(api_client):
     assert response.status_code == 404
 
     assert response.json()["detail"] == "Product not found"
+
+def test_get_product_stock_movements_pagination(api_client):
+    test_client, db = api_client
+
+    product_response = test_client.post(
+        "/api/products/",
+        json={
+            "name": "Laptop",
+            "price": 200000,
+            "quantity": 20,
+            "low_stock_level": 3,
+            "category": "Electronics",
+            "supplier": "Supplier A",
+        },
+    )
+
+    assert product_response.status_code == 201
+
+    product_id = product_response.json()["id"]
+
+    for number in range(5):
+        movement_response = test_client.post(
+            f"/api/stock-movements/{product_id}",
+            json={
+                "movement_type": "IN",
+                "quantity": 1,
+                "note": f"Shipment {number + 1}",
+            },
+        )
+
+        assert movement_response.status_code == 201
+
+    response = test_client.get(
+        f"/api/products/{product_id}/stock-movements"
+        "?page=2&page_size=2"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["page"] == 2
+    assert data["page_size"] == 2
+    assert data["total_items"] == 5
+    assert data["total_pages"] == 3
+    assert len(data["items"]) == 2
+
+def test_get_product_stock_movements_rejects_invalid_page(
+    api_client,
+):
+    test_client, db = api_client
+
+    product_response = test_client.post(
+        "/api/products/",
+        json={
+            "name": "Laptop",
+            "price": 200000,
+            "quantity": 10,
+            "low_stock_level": 3,
+            "category": "Electronics",
+            "supplier": "Supplier A",
+        },
+    )
+
+    assert product_response.status_code == 201
+
+    product_id = product_response.json()["id"]
+
+    response = test_client.get(
+        f"/api/products/{product_id}/stock-movements"
+        "?page=0"
+    )
+
+    assert response.status_code == 422
+
+def test_get_product_stock_movements_rejects_invalid_page_size(
+    api_client,
+):
+    test_client, db = api_client
+
+    product_response = test_client.post(
+        "/api/products/",
+        json={
+            "name": "Laptop",
+            "price": 200000,
+            "quantity": 10,
+            "low_stock_level": 3,
+            "category": "Electronics",
+            "supplier": "Supplier A",
+        },
+    )
+
+    assert product_response.status_code == 201
+
+    product_id = product_response.json()["id"]
+
+    response = test_client.get(
+        f"/api/products/{product_id}/stock-movements"
+        "?page_size=101"
+    )
+
+    assert response.status_code == 422
+
+def test_get_product_stock_movements_page_beyond_results(
+    api_client,
+):
+    test_client, db = api_client
+
+    product_response = test_client.post(
+        "/api/products/",
+        json={
+            "name": "Laptop",
+            "price": 200000,
+            "quantity": 10,
+            "low_stock_level": 3,
+            "category": "Electronics",
+            "supplier": "Supplier A",
+        },
+    )
+
+    assert product_response.status_code == 201
+
+    product_id = product_response.json()["id"]
+
+    movement_response = test_client.post(
+        f"/api/stock-movements/{product_id}",
+        json={
+            "movement_type": "IN",
+            "quantity": 1,
+            "note": "Test shipment",
+        },
+    )
+
+    assert movement_response.status_code == 201
+
+    response = test_client.get(
+        f"/api/products/{product_id}/stock-movements"
+        "?page=5&page_size=10"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["items"] == []
+    assert data["page"] == 5
+    assert data["page_size"] == 10
+    assert data["total_items"] == 1
+    assert data["total_pages"] == 1
 
 
 def test_update_product_api(api_client):
