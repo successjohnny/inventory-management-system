@@ -1,4 +1,10 @@
-from datetime import date, datetime, time, timezone
+from datetime import (
+    date,
+    datetime,
+    time,
+    timedelta,
+    timezone,
+)
 
 from fastapi import (
     APIRouter,
@@ -34,7 +40,8 @@ router = APIRouter(
     summary="List stock movements",
     description=(
         "Return the stock movement history. "
-        "Results can optionally be filtered by start date. "
+        "Results can optionally be filtered by start date "
+        "and end date. "
         "The newest stock movements are returned first."
     ),
 )
@@ -45,6 +52,12 @@ def get_stock_movements(
             "Return stock movements on or after this date."
         ),
     ),
+    end_date: date | None = Query(
+        default=None,
+        description=(
+            "Return stock movements on or before this date."
+        ),
+    ),
     db: Session = Depends(get_db),
 ):
     """
@@ -53,8 +66,23 @@ def get_stock_movements(
     When start_date is supplied, only movements on or after
     that date are returned.
 
+    When end_date is supplied, only movements on or before
+    that date are returned.
+
     Newest stock movements are returned first.
     """
+
+    if (
+        start_date is not None
+        and end_date is not None
+        and start_date > end_date
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=(
+                "start_date cannot be later than end_date."
+            ),
+        )
 
     query = (
         db.query(StockMovement)
@@ -74,6 +102,17 @@ def get_stock_movements(
 
         query = query.filter(
             StockMovement.created_at >= start_datetime
+        )
+
+    if end_date is not None:
+        end_datetime = datetime.combine(
+            end_date + timedelta(days=1),
+            time.min,
+            tzinfo=timezone.utc,
+        )
+
+        query = query.filter(
+            StockMovement.created_at < end_datetime
         )
 
     movements = (
