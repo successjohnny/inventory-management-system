@@ -32,6 +32,10 @@ https://inventory-management-system-ycyy.onrender.com/docs
 - Duplicate product-name protection
 - Product validation
 - Case-insensitive product-name handling
+- REST API pagination
+- REST API product filtering
+- REST API low-stock filtering
+- REST API product sorting
 
 ### Stock Management
 
@@ -65,7 +69,7 @@ The application includes a token-secured REST API for programmatic inventory man
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/api/products/` | List products with pagination, search, category filtering, and sorting |
+| GET | `/api/products/` | List products with pagination, search, category filtering, low-stock filtering, and sorting |
 | POST | `/api/products/` | Create a product |
 | GET | `/api/products/{product_id}` | Get a product |
 | PUT | `/api/products/{product_id}` | Update a product |
@@ -182,6 +186,88 @@ Example:
 }
 ```
 
+### Low-Stock Filtering
+
+The product-list endpoint supports filtering products by their stock status using the `low_stock` query parameter.
+
+A product is considered **low stock** when:
+
+```text
+quantity <= low_stock_level
+```
+
+Retrieve only low-stock products:
+
+```text
+GET /api/products/?low_stock=true
+```
+
+When `low_stock=true`, the API returns only products whose current quantity is less than or equal to their configured low-stock level.
+
+For example:
+
+```text
+Product A: quantity = 2, low_stock_level = 3 → low stock
+Product B: quantity = 5, low_stock_level = 5 → low stock
+Product C: quantity = 10, low_stock_level = 5 → healthy stock
+```
+
+The equality boundary is intentional: a product whose quantity exactly equals its low-stock level is considered low stock.
+
+Retrieve only products above their low-stock threshold:
+
+```text
+GET /api/products/?low_stock=false
+```
+
+When `low_stock=false`, the API returns products where:
+
+```text
+quantity > low_stock_level
+```
+
+If the `low_stock` parameter is omitted, no stock-status filter is applied.
+
+| Value | Behavior |
+| --- | --- |
+| `low_stock=true` | Return products where `quantity <= low_stock_level` |
+| `low_stock=false` | Return products where `quantity > low_stock_level` |
+| Omitted | Do not filter by stock status |
+
+Low-stock filtering can be combined with product search and category filtering:
+
+```text
+GET /api/products/?search=laptop&category=Computers&low_stock=true
+```
+
+It can also be combined with sorting:
+
+```text
+GET /api/products/?low_stock=true&sort_by=quantity&sort_order=asc
+```
+
+And with pagination:
+
+```text
+GET /api/products/?low_stock=true&page=1&page_size=10
+```
+
+All product-list query features can be combined in one request:
+
+```text
+GET /api/products/?search=laptop&category=Computers&low_stock=true&sort_by=price&sort_order=desc&page=1&page_size=10
+```
+
+The API applies the operations in this order:
+
+1. Filter by product name when `search` is supplied.
+2. Filter by category when `category` is supplied.
+3. Filter by stock status when `low_stock` is supplied.
+4. Sort the filtered products when `sort_by` is supplied.
+5. Paginate the resulting products.
+
+Therefore, `total_items` and `total_pages` represent the result set after all requested filters have been applied.
+
 ### Product Sorting
 
 The product-list endpoint supports optional server-side sorting by product name, price, quantity, or category.
@@ -223,17 +309,11 @@ Sorting can also be combined with pagination:
 GET /api/products/?sort_by=quantity&sort_order=asc&page=1&page_size=10
 ```
 
-All three features can be used together:
+Filtering, sorting, and pagination can be used together:
 
 ```text
 GET /api/products/?search=laptop&category=Computers&sort_by=price&sort_order=desc&page=1&page_size=10
 ```
-
-When filtering, sorting, and pagination are combined, the API processes the request in this order:
-
-1. Filter the matching products.
-2. Sort the filtered products.
-3. Paginate the sorted result.
 
 The API returns HTTP `422 Unprocessable Entity` when an unsupported `sort_by` or `sort_order` value is supplied.
 
@@ -492,7 +572,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **149 automated tests** covering areas including:
+The project currently contains **153 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -506,6 +586,11 @@ The project currently contains **149 automated tests** covering areas including:
 - Combined search and category filtering
 - Filtering with pagination
 - Empty filtered results
+- Low-stock filtering
+- Healthy-stock filtering
+- Low-stock threshold boundary behavior
+- Low-stock filtering combined with search and category filtering
+- Low-stock filtering combined with sorting and pagination
 - Product sorting by name
 - Product sorting by price
 - Product sorting by quantity
@@ -527,7 +612,7 @@ The project currently contains **149 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-149 passed
+153 passed
 ```
 
 ---
@@ -589,7 +674,8 @@ The documentation includes:
 - Product pagination parameters and response schema
 - Product search parameter
 - Product category filter
-- Combined filtering and pagination
+- Product low-stock filter
+- Product healthy-stock filter
 - Product sorting parameters
 - Ascending and descending product sorting
 - Combined filtering, sorting, and pagination
@@ -665,7 +751,6 @@ This endpoint can be used by deployment platforms and external monitoring servic
 
 Possible future improvements include:
 
-- Filtering products by low-stock status
 - Pagination for stock movement history
 - Date-range filtering for stock movements
 - Inventory reporting and export
