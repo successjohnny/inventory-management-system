@@ -2,7 +2,7 @@
 
 A full-stack inventory management application built with **Python, FastAPI, SQLAlchemy, PostgreSQL, Jinja2, HTML, and CSS**.
 
-The system manages products, tracks stock movements, monitors low-stock levels, provides inventory dashboard statistics, supports inventory CSV export, and exposes a secure REST API for programmatic access.
+The system manages products, tracks stock movements, monitors low-stock levels, provides inventory dashboard statistics, supports inventory and stock-movement CSV exports, and exposes a secure REST API for programmatic access.
 
 ---
 
@@ -52,10 +52,13 @@ https://inventory-management-system-ycyy.onrender.com/docs
 ### Reporting and Export
 
 - Export the current product inventory as CSV
-- Download inventory data through the REST API
-- Protect inventory exports with bearer-token authentication
+- Export stock-movement history as CSV
+- Filter stock-movement CSV exports by start date and end date
+- Download report data through the REST API
+- Protect report exports with bearer-token authentication
 - Export inventory with deterministic product-ID ordering
-- Return a valid CSV header even when the inventory is empty
+- Export stock movements from newest to oldest
+- Return valid CSV headers even when report results are empty
 
 ### Dashboard
 
@@ -461,6 +464,7 @@ Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/api/reports/inventory.csv` | Export the current product inventory as CSV |
+| GET | `/api/reports/stock-movements.csv` | Export stock-movement history as CSV with optional date-range filtering |
 
 ### Inventory CSV Export
 
@@ -497,6 +501,80 @@ The response is returned with a CSV content type and a download header using the
 ```text
 inventory.csv
 ```
+
+A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
+
+### Stock-Movement CSV Export
+
+The stock-movement report endpoint exports stock-movement history as a downloadable CSV file:
+
+```text
+GET /api/reports/stock-movements.csv
+```
+
+The endpoint is protected by bearer-token authentication.
+
+The CSV contains the following columns:
+
+| Column | Description |
+| --- | --- |
+| `id` | Stock-movement ID |
+| `product_id` | ID of the product associated with the movement |
+| `movement_type` | Stock movement type, such as `IN` or `OUT` |
+| `quantity` | Quantity involved in the stock movement |
+| `note` | Optional stock-movement note |
+| `created_at` | Date and time the stock movement was recorded |
+
+When a stock movement has no note, the `note` field is exported as an empty CSV value.
+
+Stock movements are exported from newest to oldest. When two movements have the same timestamp, movement ID is used as a secondary descending sort to keep the export order deterministic.
+
+When no stock movements exist, the endpoint still returns a valid CSV file containing the column headers and no data rows.
+
+The response is returned with a CSV content type and a download header using the filename:
+
+```text
+stock-movements.csv
+```
+
+The export supports optional `start_date` and `end_date` query parameters.
+
+Export stock movements from a specific date onward:
+
+```text
+GET /api/reports/stock-movements.csv?start_date=2026-09-01
+```
+
+Export stock movements through a specific date:
+
+```text
+GET /api/reports/stock-movements.csv?end_date=2026-09-30
+```
+
+Export stock movements within a date range:
+
+```text
+GET /api/reports/stock-movements.csv?start_date=2026-09-01&end_date=2026-09-30
+```
+
+Date-filtering parameters:
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `start_date` | No | Export stock movements on or after this date |
+| `end_date` | No | Export stock movements on or before this date |
+
+Dates use the `YYYY-MM-DD` format.
+
+Both date boundaries are inclusive at the date level. An `end_date` includes stock movements throughout the specified date.
+
+Either date parameter can be used independently, or both can be supplied together.
+
+If neither parameter is supplied, all stock movements are exported.
+
+If `start_date` is later than `end_date`, the API returns HTTP `422 Unprocessable Entity`.
+
+Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 
 A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
 
@@ -755,7 +833,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **165 automated tests** covering areas including:
+The project currently contains **172 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -797,6 +875,13 @@ The project currently contains **165 automated tests** covering areas including:
 - Inventory CSV export
 - Empty-inventory CSV export
 - Inventory export authentication
+- Stock-movement CSV export
+- Empty stock-movement CSV export
+- Stock-movement CSV start-date filtering
+- Stock-movement CSV end-date filtering
+- Invalid stock-movement CSV date-range validation
+- Invalid stock-movement CSV date-format validation
+- Stock-movement export authentication
 - API authentication
 - Browser authentication
 - Security behavior
@@ -807,8 +892,10 @@ The project currently contains **165 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-165 passed
+172 passed, 1 warning
 ```
+
+The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
 
 ---
 
@@ -880,6 +967,9 @@ The documentation includes:
 - Stock movement start-date and end-date filtering
 - Stock movement date-range validation
 - Inventory CSV export
+- Stock-movement CSV export
+- Stock-movement CSV start-date and end-date filtering
+- Stock-movement CSV date-range validation
 - Request schemas
 - Response schemas
 - Validation rules
@@ -912,7 +1002,7 @@ The project uses multiple security layers:
 - Input validation
 - Product uniqueness enforcement
 - Protected browser routes
-- Protected inventory report exports
+- Protected report exports
 
 Production secrets are configured through deployment environment variables and are not stored in the source repository.
 
@@ -954,7 +1044,7 @@ This endpoint can be used by deployment platforms and external monitoring servic
 
 Possible future improvements include:
 
-- Additional inventory reporting and stock-movement exports
+- Inventory summary and additional reporting formats
 - Role-based user accounts
 - Audit logging
 - Automated backup scheduling
