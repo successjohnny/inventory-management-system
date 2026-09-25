@@ -81,6 +81,7 @@ def test_export_inventory_csv_empty(api_client):
         "supplier",
     ]
 
+
 def test_export_stock_movements_csv(api_client):
     test_client, db = api_client
 
@@ -139,6 +140,7 @@ def test_export_stock_movements_csv(api_client):
     assert row["note"] == "New shipment"
     assert row["created_at"]
 
+
 def test_export_stock_movements_csv_empty(api_client):
     test_client, _ = api_client
 
@@ -164,6 +166,7 @@ def test_export_stock_movements_csv_empty(api_client):
         "note",
         "created_at",
     ]
+
 
 def test_export_stock_movements_csv_filters_by_start_date(
     api_client,
@@ -238,6 +241,7 @@ def test_export_stock_movements_csv_filters_by_start_date(
     assert len(rows) == 1
     assert rows[0]["note"] == "Recent shipment"
 
+
 def test_export_stock_movements_csv_filters_by_end_date(
     api_client,
 ):
@@ -311,6 +315,7 @@ def test_export_stock_movements_csv_filters_by_end_date(
     assert len(rows) == 1
     assert rows[0]["note"] == "Included shipment"
 
+
 def test_export_stock_movements_csv_rejects_invalid_date_range(
     api_client,
 ):
@@ -339,3 +344,70 @@ def test_export_stock_movements_csv_rejects_invalid_date_format(
     )
 
     assert response.status_code == 422
+
+
+def test_get_inventory_summary(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=10,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=5000,
+            quantity=2,
+            low_stock_level=5,
+            category="Electronics",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Office Chair",
+            normalized_name="office chair",
+            price=80000,
+            quantity=8,
+            low_stock_level=8,
+            category="Furniture",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/reports/summary"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "total_products": 3,
+        "total_items": 20,
+        "total_categories": 2,
+        "low_stock_products": 2,
+    }
+
+
+def test_get_inventory_summary_empty(api_client):
+    test_client, _ = api_client
+
+    response = test_client.get(
+        "/api/reports/summary"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "total_products": 0,
+        "total_items": 0,
+        "total_categories": 0,
+        "low_stock_products": 0,
+    }

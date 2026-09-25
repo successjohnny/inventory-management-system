@@ -198,3 +198,15 @@ def test_missing_token_blocks_stock_movement_export(
     )
 
     assert response.status_code == 401
+
+
+def test_missing_token_blocks_inventory_summary(
+    configured_client,
+):
+    test_client, _ = configured_client
+
+    response = test_client.get(
+        "/api/reports/summary"
+    )
+
+    assert response.status_code == 401

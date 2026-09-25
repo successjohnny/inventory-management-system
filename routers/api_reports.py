@@ -215,3 +215,40 @@ def export_stock_movements_csv(
         media_type="text/csv",
         headers=headers,
     )
+
+
+@router.get(
+    "/summary",
+    summary="Get inventory summary",
+    description=(
+        "Return summary statistics for the current inventory."
+    ),
+)
+def get_inventory_summary(
+    db: Session = Depends(get_db),
+):
+    """
+    Return summary statistics for the current inventory.
+    """
+
+    products = db.query(Product).all()
+
+    return {
+        "total_products": len(products),
+        "total_items": sum(
+            product.quantity
+            for product in products
+        ),
+        "total_categories": len(
+            {
+                product.category
+                for product in products
+            }
+        ),
+        "low_stock_products": sum(
+            1
+            for product in products
+            if product.quantity
+            <= product.low_stock_level
+        ),
+    }
