@@ -175,3 +175,14 @@ def test_invalid_token_cannot_modify_existing_stock(
 
     assert product.quantity == 10
     assert db.query(StockMovement).count() == 0
+
+def test_missing_token_blocks_inventory_export(
+    configured_client,
+):
+    test_client, _ = configured_client
+
+    response = test_client.get(
+        "/api/reports/inventory.csv"
+    )
+
+    assert response.status_code == 401
