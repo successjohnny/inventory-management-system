@@ -51,6 +51,7 @@ https://inventory-management-system-ycyy.onrender.com/docs
 
 ### Reporting and Export
 
+- View aggregate inventory summary statistics through the REST API
 - Export the current product inventory as CSV
 - Export stock-movement history as CSV
 - Filter stock-movement CSV exports by start date and end date
@@ -463,8 +464,41 @@ Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
+| GET | `/api/reports/summary` | Return aggregate inventory summary statistics |
 | GET | `/api/reports/inventory.csv` | Export the current product inventory as CSV |
 | GET | `/api/reports/stock-movements.csv` | Export stock-movement history as CSV with optional date-range filtering |
+
+### Inventory Summary
+
+The inventory summary endpoint returns aggregate statistics for the current inventory:
+
+```text
+GET /api/reports/summary
+```
+
+The endpoint is protected by bearer-token authentication.
+
+The response contains:
+
+- `total_products` — total number of products
+- `total_items` — sum of the current quantities of all products
+- `total_categories` — number of distinct product categories
+- `low_stock_products` — number of products whose quantity is less than or equal to their configured low-stock level
+
+Example response:
+
+```json
+{
+  "total_products": 3,
+  "total_items": 20,
+  "total_categories": 2,
+  "low_stock_products": 2
+}
+```
+
+When the inventory contains no products, all four values are returned as `0`.
+
+A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
 
 ### Inventory CSV Export
 
@@ -833,7 +867,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **172 automated tests** covering areas including:
+The project currently contains **175 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -882,6 +916,9 @@ The project currently contains **172 automated tests** covering areas including:
 - Invalid stock-movement CSV date-range validation
 - Invalid stock-movement CSV date-format validation
 - Stock-movement export authentication
+- Inventory summary reporting
+- Empty-inventory summary reporting
+- Inventory summary authentication
 - API authentication
 - Browser authentication
 - Security behavior
@@ -892,7 +929,7 @@ The project currently contains **172 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-172 passed, 1 warning
+175 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
@@ -954,6 +991,7 @@ The documentation includes:
 - Product API endpoints
 - Stock movement API endpoints
 - Reporting API endpoints
+- Inventory summary reporting
 - Product pagination parameters and response schema
 - Product search parameter
 - Product category filter
@@ -1044,7 +1082,7 @@ This endpoint can be used by deployment platforms and external monitoring servic
 
 Possible future improvements include:
 
-- Inventory summary and additional reporting formats
+- Additional reporting formats and analytics
 - Role-based user accounts
 - Audit logging
 - Automated backup scheduling
