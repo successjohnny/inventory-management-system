@@ -2,7 +2,7 @@
 
 A full-stack inventory management application built with **Python, FastAPI, SQLAlchemy, PostgreSQL, Jinja2, HTML, and CSS**.
 
-The system manages products, tracks stock movements, monitors low-stock levels, provides inventory dashboard statistics, and exposes a secure REST API for programmatic access.
+The system manages products, tracks stock movements, monitors low-stock levels, provides inventory dashboard statistics, supports inventory CSV export, and exposes a secure REST API for programmatic access.
 
 ---
 
@@ -48,6 +48,14 @@ https://inventory-management-system-ycyy.onrender.com/docs
 - View movement history for individual products
 - Paginate individual product stock-movement history
 - Filter stock movement history by start date and end date
+
+### Reporting and Export
+
+- Export the current product inventory as CSV
+- Download inventory data through the REST API
+- Protect inventory exports with bearer-token authentication
+- Export inventory with deterministic product-ID ordering
+- Return a valid CSV header even when the inventory is empty
 
 ### Dashboard
 
@@ -448,6 +456,50 @@ If `start_date` is later than `end_date`, the API returns HTTP `422 Unprocessabl
 
 Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 
+### Reporting Endpoints
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/reports/inventory.csv` | Export the current product inventory as CSV |
+
+### Inventory CSV Export
+
+The inventory report endpoint exports the current product inventory as a downloadable CSV file:
+
+```text
+GET /api/reports/inventory.csv
+```
+
+The endpoint is protected by bearer-token authentication.
+
+The CSV contains the following columns:
+
+| Column | Description |
+| --- | --- |
+| `id` | Product ID |
+| `name` | Product name |
+| `price` | Product price |
+| `quantity` | Current quantity |
+| `low_stock_level` | Configured low-stock threshold |
+| `category` | Product category |
+| `supplier` | Product supplier |
+
+The internal `normalized_name` field is intentionally excluded from the export.
+
+Products are exported in ascending product-ID order to provide deterministic output.
+
+When a product has no supplier value, the supplier field is exported as an empty CSV value.
+
+When the inventory contains no products, the endpoint still returns a valid CSV file containing the column headers and no product rows.
+
+The response is returned with a CSV content type and a download header using the filename:
+
+```text
+inventory.csv
+```
+
+A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
+
 ### System Health
 
 | Method | Endpoint | Description |
@@ -568,12 +620,15 @@ inventory-management-system/
 │
 ├── routers/
 │   ├── api_products.py
+│   ├── api_reports.py
 │   ├── api_stock.py
 │   ├── auth.py
 │   ├── products.py
 │   └── stock.py
 │
 ├── services/
+│   ├── error_messages.py
+│   ├── inventory_service.py
 │   └── product_service.py
 │
 ├── static/
@@ -587,13 +642,17 @@ inventory-management-system/
 ├── tests/
 │   ├── conftest.py
 │   ├── test_api_products.py
+│   ├── test_api_reports.py
 │   ├── test_api_security.py
+│   ├── test_api_stock.py
 │   ├── test_health.py
 │   └── ...
 │
 ├── alembic.ini
 ├── api_security.py
 ├── auth_config.py
+├── auth_credentials.py
+├── browser_security.py
 ├── database.py
 ├── main.py
 ├── models.py
@@ -696,7 +755,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **162 automated tests** covering areas including:
+The project currently contains **165 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -735,6 +794,9 @@ The project currently contains **162 automated tests** covering areas including:
 - Invalid stock-movement pagination validation
 - Empty stock-movement history pagination
 - Out-of-range stock-movement history pages
+- Inventory CSV export
+- Empty-inventory CSV export
+- Inventory export authentication
 - API authentication
 - Browser authentication
 - Security behavior
@@ -745,7 +807,7 @@ The project currently contains **162 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-162 passed
+165 passed
 ```
 
 ---
@@ -804,6 +866,7 @@ The documentation includes:
 
 - Product API endpoints
 - Stock movement API endpoints
+- Reporting API endpoints
 - Product pagination parameters and response schema
 - Product search parameter
 - Product category filter
@@ -816,6 +879,7 @@ The documentation includes:
 - Stock-movement pagination parameters and response schema
 - Stock movement start-date and end-date filtering
 - Stock movement date-range validation
+- Inventory CSV export
 - Request schemas
 - Response schemas
 - Validation rules
@@ -826,6 +890,7 @@ API endpoints are organized into Swagger sections including:
 
 - Products API
 - Stock Movements API
+- Reports API
 - System
 
 Browser-only routes are excluded from the public OpenAPI schema.
@@ -847,6 +912,7 @@ The project uses multiple security layers:
 - Input validation
 - Product uniqueness enforcement
 - Protected browser routes
+- Protected inventory report exports
 
 Production secrets are configured through deployment environment variables and are not stored in the source repository.
 
@@ -888,7 +954,7 @@ This endpoint can be used by deployment platforms and external monitoring servic
 
 Possible future improvements include:
 
-- Inventory reporting and export
+- Additional inventory reporting and stock-movement exports
 - Role-based user accounts
 - Audit logging
 - Automated backup scheduling
