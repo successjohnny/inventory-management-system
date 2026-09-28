@@ -622,3 +622,118 @@ def test_get_inventory_valuation_report_empty(api_client):
         "total_inventory_value": 0,
         "products": [],
     }
+
+
+def test_get_supplier_summary_report(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=10,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=5000,
+            quantity=5,
+            low_stock_level=2,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Office Chair",
+            normalized_name="office chair",
+            price=50000,
+            quantity=8,
+            low_stock_level=2,
+            category="Furniture",
+            supplier="Supplier B",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/reports/suppliers"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == [
+        {
+            "supplier": "Supplier A",
+            "total_products": 2,
+            "total_items": 15,
+            "inventory_value": 2025000,
+        },
+        {
+            "supplier": "Supplier B",
+            "total_products": 1,
+            "total_items": 8,
+            "inventory_value": 400000,
+        },
+    ]
+
+
+def test_get_supplier_summary_report_empty(api_client):
+    test_client, _ = api_client
+
+    response = test_client.get(
+        "/api/reports/suppliers"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == []
+
+
+def test_supplier_summary_excludes_products_without_supplier(
+    api_client,
+):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=10,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Keyboard",
+            normalized_name="keyboard",
+            price=10000,
+            quantity=5,
+            low_stock_level=2,
+            category="Electronics",
+            supplier=None,
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/reports/suppliers"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == [
+        {
+            "supplier": "Supplier A",
+            "total_products": 1,
+            "total_items": 10,
+            "inventory_value": 2000000,
+        }
+    ]

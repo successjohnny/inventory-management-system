@@ -364,3 +364,54 @@ def get_inventory_valuation_report(
         ),
         "products": product_valuations,
     }
+
+
+@router.get(
+    "/suppliers",
+    summary="Get supplier summary report",
+    description=(
+        "Return inventory statistics and valuation "
+        "grouped by product supplier."
+    ),
+)
+def get_supplier_summary_report(
+    db: Session = Depends(get_db),
+):
+    """
+    Return product counts, total item quantities,
+    and inventory values grouped by supplier.
+    """
+
+    results = (
+        db.query(
+            Product.supplier,
+            func.count(Product.id).label(
+                "total_products"
+            ),
+            func.sum(Product.quantity).label(
+                "total_items"
+            ),
+            func.sum(
+                Product.price * Product.quantity
+            ).label("inventory_value"),
+        )
+        .filter(Product.supplier.isnot(None))
+        .group_by(Product.supplier)
+        .order_by(Product.supplier.asc())
+        .all()
+    )
+
+    return [
+        {
+            "supplier": supplier,
+            "total_products": total_products,
+            "total_items": total_items,
+            "inventory_value": inventory_value,
+        }
+        for (
+            supplier,
+            total_products,
+            total_items,
+            inventory_value,
+        ) in results
+    ]
