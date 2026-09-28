@@ -411,3 +411,78 @@ def test_get_inventory_summary_empty(api_client):
         "total_categories": 0,
         "low_stock_products": 0,
     }
+
+
+def test_get_low_stock_report(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=10,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=5000,
+            quantity=2,
+            low_stock_level=5,
+            category="Electronics",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Office Chair",
+            normalized_name="office chair",
+            price=80000,
+            quantity=8,
+            low_stock_level=8,
+            category="Furniture",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/reports/low-stock"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == [
+        {
+            "id": products[1].id,
+            "name": "Mouse",
+            "price": 5000,
+            "quantity": 2,
+            "low_stock_level": 5,
+            "category": "Electronics",
+            "supplier": "Supplier B",
+        },
+        {
+            "id": products[2].id,
+            "name": "Office Chair",
+            "price": 80000,
+            "quantity": 8,
+            "low_stock_level": 8,
+            "category": "Furniture",
+            "supplier": "Supplier C",
+        },
+    ]
+
+
+def test_get_low_stock_report_empty(api_client):
+    test_client, _ = api_client
+
+    response = test_client.get(
+        "/api/reports/low-stock"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []

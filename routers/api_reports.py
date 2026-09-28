@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from api_security import require_api_token
 from database import get_db
 from models import Product, StockMovement
+from schemas import ProductResponse
 
 
 router = APIRouter(
@@ -252,3 +253,33 @@ def get_inventory_summary(
             <= product.low_stock_level
         ),
     }
+
+
+@router.get(
+    "/low-stock",
+    response_model=list[ProductResponse],
+    summary="Get low-stock report",
+    description=(
+        "Return products whose current quantity is less than "
+        "or equal to their configured low-stock level."
+    ),
+)
+def get_low_stock_report(
+    db: Session = Depends(get_db),
+):
+    """
+    Return all products currently at or below
+    their configured low-stock level.
+    """
+
+    products = (
+        db.query(Product)
+        .filter(
+            Product.quantity
+            <= Product.low_stock_level
+        )
+        .order_by(Product.id.asc())
+        .all()
+    )
+
+    return products

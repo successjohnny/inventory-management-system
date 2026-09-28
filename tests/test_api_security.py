@@ -210,3 +210,15 @@ def test_missing_token_blocks_inventory_summary(
     )
 
     assert response.status_code == 401
+
+
+def test_missing_token_blocks_low_stock_report(
+    configured_client,
+):
+    test_client, _ = configured_client
+
+    response = test_client.get(
+        "/api/reports/low-stock"
+    )
+
+    assert response.status_code == 401
