@@ -553,3 +553,72 @@ def test_get_category_summary_report_empty(api_client):
 
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_get_inventory_valuation_report(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=10,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Office Chair",
+            normalized_name="office chair",
+            price=50000,
+            quantity=8,
+            low_stock_level=2,
+            category="Furniture",
+            supplier="Supplier B",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/reports/valuation"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "total_inventory_value": 2400000,
+        "products": [
+            {
+                "id": products[0].id,
+                "name": "Laptop",
+                "price": 200000,
+                "quantity": 10,
+                "inventory_value": 2000000,
+            },
+            {
+                "id": products[1].id,
+                "name": "Office Chair",
+                "price": 50000,
+                "quantity": 8,
+                "inventory_value": 400000,
+            },
+        ],
+    }
+
+
+def test_get_inventory_valuation_report_empty(api_client):
+    test_client, _ = api_client
+
+    response = test_client.get(
+        "/api/reports/valuation"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "total_inventory_value": 0,
+        "products": [],
+    }

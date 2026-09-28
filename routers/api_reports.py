@@ -320,3 +320,47 @@ def get_category_summary_report(
         }
         for category, total_products, total_items in results
     ]
+
+
+@router.get(
+    "/valuation",
+    summary="Get inventory valuation report",
+    description=(
+        "Return the monetary value of each product in inventory "
+        "and the total value of all inventory."
+    ),
+)
+def get_inventory_valuation_report(
+    db: Session = Depends(get_db),
+):
+    """
+    Return product-level inventory valuations
+    and the total value of all inventory.
+    """
+
+    products = (
+        db.query(Product)
+        .order_by(Product.id.asc())
+        .all()
+    )
+
+    product_valuations = [
+        {
+            "id": product.id,
+            "name": product.name,
+            "price": product.price,
+            "quantity": product.quantity,
+            "inventory_value": (
+                product.price * product.quantity
+            ),
+        }
+        for product in products
+    ]
+
+    return {
+        "total_inventory_value": sum(
+            product["inventory_value"]
+            for product in product_valuations
+        ),
+        "products": product_valuations,
+    }
