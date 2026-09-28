@@ -52,6 +52,7 @@ https://inventory-management-system-ycyy.onrender.com/docs
 ### Reporting and Export
 
 - View aggregate inventory summary statistics through the REST API
+- View low-stock product reports through the REST API
 - Export the current product inventory as CSV
 - Export stock-movement history as CSV
 - Filter stock-movement CSV exports by start date and end date
@@ -465,6 +466,7 @@ Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/api/reports/summary` | Return aggregate inventory summary statistics |
+| GET | `/api/reports/low-stock` | Return products at or below their configured low-stock level |
 | GET | `/api/reports/inventory.csv` | Export the current product inventory as CSV |
 | GET | `/api/reports/stock-movements.csv` | Export stock-movement history as CSV with optional date-range filtering |
 
@@ -497,6 +499,59 @@ Example response:
 ```
 
 When the inventory contains no products, all four values are returned as `0`.
+
+A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
+
+### Low-Stock Report
+
+The low-stock report endpoint returns products whose current quantity is less than or equal to their configured low-stock level:
+
+```text
+GET /api/reports/low-stock
+```
+
+A product is included when:
+
+```text
+quantity <= low_stock_level
+```
+
+The endpoint returns product fields including `id`, `name`, `price`, `quantity`, `low_stock_level`, `category`, and `supplier`. The internal `normalized_name` field is not exposed.
+
+Products are returned in ascending product-ID order to provide deterministic output.
+
+Example response:
+
+```json
+[
+  {
+    "id": 2,
+    "name": "Mouse",
+    "price": 5000,
+    "quantity": 2,
+    "low_stock_level": 5,
+    "category": "Electronics",
+    "supplier": "Supplier B"
+  },
+  {
+    "id": 3,
+    "name": "Office Chair",
+    "price": 80000,
+    "quantity": 8,
+    "low_stock_level": 8,
+    "category": "Furniture",
+    "supplier": "Supplier C"
+  }
+]
+```
+
+A product whose quantity exactly equals its low-stock level is included in the report.
+
+When no products are currently low stock, the endpoint returns HTTP `200 OK` with an empty JSON list:
+
+```json
+[]
+```
 
 A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
 
@@ -867,7 +922,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **175 automated tests** covering areas including:
+The project currently contains **178 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -919,6 +974,9 @@ The project currently contains **175 automated tests** covering areas including:
 - Inventory summary reporting
 - Empty-inventory summary reporting
 - Inventory summary authentication
+- Low-stock report filtering
+- Empty low-stock report
+- Low-stock report authentication
 - API authentication
 - Browser authentication
 - Security behavior
@@ -929,7 +987,7 @@ The project currently contains **175 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-175 passed, 1 warning
+178 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
@@ -992,6 +1050,7 @@ The documentation includes:
 - Stock movement API endpoints
 - Reporting API endpoints
 - Inventory summary reporting
+- Low-stock inventory reporting
 - Product pagination parameters and response schema
 - Product search parameter
 - Product category filter
