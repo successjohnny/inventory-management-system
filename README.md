@@ -53,6 +53,7 @@ https://inventory-management-system-ycyy.onrender.com/docs
 
 - View aggregate inventory summary statistics through the REST API
 - View low-stock product reports through the REST API
+- View inventory statistics grouped by category through the REST API
 - Export the current product inventory as CSV
 - Export stock-movement history as CSV
 - Filter stock-movement CSV exports by start date and end date
@@ -467,6 +468,7 @@ Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 | --- | --- | --- |
 | GET | `/api/reports/summary` | Return aggregate inventory summary statistics |
 | GET | `/api/reports/low-stock` | Return products at or below their configured low-stock level |
+| GET | `/api/reports/categories` | Return inventory statistics grouped by category |
 | GET | `/api/reports/inventory.csv` | Export the current product inventory as CSV |
 | GET | `/api/reports/stock-movements.csv` | Export stock-movement history as CSV with optional date-range filtering |
 
@@ -548,6 +550,47 @@ Example response:
 A product whose quantity exactly equals its low-stock level is included in the report.
 
 When no products are currently low stock, the endpoint returns HTTP `200 OK` with an empty JSON list:
+
+```json
+[]
+```
+
+A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
+
+### Category Summary Report
+
+The category summary endpoint returns inventory statistics grouped by product category:
+
+```text
+GET /api/reports/categories
+```
+
+For each category, the report returns:
+
+- `category` — product category name
+- `total_products` — number of products in the category
+- `total_items` — total quantity of inventory items in the category
+
+Example response:
+
+```json
+[
+  {
+    "category": "Electronics",
+    "total_products": 2,
+    "total_items": 15
+  },
+  {
+    "category": "Furniture",
+    "total_products": 1,
+    "total_items": 8
+  }
+]
+```
+
+Categories are returned in ascending alphabetical order.
+
+When the inventory contains no products, the endpoint returns HTTP `200 OK` with an empty JSON list:
 
 ```json
 []
@@ -922,7 +965,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **178 automated tests** covering areas including:
+The project currently contains **181 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -977,6 +1020,9 @@ The project currently contains **178 automated tests** covering areas including:
 - Low-stock report filtering
 - Empty low-stock report
 - Low-stock report authentication
+- Category summary aggregation
+- Empty category summary report
+- Category summary report authentication
 - API authentication
 - Browser authentication
 - Security behavior
@@ -987,7 +1033,7 @@ The project currently contains **178 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-178 passed, 1 warning
+181 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
@@ -1051,6 +1097,7 @@ The documentation includes:
 - Reporting API endpoints
 - Inventory summary reporting
 - Low-stock inventory reporting
+- Category summary reporting
 - Product pagination parameters and response schema
 - Product search parameter
 - Product category filter
