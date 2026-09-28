@@ -258,3 +258,15 @@ def test_missing_token_blocks_supplier_summary_report(
     )
 
     assert response.status_code == 401
+
+
+def test_missing_token_blocks_category_valuation_report(
+    configured_client,
+):
+    test_client, _ = configured_client
+
+    response = test_client.get(
+        "/api/reports/category-valuations"
+    )
+
+    assert response.status_code == 401

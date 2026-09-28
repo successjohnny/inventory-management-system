@@ -415,3 +415,53 @@ def get_supplier_summary_report(
             inventory_value,
         ) in results
     ]
+
+
+@router.get(
+    "/category-valuations",
+    summary="Get category inventory valuation report",
+    description=(
+        "Return inventory statistics and valuation "
+        "grouped by product category."
+    ),
+)
+def get_category_valuation_report(
+    db: Session = Depends(get_db),
+):
+    """
+    Return product counts, total item quantities,
+    and inventory values grouped by category.
+    """
+
+    results = (
+        db.query(
+            Product.category,
+            func.count(Product.id).label(
+                "total_products"
+            ),
+            func.sum(Product.quantity).label(
+                "total_items"
+            ),
+            func.sum(
+                Product.price * Product.quantity
+            ).label("inventory_value"),
+        )
+        .group_by(Product.category)
+        .order_by(Product.category.asc())
+        .all()
+    )
+
+    return [
+        {
+            "category": category,
+            "total_products": total_products,
+            "total_items": total_items,
+            "inventory_value": inventory_value,
+        }
+        for (
+            category,
+            total_products,
+            total_items,
+            inventory_value,
+        ) in results
+    ]
