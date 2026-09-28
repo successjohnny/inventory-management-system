@@ -54,6 +54,7 @@ https://inventory-management-system-ycyy.onrender.com/docs
 - View aggregate inventory summary statistics through the REST API
 - View low-stock product reports through the REST API
 - View inventory statistics grouped by category through the REST API
+- View product-level and total inventory valuation through the REST API
 - Export the current product inventory as CSV
 - Export stock-movement history as CSV
 - Filter stock-movement CSV exports by start date and end date
@@ -469,6 +470,7 @@ Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 | GET | `/api/reports/summary` | Return aggregate inventory summary statistics |
 | GET | `/api/reports/low-stock` | Return products at or below their configured low-stock level |
 | GET | `/api/reports/categories` | Return inventory statistics grouped by category |
+| GET | `/api/reports/valuation` | Return product-level and total inventory valuation |
 | GET | `/api/reports/inventory.csv` | Export the current product inventory as CSV |
 | GET | `/api/reports/stock-movements.csv` | Export stock-movement history as CSV with optional date-range filtering |
 
@@ -594,6 +596,70 @@ When the inventory contains no products, the endpoint returns HTTP `200 OK` with
 
 ```json
 []
+```
+
+A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
+
+### Inventory Valuation Report
+
+The inventory valuation endpoint returns the monetary value of each product in inventory and the total value of all inventory:
+
+```text
+GET /api/reports/valuation
+```
+
+For each product, the inventory value is calculated as:
+
+```text
+inventory_value = price × quantity
+```
+
+The response contains:
+
+- `total_inventory_value` — sum of the inventory values of all products
+- `products` — product-level valuation details
+
+Each product entry contains:
+
+- `id` — product ID
+- `name` — product name
+- `price` — product price
+- `quantity` — current inventory quantity
+- `inventory_value` — product price multiplied by current quantity
+
+Products are returned in ascending product-ID order to provide deterministic output.
+
+Example response:
+
+```json
+{
+  "total_inventory_value": 2400000,
+  "products": [
+    {
+      "id": 1,
+      "name": "Laptop",
+      "price": 200000,
+      "quantity": 10,
+      "inventory_value": 2000000
+    },
+    {
+      "id": 2,
+      "name": "Office Chair",
+      "price": 50000,
+      "quantity": 8,
+      "inventory_value": 400000
+    }
+  ]
+}
+```
+
+When the inventory contains no products, the endpoint returns HTTP `200 OK` with:
+
+```json
+{
+  "total_inventory_value": 0,
+  "products": []
+}
 ```
 
 A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
@@ -965,7 +1031,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **181 automated tests** covering areas including:
+The project currently contains **184 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -1023,6 +1089,9 @@ The project currently contains **181 automated tests** covering areas including:
 - Category summary aggregation
 - Empty category summary report
 - Category summary report authentication
+- Inventory valuation calculation
+- Empty inventory valuation report
+- Inventory valuation report authentication
 - API authentication
 - Browser authentication
 - Security behavior
@@ -1033,7 +1102,7 @@ The project currently contains **181 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-181 passed, 1 warning
+184 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
@@ -1098,6 +1167,7 @@ The documentation includes:
 - Inventory summary reporting
 - Low-stock inventory reporting
 - Category summary reporting
+- Inventory valuation reporting
 - Product pagination parameters and response schema
 - Product search parameter
 - Product category filter
