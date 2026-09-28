@@ -486,3 +486,70 @@ def test_get_low_stock_report_empty(api_client):
 
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_get_category_summary_report(api_client):
+    test_client, db = api_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=10,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=5000,
+            quantity=5,
+            low_stock_level=2,
+            category="Electronics",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Office Chair",
+            normalized_name="office chair",
+            price=80000,
+            quantity=8,
+            low_stock_level=2,
+            category="Furniture",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get(
+        "/api/reports/categories"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == [
+        {
+            "category": "Electronics",
+            "total_products": 2,
+            "total_items": 15,
+        },
+        {
+            "category": "Furniture",
+            "total_products": 1,
+            "total_items": 8,
+        },
+    ]
+
+
+def test_get_category_summary_report_empty(api_client):
+    test_client, _ = api_client
+
+    response = test_client.get(
+        "/api/reports/categories"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []

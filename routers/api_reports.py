@@ -10,6 +10,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import StreamingResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from api_security import require_api_token
@@ -283,3 +284,39 @@ def get_low_stock_report(
     )
 
     return products
+
+
+@router.get(
+    "/categories",
+    summary="Get category summary report",
+    description=(
+        "Return inventory statistics grouped by product category."
+    ),
+)
+def get_category_summary_report(
+    db: Session = Depends(get_db),
+):
+    """
+    Return product counts and total item quantities
+    grouped by category.
+    """
+
+    results = (
+        db.query(
+            Product.category,
+            func.count(Product.id).label("total_products"),
+            func.sum(Product.quantity).label("total_items"),
+        )
+        .group_by(Product.category)
+        .order_by(Product.category.asc())
+        .all()
+    )
+
+    return [
+        {
+            "category": category,
+            "total_products": total_products,
+            "total_items": total_items,
+        }
+        for category, total_products, total_items in results
+    ]
