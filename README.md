@@ -56,6 +56,7 @@ https://inventory-management-system-ycyy.onrender.com/docs
 - View inventory statistics grouped by category through the REST API
 - View product-level and total inventory valuation through the REST API
 - View inventory statistics and valuation grouped by supplier through the REST API
+- View category-level inventory valuation through the REST API
 - Export the current product inventory as CSV
 - Export stock-movement history as CSV
 - Filter stock-movement CSV exports by start date and end date
@@ -473,6 +474,7 @@ Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 | GET | `/api/reports/categories` | Return inventory statistics grouped by category |
 | GET | `/api/reports/valuation` | Return product-level and total inventory valuation |
 | GET | `/api/reports/suppliers` | Return inventory statistics and valuation grouped by supplier |
+| GET | `/api/reports/category-valuations` | Return inventory statistics and valuation grouped by category |
 | GET | `/api/reports/inventory.csv` | Export the current product inventory as CSV |
 | GET | `/api/reports/stock-movements.csv` | Export stock-movement history as CSV with optional date-range filtering |
 
@@ -711,6 +713,56 @@ Suppliers are returned in ascending alphabetical order.
 Products without a supplier value are excluded from the supplier summary report.
 
 When the inventory contains no products with a supplier, the endpoint returns HTTP `200 OK` with an empty JSON list:
+
+```json
+[]
+```
+
+A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
+
+### Category Inventory Valuation Report
+
+The category inventory valuation endpoint returns inventory statistics and monetary value grouped by product category:
+
+```text
+GET /api/reports/category-valuations
+```
+
+For each category, the report returns:
+
+- `category` — product category name
+- `total_products` — number of products in the category
+- `total_items` — total current quantity of inventory items in the category
+- `inventory_value` — total monetary value of the category's current inventory
+
+Inventory value is calculated from each product using:
+
+```text
+inventory_value = price × quantity
+```
+
+Example response:
+
+```json
+[
+  {
+    "category": "Electronics",
+    "total_products": 2,
+    "total_items": 15,
+    "inventory_value": 2025000
+  },
+  {
+    "category": "Furniture",
+    "total_products": 1,
+    "total_items": 8,
+    "inventory_value": 400000
+  }
+]
+```
+
+Categories are returned in ascending alphabetical order.
+
+When the inventory contains no products, the endpoint returns HTTP `200 OK` with an empty JSON list:
 
 ```json
 []
@@ -1085,7 +1137,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **188 automated tests** covering areas including:
+The project currently contains **191 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -1150,6 +1202,9 @@ The project currently contains **188 automated tests** covering areas including:
 - Empty supplier summary report
 - Exclusion of products without suppliers from the supplier summary report
 - Supplier summary report authentication
+- Category inventory valuation calculation
+- Empty category inventory valuation report
+- Category inventory valuation report authentication
 - API authentication
 - Browser authentication
 - Security behavior
@@ -1160,7 +1215,7 @@ The project currently contains **188 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-188 passed, 1 warning
+191 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
@@ -1227,6 +1282,7 @@ The documentation includes:
 - Category summary reporting
 - Inventory valuation reporting
 - Supplier summary reporting
+- Category inventory valuation reporting
 - Product pagination parameters and response schema
 - Product search parameter
 - Product category filter
