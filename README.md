@@ -55,6 +55,7 @@ https://inventory-management-system-ycyy.onrender.com/docs
 - View low-stock product reports through the REST API
 - View inventory statistics grouped by category through the REST API
 - View product-level and total inventory valuation through the REST API
+- View inventory statistics and valuation grouped by supplier through the REST API
 - Export the current product inventory as CSV
 - Export stock-movement history as CSV
 - Filter stock-movement CSV exports by start date and end date
@@ -471,6 +472,7 @@ Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 | GET | `/api/reports/low-stock` | Return products at or below their configured low-stock level |
 | GET | `/api/reports/categories` | Return inventory statistics grouped by category |
 | GET | `/api/reports/valuation` | Return product-level and total inventory valuation |
+| GET | `/api/reports/suppliers` | Return inventory statistics and valuation grouped by supplier |
 | GET | `/api/reports/inventory.csv` | Export the current product inventory as CSV |
 | GET | `/api/reports/stock-movements.csv` | Export stock-movement history as CSV with optional date-range filtering |
 
@@ -660,6 +662,58 @@ When the inventory contains no products, the endpoint returns HTTP `200 OK` with
   "total_inventory_value": 0,
   "products": []
 }
+```
+
+A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
+
+### Supplier Summary Report
+
+The supplier summary endpoint returns inventory statistics and valuation grouped by product supplier:
+
+```text
+GET /api/reports/suppliers
+```
+
+For each supplier, the report returns:
+
+- `supplier` — supplier name
+- `total_products` — number of products supplied by the supplier
+- `total_items` — total current quantity of inventory items supplied by the supplier
+- `inventory_value` — total monetary value of the supplier's current inventory
+
+Inventory value is calculated from each product using:
+
+```text
+inventory_value = price × quantity
+```
+
+Example response:
+
+```json
+[
+  {
+    "supplier": "Supplier A",
+    "total_products": 2,
+    "total_items": 15,
+    "inventory_value": 2025000
+  },
+  {
+    "supplier": "Supplier B",
+    "total_products": 1,
+    "total_items": 8,
+    "inventory_value": 400000
+  }
+]
+```
+
+Suppliers are returned in ascending alphabetical order.
+
+Products without a supplier value are excluded from the supplier summary report.
+
+When the inventory contains no products with a supplier, the endpoint returns HTTP `200 OK` with an empty JSON list:
+
+```json
+[]
 ```
 
 A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
@@ -1031,7 +1085,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **184 automated tests** covering areas including:
+The project currently contains **188 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -1092,6 +1146,10 @@ The project currently contains **184 automated tests** covering areas including:
 - Inventory valuation calculation
 - Empty inventory valuation report
 - Inventory valuation report authentication
+- Supplier summary aggregation and valuation
+- Empty supplier summary report
+- Exclusion of products without suppliers from the supplier summary report
+- Supplier summary report authentication
 - API authentication
 - Browser authentication
 - Security behavior
@@ -1102,7 +1160,7 @@ The project currently contains **184 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-184 passed, 1 warning
+188 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
@@ -1168,6 +1226,7 @@ The documentation includes:
 - Low-stock inventory reporting
 - Category summary reporting
 - Inventory valuation reporting
+- Supplier summary reporting
 - Product pagination parameters and response schema
 - Product search parameter
 - Product category filter
