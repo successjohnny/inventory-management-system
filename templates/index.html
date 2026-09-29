@@ -118,6 +118,47 @@
             </table>
         </section>
 
+        <!-- Low-Stock Insights -->
+        <section class="inventory">
+            <div class="section-header">
+                <h2>Low-Stock Insights</h2>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Current Quantity</th>
+                        <th>Low Stock Level</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% if low_stock_insights %}
+                        {% for product in low_stock_insights %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.low_stock_level }}</td>
+                                <td>
+                                    <span class="low-stock">
+                                        Low Stock
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4">
+                                No low-stock products.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </section>
+
         <!-- Products Section -->
         <section class="inventory">
             <div class="section-header">

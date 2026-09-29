@@ -64,6 +64,12 @@ def home(
             product.price * product.quantity
         )
 
+    low_stock_insights = [
+        product
+        for product in all_products
+        if product.quantity <= product.low_stock_level
+    ]
+
     movements = (
         db.query(StockMovement)
         .options(
@@ -94,6 +100,7 @@ def home(
             "products": products,
             "category_valuations": category_valuations,
             "supplier_valuations": supplier_valuations,
+            "low_stock_insights": low_stock_insights,
             "total_products": len(all_products),
             "total_items": sum(
                 product.quantity
