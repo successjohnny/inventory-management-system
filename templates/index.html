@@ -52,6 +52,39 @@
             </div>
         </section>
 
+        <!-- Category Inventory Valuation -->
+        <section class="inventory">
+            <div class="section-header">
+                <h2>Category Inventory Valuation</h2>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Inventory Value</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% if category_valuations %}
+                        {% for category, inventory_value in category_valuations.items() %}
+                            <tr>
+                                <td>{{ category }}</td>
+                                <td>₦{{ inventory_value }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="2">
+                                No category valuation data available.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </section>
+
         <!-- Products Section -->
         <section class="inventory">
             <div class="section-header">

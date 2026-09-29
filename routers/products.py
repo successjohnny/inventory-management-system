@@ -41,6 +41,16 @@ def home(
 
     all_products = db.query(Product).all()
 
+    category_valuations = {}
+
+    for product in all_products:
+        if product.category not in category_valuations:
+            category_valuations[product.category] = 0
+
+        category_valuations[product.category] += (
+            product.price * product.quantity
+        )
+
     movements = (
         db.query(StockMovement)
         .options(
@@ -69,6 +79,7 @@ def home(
         name="index.html",
         context={
             "products": products,
+            "category_valuations": category_valuations,
             "total_products": len(all_products),
             "total_items": sum(
                 product.quantity
