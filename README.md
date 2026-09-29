@@ -68,12 +68,13 @@ https://inventory-management-system-ycyy.onrender.com/docs
 
 ### Dashboard
 
-The browser dashboard provides inventory statistics including:
+The browser dashboard provides inventory statistics and analytics including:
 
 - Total products
 - Total inventory items
 - Total categories
 - Low-stock products
+- Category inventory valuation
 - Product inventory table
 - Product search
 - Stock movement history
@@ -1137,7 +1138,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **191 automated tests** covering areas including:
+The project currently contains **193 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -1205,6 +1206,8 @@ The project currently contains **191 automated tests** covering areas including:
 - Category inventory valuation calculation
 - Empty category inventory valuation report
 - Category inventory valuation report authentication
+- Dashboard category inventory valuation display
+- Empty dashboard category inventory valuation state
 - API authentication
 - Browser authentication
 - Security behavior
@@ -1215,7 +1218,7 @@ The project currently contains **191 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-191 passed, 1 warning
+193 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
