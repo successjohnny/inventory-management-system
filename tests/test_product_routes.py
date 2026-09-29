@@ -742,3 +742,88 @@ def test_home_page_displays_empty_category_valuations(
         "No category valuation data available."
         in response.text
     )
+
+
+def test_home_page_displays_supplier_valuations(
+    authenticated_client,
+):
+    test_client, db = authenticated_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=10,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=5000,
+            quantity=5,
+            low_stock_level=2,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Office Chair",
+            normalized_name="office chair",
+            price=50000,
+            quantity=8,
+            low_stock_level=2,
+            category="Furniture",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Keyboard",
+            normalized_name="keyboard",
+            price=10000,
+            quantity=4,
+            low_stock_level=2,
+            category="Electronics",
+            supplier=None,
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get("/")
+
+    assert response.status_code == 200
+
+    assert "Supplier Inventory Valuation" in response.text
+    assert "Supplier A" in response.text
+    assert "2025000" in response.text
+    assert "Supplier B" in response.text
+    assert "400000" in response.text
+
+def test_home_page_excludes_products_without_supplier_from_supplier_valuations(
+    authenticated_client,
+):
+    test_client, db = authenticated_client
+
+    product = Product(
+        name="Keyboard",
+        normalized_name="keyboard",
+        price=10000,
+        quantity=4,
+        low_stock_level=2,
+        category="Electronics",
+        supplier=None,
+    )
+
+    db.add(product)
+    db.commit()
+
+    response = test_client.get("/")
+
+    assert response.status_code == 200
+    assert "Supplier Inventory Valuation" in response.text
+    assert (
+        "No supplier valuation data available."
+        in response.text
+    )

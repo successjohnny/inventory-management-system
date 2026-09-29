@@ -51,6 +51,19 @@ def home(
             product.price * product.quantity
         )
 
+    supplier_valuations = {}
+
+    for product in all_products:
+        if not product.supplier:
+            continue
+
+        if product.supplier not in supplier_valuations:
+            supplier_valuations[product.supplier] = 0
+
+        supplier_valuations[product.supplier] += (
+            product.price * product.quantity
+        )
+
     movements = (
         db.query(StockMovement)
         .options(
@@ -80,6 +93,7 @@ def home(
         context={
             "products": products,
             "category_valuations": category_valuations,
+            "supplier_valuations": supplier_valuations,
             "total_products": len(all_products),
             "total_items": sum(
                 product.quantity

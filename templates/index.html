@@ -85,6 +85,39 @@
             </table>
         </section>
 
+        <!-- Supplier Inventory Valuation -->
+        <section class="inventory">
+            <div class="section-header">
+                <h2>Supplier Inventory Valuation</h2>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Supplier</th>
+                        <th>Inventory Value</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% if supplier_valuations %}
+                        {% for supplier, inventory_value in supplier_valuations.items() %}
+                            <tr>
+                                <td>{{ supplier }}</td>
+                                <td>₦{{ inventory_value }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="2">
+                                No supplier valuation data available.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </section>
+
         <!-- Products Section -->
         <section class="inventory">
             <div class="section-header">
