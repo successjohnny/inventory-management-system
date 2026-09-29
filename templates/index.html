@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta
@@ -60,6 +61,17 @@
 
             <div class="chart-container">
                 <canvas id="categoryValuationChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Inventory Value by Supplier Chart -->
+        <section class="inventory">
+            <div class="section-header">
+                <h2>Inventory Value by Supplier</h2>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="supplierValuationChart"></canvas>
             </div>
         </section>
 
@@ -443,6 +455,11 @@
         id="categoryValuationData"
         type="application/json"
     >{{ category_valuations | tojson }}</script>
+
+    <script
+        id="supplierValuationData"
+        type="application/json"
+    >{{ supplier_valuations | tojson }}</script>
 
     <script
         src="https://cdn.jsdelivr.net/npm/chart.js"

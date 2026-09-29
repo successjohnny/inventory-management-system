@@ -935,3 +935,39 @@ def test_home_page_displays_category_valuation_chart(
     assert response.status_code == 200
     assert "Inventory Value by Category" in response.text
     assert 'id="categoryValuationChart"' in response.text
+
+
+def test_home_page_displays_supplier_valuation_chart(
+    authenticated_client,
+):
+    test_client, db = authenticated_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=10,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Office Chair",
+            normalized_name="office chair",
+            price=50000,
+            quantity=8,
+            low_stock_level=2,
+            category="Furniture",
+            supplier="Supplier B",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get("/")
+
+    assert response.status_code == 200
+    assert "Inventory Value by Supplier" in response.text
+    assert 'id="supplierValuationChart"' in response.text
