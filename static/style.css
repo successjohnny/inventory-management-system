@@ -227,3 +227,17 @@ th {
 .delete-btn:hover {
     background: #b91c1c;
 }
+/* Dashboard charts */
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 380px;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        height: 300px;
+    }
+}

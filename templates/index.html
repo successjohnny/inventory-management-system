@@ -52,6 +52,17 @@
             </div>
         </section>
 
+        <!-- Inventory Value by Category Chart -->
+        <section class="inventory">
+            <div class="section-header">
+                <h2>Inventory Value by Category</h2>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="categoryValuationChart"></canvas>
+            </div>
+        </section>
+
         <!-- Category Inventory Valuation -->
         <section class="inventory">
             <div class="section-header">
@@ -427,5 +438,18 @@
             </table>
         </section>
     </main>
+
+    <script
+        id="categoryValuationData"
+        type="application/json"
+    >{{ category_valuations | tojson }}</script>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js"
+    ></script>
+
+    <script
+        src="{{ url_for('static', path='dashboard.js') }}"
+    ></script>
 </body>
 </html>
