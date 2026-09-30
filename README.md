@@ -78,6 +78,7 @@ The browser dashboard provides inventory statistics and analytics including:
 - Supplier inventory valuation
 - Low-stock insights
 - Inventory Value by Category chart
+- Inventory Value by Supplier chart
 - Product inventory table
 - Product search
 - Stock movement history
@@ -1144,7 +1145,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **198 automated tests** covering areas including:
+The project currently contains **199 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -1219,6 +1220,7 @@ The project currently contains **198 automated tests** covering areas including:
 - Dashboard low-stock insights display
 - Empty dashboard low-stock insights state
 - Dashboard category valuation chart display
+- Dashboard supplier valuation chart display
 - API authentication
 - Browser authentication
 - Security behavior
@@ -1229,7 +1231,7 @@ The project currently contains **198 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-198 passed, 1 warning
+199 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
