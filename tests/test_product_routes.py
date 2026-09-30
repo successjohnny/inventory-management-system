@@ -971,3 +971,48 @@ def test_home_page_displays_supplier_valuation_chart(
     assert response.status_code == 200
     assert "Inventory Value by Supplier" in response.text
     assert 'id="supplierValuationChart"' in response.text
+
+
+def test_home_page_displays_low_stock_chart(
+    authenticated_client,
+):
+    test_client, db = authenticated_client
+
+    products = [
+        Product(
+            name="Laptop",
+            normalized_name="laptop",
+            price=200000,
+            quantity=2,
+            low_stock_level=3,
+            category="Electronics",
+            supplier="Supplier A",
+        ),
+        Product(
+            name="Mouse",
+            normalized_name="mouse",
+            price=5000,
+            quantity=5,
+            low_stock_level=5,
+            category="Electronics",
+            supplier="Supplier B",
+        ),
+        Product(
+            name="Keyboard",
+            normalized_name="keyboard",
+            price=10000,
+            quantity=10,
+            low_stock_level=4,
+            category="Electronics",
+            supplier="Supplier C",
+        ),
+    ]
+
+    db.add_all(products)
+    db.commit()
+
+    response = test_client.get("/")
+
+    assert response.status_code == 200
+    assert "Low-Stock Overview" in response.text
+    assert 'id="lowStockChart"' in response.text

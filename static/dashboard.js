@@ -116,4 +116,60 @@ document.addEventListener("DOMContentLoaded", () => {
             },
         });
     }
+
+    // Low-Stock Overview Chart
+    const lowStockChartCanvas = document.getElementById(
+        "lowStockChart"
+    );
+
+    const lowStockDataElement = document.getElementById(
+        "lowStockData"
+    );
+
+    if (lowStockChartCanvas && lowStockDataElement) {
+        const lowStockProducts = JSON.parse(
+            lowStockDataElement.textContent
+        );
+
+        const productNames = lowStockProducts.map(
+            (product) => product.name
+        );
+
+        const currentQuantities = lowStockProducts.map(
+            (product) => product.quantity
+        );
+
+        const lowStockLevels = lowStockProducts.map(
+            (product) => product.low_stock_level
+        );
+
+        new Chart(lowStockChartCanvas, {
+            type: "bar",
+
+            data: {
+                labels: productNames,
+                datasets: [
+                    {
+                        label: "Current Quantity",
+                        data: currentQuantities,
+                    },
+                    {
+                        label: "Low Stock Level",
+                        data: lowStockLevels,
+                    },
+                ],
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    }
 });

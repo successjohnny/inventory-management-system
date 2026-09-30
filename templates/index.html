@@ -75,6 +75,17 @@
             </div>
         </section>
 
+        <!-- Low-Stock Overview Chart -->
+        <section class="inventory">
+            <div class="section-header">
+                <h2>Low-Stock Overview</h2>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="lowStockChart"></canvas>
+            </div>
+        </section>
+
         <!-- Category Inventory Valuation -->
         <section class="inventory">
             <div class="section-header">
@@ -460,6 +471,21 @@
         id="supplierValuationData"
         type="application/json"
     >{{ supplier_valuations | tojson }}</script>
+
+    <script
+        id="lowStockData"
+        type="application/json"
+    >
+    [
+        {% for product in low_stock_insights %}
+            {
+                "name": {{ product.name | tojson }},
+                "quantity": {{ product.quantity }},
+                "low_stock_level": {{ product.low_stock_level }}
+            }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+    </script>
 
     <script
         src="https://cdn.jsdelivr.net/npm/chart.js"
