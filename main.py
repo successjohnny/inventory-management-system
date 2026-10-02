@@ -19,6 +19,7 @@ from routers import (
     api_products,
     api_stock,
     api_reports,
+    api_insights,
     auth,
 )
 
@@ -140,3 +141,5 @@ app.include_router(api_products.router)
 app.include_router(api_stock.router)
 
 app.include_router(api_reports.router)
+
+app.include_router(api_insights.router)
