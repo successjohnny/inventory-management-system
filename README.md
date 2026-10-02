@@ -1102,6 +1102,8 @@ ADMIN_PASSWORD_HASH
 SESSION_HTTPS_ONLY
 ```
 
+Administrator usernames are case-insensitive during login, while passwords remain case-sensitive.
+
 Do not commit real credentials or secrets to Git.
 
 For local development, configure appropriate development values in your environment.
@@ -1146,7 +1148,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **200 automated tests** covering areas including:
+The project currently contains **201 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -1225,6 +1227,7 @@ The project currently contains **200 automated tests** covering areas including:
 - Dashboard low-stock overview chart display
 - API authentication
 - Browser authentication
+- Case-insensitive administrator username verification
 - Security behavior
 - Database behavior
 - Application health checks
@@ -1233,7 +1236,7 @@ The project currently contains **200 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-200 passed, 1 warning
+201 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
