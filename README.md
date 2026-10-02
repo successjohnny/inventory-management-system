@@ -888,6 +888,31 @@ Malformed date values are also rejected with HTTP `422 Unprocessable Entity`.
 
 A valid API bearer token is required to access the report. Requests without valid authentication are rejected.
 
+### Inventory Insights API
+
+The Inventory Insights API provides structured inventory analytics and explainable recommendations based on the current product inventory.
+
+```text
+GET /api/insights
+```
+
+The endpoint is protected by bearer-token authentication.
+
+The response includes:
+
+- Total number of products
+- Total number of inventory items
+- Total inventory value
+- Number of low-stock products
+- Details of products at or below their configured low-stock levels
+- Explainable inventory recommendations
+
+When the inventory is empty, the endpoint returns zero totals, an empty low-stock product list, and an empty recommendations list.
+
+The recommendations are currently generated deterministically from inventory data. This structured insights layer provides a foundation for future AI-assisted inventory analysis and recommendations.
+
+A valid API bearer token is required to access the endpoint. Requests without valid authentication are rejected.
+
 ### System Health
 
 | Method | Endpoint | Description |
@@ -1148,7 +1173,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **201 automated tests** covering areas including:
+The project currently contains **214 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -1236,7 +1261,7 @@ The project currently contains **201 automated tests** covering areas including:
 The latest complete test run passed:
 
 ```text
-201 passed, 1 warning
+214 passed, 1 warning
 ```
 
 The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
