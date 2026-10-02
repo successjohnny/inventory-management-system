@@ -110,8 +110,8 @@ def verify_admin_credentials(
         return False
 
     if not hmac.compare_digest(
-        username.encode("utf-8"),
-        configured_username.encode("utf-8"),
+        username.casefold().encode("utf-8"),
+        configured_username.casefold().encode("utf-8"),
     ):
         return False
 

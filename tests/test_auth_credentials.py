@@ -140,3 +140,22 @@ def test_invalid_admin_username(monkeypatch):
         "another-user",
         password,
     ) is False
+
+
+def test_admin_username_is_case_insensitive(monkeypatch):
+    password = "Example-Test-Password-123!"
+
+    monkeypatch.setenv(
+        "ADMIN_USERNAME",
+        "admin",
+    )
+
+    monkeypatch.setenv(
+        "ADMIN_PASSWORD_HASH",
+        hash_password(password),
+    )
+
+    assert verify_admin_credentials(
+        "ADMIN",
+        password,
+    ) is True
