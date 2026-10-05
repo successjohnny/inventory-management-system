@@ -1,4 +1,13 @@
 import json
+import os
+
+
+def get_ai_model() -> str:
+    """
+    Return the configured OpenAI model name.
+    """
+
+    return os.environ["OPENAI_MODEL"]
 
 
 def build_inventory_ai_prompt(

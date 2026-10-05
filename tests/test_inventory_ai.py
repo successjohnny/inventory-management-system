@@ -1,4 +1,10 @@
-from services.inventory_ai import build_inventory_ai_prompt, generate_ai_inventory_analysis
+import pytest
+
+from services.inventory_ai import (
+    build_inventory_ai_prompt,
+    generate_ai_inventory_analysis,
+    get_ai_model,
+)
 
 
 def test_build_inventory_ai_prompt_includes_inventory_facts():
@@ -167,3 +173,26 @@ def test_generate_ai_inventory_analysis_handles_empty_response():
     assert analysis == (
         "AI analysis did not return any content."
     )
+
+
+def test_get_ai_model_uses_environment_variable(
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "OPENAI_MODEL",
+        "test-inventory-model",
+    )
+
+    assert get_ai_model() == "test-inventory-model"
+
+
+def test_get_ai_model_requires_configuration(
+    monkeypatch,
+):
+    monkeypatch.delenv(
+        "OPENAI_MODEL",
+        raising=False,
+    )
+
+    with pytest.raises(KeyError):
+        get_ai_model()

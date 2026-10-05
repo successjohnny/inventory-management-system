@@ -1,9 +1,16 @@
+import os
+
+from openai import OpenAI
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from api_security import require_api_token
 from database import get_db
 from models import Product
+from services.inventory_ai import (
+    generate_ai_inventory_analysis,
+    get_ai_model,
+)
 from services.inventory_insights import build_inventory_insights
 
 
@@ -12,6 +19,23 @@ router = APIRouter(
     tags=["Inventory Insights API"],
     dependencies=[Depends(require_api_token)],
 )
+
+
+def get_ai_client():
+    """
+    Return a configured OpenAI client.
+    """
+
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY is not configured."
+        )
+
+    return OpenAI(
+        api_key=api_key,
+    )
 
 
 @router.get(
@@ -36,3 +60,39 @@ def get_inventory_insights(
     )
 
     return build_inventory_insights(products)
+
+
+@router.get(
+    "/ai",
+    summary="Get AI-assisted inventory insights",
+    description=(
+        "Return deterministic inventory insights together "
+        "with AI-assisted inventory analysis."
+    ),
+)
+def get_ai_inventory_insights(
+    db: Session = Depends(get_db),
+    client=Depends(get_ai_client),
+):
+    """
+    Return inventory facts and AI-assisted analysis.
+    """
+
+    products = (
+        db.query(Product)
+        .order_by(Product.id.asc())
+        .all()
+    )
+
+    insights = build_inventory_insights(products)
+
+    ai_analysis = generate_ai_inventory_analysis(
+        insights,
+        client=client,
+        model=get_ai_model(),
+    )
+
+    return {
+        "insights": insights,
+        "ai_analysis": ai_analysis,
+    }
