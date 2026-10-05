@@ -1,4 +1,5 @@
 import pytest
+from fastapi import HTTPException
 from models import Product
 from routers.api_insights import get_ai_client
 
@@ -195,8 +196,15 @@ def test_get_ai_client_requires_api_key(
         raising=False,
     )
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(HTTPException) as exc_info:
         get_ai_client()
+
+    assert exc_info.value.status_code == 503
+
+    assert exc_info.value.detail == (
+        "AI inventory analysis is temporarily "
+        "unavailable."
+    )
 
 
 def test_get_ai_client_uses_configured_api_key(
@@ -299,3 +307,162 @@ def test_invalid_token_blocks_ai_inventory_insights(
         )
 
     assert response.status_code == 401
+
+
+def test_ai_inventory_insights_handles_ai_failure(
+    api_client,
+    monkeypatch,
+):
+    test_client, db = api_client
+
+    monkeypatch.setenv(
+        "OPENAI_MODEL",
+        "test-inventory-model",
+    )
+
+    class FailingResponses:
+        def create(self, **kwargs):
+            raise RuntimeError(
+                "Simulated AI provider failure."
+            )
+
+    class FailingClient:
+        def __init__(self):
+            self.responses = FailingResponses()
+
+    def override_ai_client():
+        return FailingClient()
+
+    product = Product(
+        name="Laptop",
+        normalized_name="laptop",
+        price=200000,
+        quantity=2,
+        low_stock_level=3,
+        category="Electronics",
+        supplier="Supplier A",
+    )
+
+    db.add(product)
+    db.commit()
+
+    test_client.app.dependency_overrides[
+        get_ai_client
+    ] = override_ai_client
+
+    try:
+        response = test_client.get(
+            "/api/insights/ai"
+        )
+    finally:
+        test_client.app.dependency_overrides.pop(
+            get_ai_client,
+            None,
+        )
+
+    assert response.status_code == 503
+
+    assert response.json() == {
+        "detail": (
+            "AI inventory analysis is temporarily "
+            "unavailable."
+        )
+    }
+
+
+def test_ai_inventory_insights_handles_missing_model(
+    api_client,
+    monkeypatch,
+):
+    test_client, db = api_client
+
+    monkeypatch.delenv(
+        "OPENAI_MODEL",
+        raising=False,
+    )
+
+    class FakeResponses:
+        def create(self, **kwargs):
+            raise AssertionError(
+                "AI request should not be made "
+                "without a configured model."
+            )
+
+    class FakeClient:
+        def __init__(self):
+            self.responses = FakeResponses()
+
+    def override_ai_client():
+        return FakeClient()
+
+    product = Product(
+        name="Laptop",
+        normalized_name="laptop",
+        price=200000,
+        quantity=2,
+        low_stock_level=3,
+        category="Electronics",
+        supplier="Supplier A",
+    )
+
+    db.add(product)
+    db.commit()
+
+    test_client.app.dependency_overrides[
+        get_ai_client
+    ] = override_ai_client
+
+    try:
+        response = test_client.get(
+            "/api/insights/ai"
+        )
+    finally:
+        test_client.app.dependency_overrides.pop(
+            get_ai_client,
+            None,
+        )
+
+    assert response.status_code == 503
+
+    assert response.json() == {
+        "detail": (
+            "AI inventory analysis is temporarily "
+            "unavailable."
+        )
+    }
+
+
+def test_ai_inventory_insights_handles_missing_api_key(
+    client,
+    monkeypatch,
+):
+    test_client, _ = client
+
+    monkeypatch.setenv(
+        "API_TOKEN",
+        "test-api-token-for-inventory-tests-123456789",
+    )
+
+    monkeypatch.delenv(
+        "OPENAI_API_KEY",
+        raising=False,
+    )
+
+    response = test_client.get(
+        "/api/insights/ai",
+        headers={
+            "Authorization": (
+                "Bearer "
+                "test-api-token-for-inventory-tests-123456789"
+            ),
+        },
+    )
+
+    assert response.status_code == 503
+
+    assert response.json() == {
+        "detail": (
+            "AI inventory analysis is temporarily "
+            "unavailable."
+        )
+    }

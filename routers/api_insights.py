@@ -1,7 +1,7 @@
 import os
 
 from openai import OpenAI
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api_security import require_api_token
@@ -29,8 +29,12 @@ def get_ai_client():
     api_key = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
-        raise RuntimeError(
-            "OPENAI_API_KEY is not configured."
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "AI inventory analysis is temporarily "
+                "unavailable."
+            ),
         )
 
     return OpenAI(
@@ -86,11 +90,20 @@ def get_ai_inventory_insights(
 
     insights = build_inventory_insights(products)
 
-    ai_analysis = generate_ai_inventory_analysis(
-        insights,
-        client=client,
-        model=get_ai_model(),
-    )
+    try:
+        ai_analysis = generate_ai_inventory_analysis(
+            insights,
+            client=client,
+            model=get_ai_model(),
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "AI inventory analysis is temporarily "
+                "unavailable."
+            ),
+        ) from exc
 
     return {
         "insights": insights,
