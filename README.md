@@ -1,8 +1,8 @@
 # Inventory Management System
 
-A full-stack inventory management application built with **Python, FastAPI, SQLAlchemy, PostgreSQL, Jinja2, HTML, and CSS**.
+A full-stack, AI-assisted inventory management application built with **Python, FastAPI, SQLAlchemy, PostgreSQL, Jinja2, HTML, CSS, JavaScript, Chart.js, and the OpenAI API**.
 
-The system manages products, tracks stock movements, monitors low-stock levels, provides inventory dashboard statistics, supports inventory and stock-movement CSV exports, and exposes a secure REST API for programmatic access.
+The system manages products, tracks stock movements, monitors low-stock levels, provides inventory analytics and interactive dashboard visualizations, generates deterministic inventory insights, provides AI-assisted inventory recommendations, supports inventory and stock-movement CSV exports, and exposes a secure REST API for programmatic access.
 
 ---
 
@@ -65,6 +65,21 @@ https://inventory-management-system-ycyy.onrender.com/docs
 - Export inventory with deterministic product-ID ordering
 - Export stock movements from newest to oldest
 - Return valid CSV headers even when report results are empty
+
+### AI-Assisted Inventory Insights
+
+- Generate deterministic inventory insights from current product data
+- Calculate total products, total items, and total inventory value
+- Identify products at or below their configured low-stock levels
+- Generate explainable rule-based restocking recommendations
+- Generate AI-assisted inventory analysis using the OpenAI API
+- Keep Python calculations authoritative while using AI for interpretation and recommendations
+- Send only structured inventory facts to the AI service
+- Keep database credentials and application secrets outside AI prompts
+- Protect inventory-insights endpoints with bearer-token authentication
+- Return controlled `503 Service Unavailable` responses when AI configuration or the AI provider is unavailable
+- Support configurable OpenAI models through environment variables
+- Test AI functionality with mocked clients without making paid API requests during automated tests
 
 ### Dashboard
 
@@ -890,7 +905,7 @@ A valid API bearer token is required to access the report. Requests without vali
 
 ### Inventory Insights API
 
-The Inventory Insights API provides structured inventory analytics and explainable recommendations based on the current product inventory.
+The Inventory Insights API provides structured, deterministic inventory analytics and explainable recommendations based on the current product inventory.
 
 ```text
 GET /api/insights
@@ -905,11 +920,81 @@ The response includes:
 - Total inventory value
 - Number of low-stock products
 - Details of products at or below their configured low-stock levels
-- Explainable inventory recommendations
+- Explainable deterministic inventory recommendations
 
 When the inventory is empty, the endpoint returns zero totals, an empty low-stock product list, and an empty recommendations list.
 
-The recommendations are currently generated deterministically from inventory data. This structured insights layer provides a foundation for future AI-assisted inventory analysis and recommendations.
+The deterministic insights layer is authoritative for inventory calculations and low-stock status. It also provides the structured facts used by the AI-assisted analysis endpoint.
+
+A valid API bearer token is required to access the endpoint. Requests without valid authentication are rejected.
+
+### AI Inventory Insights API
+
+The AI-assisted inventory endpoint combines the deterministic Inventory Insights service with the OpenAI API to produce natural-language analysis and recommendations based on the current inventory.
+
+```text
+GET /api/insights/ai
+```
+
+The endpoint is protected by bearer-token authentication.
+
+The processing flow is:
+
+```text
+PostgreSQL
+    ↓
+SQLAlchemy
+    ↓
+Inventory Insights Service
+    ↓
+Structured, deterministic inventory facts
+    ↓
+AI Service
+    ↓
+Natural-language analysis and recommendations
+    ↓
+Protected REST API
+```
+
+Python remains authoritative for quantities, total inventory value, low-stock status, and deterministic recommendations. The AI service interprets the structured inventory facts rather than replacing the application's calculations.
+
+The AI prompt instructs the model to use only the supplied inventory data and not invent products, quantities, stock levels, prices, or inventory values.
+
+Example response structure:
+
+```json
+{
+  "insights": {
+    "total_products": 3,
+    "total_items": 113,
+    "total_inventory_value": 13387500,
+    "low_stock_count": 1,
+    "low_stock_products": [
+      {
+        "name": "Mouse",
+        "quantity": 5,
+        "low_stock_level": 10
+      }
+    ],
+    "recommendations": [
+      {
+        "type": "low_stock",
+        "product": "Mouse",
+        "message": "Mouse is at or below its low-stock level. Review this product for restocking."
+      }
+    ]
+  },
+  "ai_analysis": "Natural-language inventory analysis generated from the structured insights."
+}
+```
+
+The OpenAI model is configurable through the `OPENAI_MODEL` environment variable, while the API credential is supplied through `OPENAI_API_KEY`.
+
+If the OpenAI configuration is unavailable or the AI provider request fails, the endpoint returns HTTP `503 Service Unavailable` with a controlled error response instead of exposing internal exception details.
+
+Automated tests use mocked AI clients and do not make paid OpenAI network requests.
+
+The complete AI integration has been successfully tested both locally and in the deployed Render application.
 
 A valid API bearer token is required to access the endpoint. Requests without valid authentication are rejected.
 
@@ -993,6 +1078,15 @@ Sensitive credentials and application secrets are stored in environment variable
 - Pydantic
 - Uvicorn
 - Alembic
+- OpenAI Python SDK
+
+### AI Integration
+
+- OpenAI API
+- OpenAI Python SDK
+- Configurable model selection through environment variables
+- Structured inventory facts supplied to the AI service
+- Mocked AI clients for automated testing
 
 ### Frontend
 
@@ -1034,6 +1128,7 @@ inventory-management-system/
 │   └── versions/
 │
 ├── routers/
+│   ├── api_insights.py
 │   ├── api_products.py
 │   ├── api_reports.py
 │   ├── api_stock.py
@@ -1043,6 +1138,8 @@ inventory-management-system/
 │
 ├── services/
 │   ├── error_messages.py
+│   ├── inventory_ai.py
+│   ├── inventory_insights.py
 │   ├── inventory_service.py
 │   └── product_service.py
 │
@@ -1057,11 +1154,14 @@ inventory-management-system/
 │
 ├── tests/
 │   ├── conftest.py
+│   ├── test_api_insights.py
 │   ├── test_api_products.py
 │   ├── test_api_reports.py
 │   ├── test_api_security.py
 │   ├── test_api_stock.py
 │   ├── test_health.py
+│   ├── test_inventory_ai.py
+│   ├── test_inventory_insights.py
 │   └── ...
 │
 ├── alembic.ini
@@ -1125,6 +1225,10 @@ API_TOKEN
 ADMIN_USERNAME
 ADMIN_PASSWORD_HASH
 SESSION_HTTPS_ONLY
+OPENAI_API_KEY
+OPENAI_MODEL
+
+`OPENAI_API_KEY` authenticates requests to the OpenAI API, while `OPENAI_MODEL` selects the model used for AI-assisted inventory analysis. These values must be configured through environment variables and must not be committed to the repository.
 ```
 
 Administrator usernames are case-insensitive during login, while passwords remain case-sensitive.
@@ -1173,7 +1277,7 @@ Run the complete automated test suite with:
 pytest -v
 ```
 
-The project currently contains **214 automated tests** covering areas including:
+The project currently contains **229 automated tests** covering areas including:
 
 - Product creation
 - Product retrieval
@@ -1257,14 +1361,26 @@ The project currently contains **214 automated tests** covering areas including:
 - Database behavior
 - Application health checks
 - Database health failure handling
+- Deterministic inventory insights generation
+- Low-stock inventory recommendations
+- Empty-inventory insights behavior
+- Inventory AI prompt generation
+- AI model configuration
+- AI inventory analysis
+- AI empty-inventory behavior
+- Protected Inventory Insights API
+- Protected AI Inventory Insights API
+- AI provider failure handling
+- Missing OpenAI API key handling
+- Missing OpenAI model configuration handling
 
 The latest complete test run passed:
 
 ```text
-214 passed, 1 warning
+229 passed
 ```
 
-The current warning is associated with the Starlette/TestClient HTTPX compatibility layer and does not represent a failing test.
+The AI tests use mocked clients, so the automated test suite does not require paid OpenAI API requests.
 
 ---
 
@@ -1323,6 +1439,8 @@ The documentation includes:
 - Product API endpoints
 - Stock movement API endpoints
 - Reporting API endpoints
+- Deterministic Inventory Insights API
+- AI-assisted Inventory Insights API
 - Inventory summary reporting
 - Low-stock inventory reporting
 - Category summary reporting
@@ -1378,8 +1496,9 @@ The project uses multiple security layers:
 - Product uniqueness enforcement
 - Protected browser routes
 - Protected report exports
+- Protected deterministic and AI-assisted inventory-insights endpoints
 
-Production secrets are configured through deployment environment variables and are not stored in the source repository.
+Production secrets are configured through deployment environment variables and are not stored in the source repository. The AI integration follows the same security approach. The OpenAI API key and model configuration are supplied through environment variables, and database credentials, API tokens, session secrets, and other application secrets are not included in AI prompts.
 
 ---
 
@@ -1424,7 +1543,8 @@ Possible future improvements include:
 - Audit logging
 - Automated backup scheduling
 - Continuous integration with GitHub Actions
-- AI-assisted inventory insights and forecasting
+- Inventory forecasting and demand prediction
+- Expanded AI-assisted analytics
 
 ---
 
