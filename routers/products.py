@@ -9,7 +9,7 @@ from browser_security import (
     require_csrf,
 )
 from database import get_db
-from models import Product, StockMovement
+from models import AIAnalysis, Product, StockMovement
 from services.error_messages import ERROR_MESSAGES
 from services.product_service import (
     create_product,
@@ -78,6 +78,16 @@ def home(
         .all()
     )
 
+    ai_analysis_history = (
+        db.query(AIAnalysis)
+        .order_by(
+            AIAnalysis.created_at.desc(),
+            AIAnalysis.id.desc(),
+        )
+        .limit(5)
+        .all()
+    )
+
     normalized_search = search.strip().lower()
 
     if normalized_search:
@@ -99,6 +109,7 @@ def home(
         context={
             "products": products,
             "category_valuations": category_valuations,
+            "ai_analysis_history": ai_analysis_history,
             "supplier_valuations": supplier_valuations,
             "low_stock_insights": low_stock_insights,
             "total_products": len(all_products),
@@ -119,6 +130,12 @@ def home(
                 <= product.low_stock_level
             ),
             "movements": movements,
+            "movements": movements,
+            "ai_analysis_history": ai_analysis_history,
+            "error": ERROR_MESSAGES.get(
+                error,
+                error,
+            ),
             "error": ERROR_MESSAGES.get(
                 error,
                 error,

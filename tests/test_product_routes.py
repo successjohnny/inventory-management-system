@@ -1016,3 +1016,105 @@ def test_home_page_displays_low_stock_chart(
     assert response.status_code == 200
     assert "Low-Stock Overview" in response.text
     assert 'id="lowStockChart"' in response.text
+
+def test_dashboard_displays_ai_analysis_history(
+    authenticated_client,
+):
+    from datetime import datetime, timezone
+
+    from models import AIAnalysis
+
+    test_client, db = authenticated_client
+
+    analysis = AIAnalysis(
+        inventory_snapshot=(
+            '{"total_products": 1, "total_items": 2}'
+        ),
+        analysis=(
+            "Inventory Health\n"
+            "Laptop inventory requires attention."
+        ),
+        created_at=datetime(
+            2026,
+            10,
+            16,
+            12,
+            30,
+            tzinfo=timezone.utc,
+        ),
+    )
+
+    db.add(analysis)
+    db.commit()
+
+    response = test_client.get("/")
+
+    assert response.status_code == 200
+    assert "AI Analysis History" in response.text
+    assert (
+        "Laptop inventory requires attention."
+        in response.text
+    )
+
+
+def test_dashboard_displays_empty_ai_analysis_history(
+    authenticated_client,
+):
+    test_client, _ = authenticated_client
+
+    response = test_client.get("/")
+
+    assert response.status_code == 200
+    assert "AI Analysis History" in response.text
+    assert (
+        "No previous AI analyses available."
+        in response.text
+    )
+
+
+def test_dashboard_limits_ai_analysis_history_to_five(
+    authenticated_client,
+):
+    from datetime import datetime, timedelta, timezone
+
+    from models import AIAnalysis
+
+    test_client, db = authenticated_client
+
+    base_time = datetime(
+        2026,
+        10,
+        16,
+        12,
+        0,
+        tzinfo=timezone.utc,
+    )
+
+    analyses = []
+
+    for number in range(1, 7):
+        analyses.append(
+            AIAnalysis(
+                inventory_snapshot="{}",
+                analysis=f"Analysis number {number}",
+                created_at=(
+                    base_time
+                    + timedelta(minutes=number)
+                ),
+            )
+        )
+
+    db.add_all(analyses)
+    db.commit()
+
+    response = test_client.get("/")
+
+    assert response.status_code == 200
+
+    assert "Analysis number 6" in response.text
+    assert "Analysis number 5" in response.text
+    assert "Analysis number 4" in response.text
+    assert "Analysis number 3" in response.text
+    assert "Analysis number 2" in response.text
+
+    assert "Analysis number 1" not in response.text

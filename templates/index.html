@@ -94,6 +94,35 @@
             </div>
         </section>
 
+                <!-- AI Analysis History -->
+        <section class="inventory ai-history">
+            <div class="section-header">
+                <h2>AI Analysis History</h2>
+            </div>
+
+            {% if ai_analysis_history %}
+                <div class="ai-history-list">
+                    {% for record in ai_analysis_history %}
+                        <article class="ai-history-item">
+                            <p class="ai-history-date">
+                                {{ record.created_at.strftime(
+                                    "%d %b %Y, %H:%M"
+                                ) }}
+                            </p>
+
+                            <div class="ai-history-analysis">
+                                {{ record.analysis }}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>
+                    No previous AI analyses available.
+                </p>
+            {% endif %}
+        </section>
+
         <!-- Inventory Value by Category Chart -->
         <section class="inventory">
             <div class="section-header">
