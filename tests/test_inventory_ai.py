@@ -59,6 +59,54 @@ def test_build_inventory_ai_prompt_requires_grounded_analysis():
     assert "inventory values" in prompt
 
 
+def test_build_inventory_ai_prompt_requires_structured_response():
+    insights = {
+        "total_products": 1,
+        "total_items": 2,
+        "total_inventory_value": 1700000,
+        "low_stock_count": 1,
+        "low_stock_products": [
+            {
+                "name": "Laptop",
+                "quantity": 2,
+                "low_stock_level": 3,
+            },
+        ],
+        "recommendations": [],
+    }
+
+    prompt = build_inventory_ai_prompt(insights)
+
+    assert "Inventory Health" in prompt
+    assert "Low-Stock Alerts" in prompt
+    assert "Recommended Actions" in prompt
+    assert "Inventory Summary" in prompt
+
+
+def test_build_inventory_ai_prompt_prevents_unsupported_advice():
+    insights = {
+        "total_products": 1,
+        "total_items": 2,
+        "total_inventory_value": 1700000,
+        "low_stock_count": 1,
+        "low_stock_products": [
+            {
+                "name": "Laptop",
+                "quantity": 2,
+                "low_stock_level": 3,
+            },
+        ],
+        "recommendations": [],
+    }
+
+    prompt = build_inventory_ai_prompt(insights)
+
+    assert "Do not invent reorder quantities" in prompt
+    assert "supplier information" in prompt
+    assert "currency" in prompt
+    assert "demand patterns" in prompt
+
+
 def test_generate_ai_inventory_analysis_uses_client():
     class FakeResponse:
         output_text = (

@@ -14,7 +14,7 @@ def build_inventory_ai_prompt(
     insights: dict,
 ) -> str:
     """
-    Build a prompt from structured inventory insights.
+    Build a grounded, structured prompt from inventory insights.
     """
 
     inventory_data = json.dumps(
@@ -25,11 +25,41 @@ def build_inventory_ai_prompt(
     return (
         "Analyze the following inventory data and provide "
         "clear, practical inventory recommendations.\n\n"
+
         "Use only the facts provided in the inventory data. "
         "Do not invent products, quantities, stock levels, "
         "prices, or inventory values.\n\n"
-        "Pay particular attention to low-stock products and "
-        "explain any recommended action.\n\n"
+
+        "Do not invent reorder quantities, supplier information, "
+        "currency, demand patterns, sales trends, lead times, "
+        "or other facts that are not provided.\n\n"
+
+        "Pay particular attention to low-stock products. "
+        "Recommendations must be based only on the supplied "
+        "inventory facts.\n\n"
+
+        "Structure the response using exactly these sections:\n\n"
+
+        "Inventory Health\n"
+        "Give a short assessment of the overall inventory "
+        "condition based only on the supplied data.\n\n"
+
+        "Low-Stock Alerts\n"
+        "List low-stock products and their supplied quantities "
+        "and low-stock levels. If there are no low-stock "
+        "products, state that clearly.\n\n"
+
+        "Recommended Actions\n"
+        "Give practical actions supported by the supplied data. "
+        "Do not invent specific reorder quantities or unsupported "
+        "business information.\n\n"
+
+        "Inventory Summary\n"
+        "Summarize the supplied totals, including total products, "
+        "total items, total inventory value, and low-stock count. "
+        "Do not assign a currency unless one is explicitly "
+        "provided in the inventory data.\n\n"
+
         "Inventory data:\n"
         f"{inventory_data}"
     )

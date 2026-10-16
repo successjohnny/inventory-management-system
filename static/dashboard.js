@@ -229,6 +229,22 @@ document.addEventListener("DOMContentLoaded", () => {
         let list = null;
 
         lines.forEach((line) => {
+            // Format Markdown-style headings safely.
+            if (line.startsWith("## ")) {
+                list = null;
+
+                const heading = document.createElement("h3");
+
+                heading.textContent = line
+                    .slice(3)
+                    .replace(/\*\*/g, "");
+
+                aiResult.appendChild(heading);
+
+                return;
+            }
+
+            // Format bullet points safely.
             if (line.startsWith("- ")) {
                 if (!list) {
                     list = document.createElement("ul");
@@ -238,11 +254,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const item = document.createElement("li");
 
-                const cleanedLine = line
+                item.textContent = line
                     .slice(2)
                     .replace(/\*\*/g, "");
-
-                item.textContent = cleanedLine;
 
                 list.appendChild(item);
 
