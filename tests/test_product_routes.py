@@ -1118,3 +1118,110 @@ def test_dashboard_limits_ai_analysis_history_to_five(
     assert "Analysis number 2" in response.text
 
     assert "Analysis number 1" not in response.text
+
+def test_ai_analysis_detail_page_displays_saved_analysis(
+    authenticated_client,
+):
+    from datetime import datetime, timezone
+
+    from models import AIAnalysis
+
+    test_client, db = authenticated_client
+
+    analysis = AIAnalysis(
+        inventory_snapshot=(
+            '{"total_products": 1, '
+            '"total_items": 2, '
+            '"total_inventory_value": 1700000}'
+        ),
+        analysis=(
+            "## Inventory Health\n"
+            "- Laptop inventory requires attention."
+        ),
+        created_at=datetime(
+            2026,
+            10,
+            16,
+            12,
+            30,
+            tzinfo=timezone.utc,
+        ),
+    )
+
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+
+    response = test_client.get(
+        f"/ai-analysis/{analysis.id}"
+    )
+
+    assert response.status_code == 200
+    assert "AI Analysis Details" in response.text
+    assert "Laptop inventory requires attention." in response.text
+    assert "Inventory Snapshot" in response.text
+    assert "total_products" in response.text
+    assert "1700000" in response.text
+
+
+def test_ai_analysis_detail_requires_login(
+    client,
+):
+    from models import AIAnalysis
+
+    test_client, db = client
+
+    analysis = AIAnalysis(
+        inventory_snapshot="{}",
+        analysis="Test analysis",
+    )
+
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+
+    response = test_client.get(
+        f"/ai-analysis/{analysis.id}",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login"
+
+def test_ai_analysis_detail_missing_record_redirects(
+    authenticated_client,
+):
+    test_client, _ = authenticated_client
+
+    response = test_client.get(
+        "/ai-analysis/999999",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/"
+
+def test_dashboard_ai_history_has_details_link(
+    authenticated_client,
+):
+    from models import AIAnalysis
+
+    test_client, db = authenticated_client
+
+    analysis = AIAnalysis(
+        inventory_snapshot="{}",
+        analysis="Saved inventory analysis",
+    )
+
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+
+    response = test_client.get("/")
+
+    assert response.status_code == 200
+    assert (
+        f'href="/ai-analysis/{analysis.id}"'
+        in response.text
+    )
+    assert "View Details" in response.text

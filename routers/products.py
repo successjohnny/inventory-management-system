@@ -104,46 +104,72 @@ def home(
         products = all_products
 
     return templates.TemplateResponse(
+    request=request,
+    name="index.html",
+    context={
+        "products": products,
+        "category_valuations": category_valuations,
+        "supplier_valuations": supplier_valuations,
+        "low_stock_insights": low_stock_insights,
+        "total_products": len(all_products),
+        "total_items": sum(
+            product.quantity
+            for product in all_products
+        ),
+        "total_categories": len(
+            {
+                product.category
+                for product in all_products
+            }
+        ),
+        "low_stock_products": sum(
+            1
+            for product in all_products
+            if product.quantity
+            <= product.low_stock_level
+        ),
+        "movements": movements,
+        "ai_analysis_history": ai_analysis_history,
+        "error": ERROR_MESSAGES.get(
+            error,
+            error,
+        ),
+        "search": search,
+        "csrf_token": get_csrf_token(
+            request
+        ),
+    },
+)
+@router.get("/ai-analysis/{analysis_id}")
+def ai_analysis_detail(
+    request: Request,
+    analysis_id: int,
+    db: Session = Depends(get_db),
+):
+    redirect = require_admin(request)
+
+    if redirect is not None:
+        return redirect
+
+    analysis = (
+        db.query(AIAnalysis)
+        .filter(
+            AIAnalysis.id == analysis_id
+        )
+        .first()
+    )
+
+    if analysis is None:
+        return RedirectResponse(
+            url="/",
+            status_code=303,
+        )
+
+    return templates.TemplateResponse(
         request=request,
-        name="index.html",
+        name="ai_analysis_detail.html",
         context={
-            "products": products,
-            "category_valuations": category_valuations,
-            "ai_analysis_history": ai_analysis_history,
-            "supplier_valuations": supplier_valuations,
-            "low_stock_insights": low_stock_insights,
-            "total_products": len(all_products),
-            "total_items": sum(
-                product.quantity
-                for product in all_products
-            ),
-            "total_categories": len(
-                {
-                    product.category
-                    for product in all_products
-                }
-            ),
-            "low_stock_products": sum(
-                1
-                for product in all_products
-                if product.quantity
-                <= product.low_stock_level
-            ),
-            "movements": movements,
-            "movements": movements,
-            "ai_analysis_history": ai_analysis_history,
-            "error": ERROR_MESSAGES.get(
-                error,
-                error,
-            ),
-            "error": ERROR_MESSAGES.get(
-                error,
-                error,
-            ),
-            "search": search,
-            "csrf_token": get_csrf_token(
-                request
-            ),
+            "analysis": analysis,
         },
     )
 

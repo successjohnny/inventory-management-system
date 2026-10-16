@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AI Analysis Details</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='style.css') }}"
+    >
+</head>
+
+<body>
+    <header>
+        <h1>AI Analysis Details</h1>
+        <p>Review a saved inventory AI analysis</p>
+    </header>
+
+    <main>
+        <section class="inventory ai-history">
+            <div class="section-header">
+                <div>
+                    <h2>Saved Analysis</h2>
+
+                    <p class="ai-history-date">
+                        {{ analysis.created_at.strftime(
+                            "%d %b %Y, %H:%M"
+                        ) }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="ai-history-analysis">
+                {{ analysis.analysis }}
+            </div>
+        </section>
+
+        <section class="inventory">
+            <div class="section-header">
+                <h2>Inventory Snapshot</h2>
+            </div>
+
+            <div class="ai-result">
+                {{ analysis.inventory_snapshot }}
+            </div>
+        </section>
+
+        <a
+            href="/"
+            class="back-button"
+        >
+            ← Back to Dashboard
+        </a>
+    </main>
+</body>
+
+</html>

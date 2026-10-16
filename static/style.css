@@ -339,6 +339,30 @@ th {
     white-space: pre-wrap;
 }
 
+.ai-history-link {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 9px 16px;
+    background: #7c3aed;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 6px;
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.ai-history-link:hover {
+    background: #6d28d9;
+    transform: translateY(-1px);
+}
+
+.ai-history-link:focus-visible {
+    outline: 3px solid #c4b5fd;
+    outline-offset: 2px;
+}
+
 
 /* ==========================================
    Responsive Design

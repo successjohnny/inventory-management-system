@@ -113,6 +113,13 @@
                             <div class="ai-history-analysis">
                                 {{ record.analysis }}
                             </div>
+
+                            <a
+                                href="/ai-analysis/{{ record.id }}"
+                                class="ai-history-link"
+                            >
+                                View Details
+                            </a>
                         </article>
                     {% endfor %}
                 </div>
