@@ -518,7 +518,7 @@ button:disabled {
 
 .ai-insights-button {
     position: relative;
-    margin-bottom: 18px;
+    margin-bottom: 12px;
     background:
         linear-gradient(
             135deg,
@@ -540,8 +540,8 @@ button:disabled {
 }
 
 .ai-status {
-    min-height: 24px;
-    margin-bottom: 10px;
+    min-height: 20px;
+    margin-bottom: 8px;
     color: var(--slate-600);
     font-size: 0.9rem;
     font-weight: 700;
@@ -549,13 +549,13 @@ button:disabled {
 
 .ai-result {
     position: relative;
-    min-height: 110px;
-    padding: 20px;
+    min-height: 84px;
+    padding: 18px;
     background: rgba(255, 255, 255, 0.82);
     border: 1px solid var(--blue-100);
     border-radius: var(--radius-md);
     color: var(--slate-700);
-    line-height: 1.75;
+    line-height: 1.7;
     white-space: pre-wrap;
 }
 
@@ -680,6 +680,44 @@ button:disabled {
 
 
 /* ==========================================
+   Analytics Layout
+========================================== */
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.analytics-grid .inventory {
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.analytics-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.analytics-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background:
+        linear-gradient(
+            90deg,
+            var(--blue-600),
+            var(--violet-600)
+        );
+}
+
+
+/* ==========================================
    Charts
 ========================================== */
 
@@ -688,6 +726,111 @@ button:disabled {
     width: 100%;
     height: 360px;
     margin-top: 10px;
+}
+
+.chart-container-compact {
+    height: 300px;
+    margin-top: 4px;
+}
+
+.chart-container-stock {
+    height: 330px;
+    margin-top: 4px;
+}
+
+
+/* ==========================================
+   Valuation Layout
+========================================== */
+
+.valuation-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.valuation-grid .inventory {
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.valuation-card {
+    position: relative;
+}
+
+.valuation-card .table-wrapper {
+    max-height: 360px;
+}
+
+
+/* ==========================================
+   Stock Health Layout
+========================================== */
+
+.stock-health-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(320px, 0.8fr)
+        minmax(0, 1.2fr);
+    gap: 24px;
+    align-items: stretch;
+    margin-bottom: 24px;
+}
+
+.stock-health-grid .inventory {
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.stock-health-chart {
+    border:
+        1px solid rgba(220, 38, 38, 0.15);
+    background:
+        linear-gradient(
+            145deg,
+            var(--white),
+            var(--red-50)
+        );
+}
+
+.stock-health-insights {
+    border:
+        1px solid rgba(220, 38, 38, 0.15);
+}
+
+.stock-health-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 12px;
+    flex-shrink: 0;
+    background: var(--red-100);
+    border-radius: 999px;
+    color: var(--red-700);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+
+/* ==========================================
+   Products and Activity
+========================================== */
+
+.products-section,
+.movement-section {
+    position: relative;
+}
+
+.products-section {
+    border-top: 4px solid var(--blue-600);
+}
+
+.movement-section {
+    border-top: 4px solid var(--green-600);
 }
 
 
@@ -986,6 +1129,19 @@ tbody tr:last-child td {
         grid-template-columns: 1fr;
     }
 
+    .analytics-grid,
+    .valuation-grid {
+        gap: 18px;
+    }
+
+    .stock-health-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-container-stock {
+        height: 300px;
+    }
+
     .product-form {
         grid-template-columns:
             repeat(2, minmax(0, 1fr));
@@ -1028,6 +1184,30 @@ tbody tr:last-child td {
         flex-direction: column;
     }
 
+    .analytics-grid,
+    .valuation-grid,
+    .stock-health-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .analytics-grid,
+    .valuation-grid,
+    .stock-health-grid {
+        margin-bottom: 18px;
+    }
+
+    .analytics-grid .inventory,
+    .valuation-grid .inventory,
+    .stock-health-grid .inventory {
+        margin-bottom: 0;
+    }
+
+    .stock-health-insights .section-header {
+        flex-direction: row;
+        align-items: center;
+    }
+
     .search-form {
         flex-direction: column;
     }
@@ -1041,7 +1221,9 @@ tbody tr:last-child td {
         grid-template-columns: 1fr;
     }
 
-    .chart-container {
+    .chart-container,
+    .chart-container-compact,
+    .chart-container-stock {
         height: 300px;
     }
 }
@@ -1097,11 +1279,30 @@ tbody tr:last-child td {
         align-items: flex-start;
     }
 
+    .analytics-grid,
+    .valuation-grid,
+    .stock-health-grid {
+        gap: 16px;
+    }
+
+    .stock-health-insights .section-header {
+        align-items: flex-start;
+    }
+
+    .stock-health-count {
+        min-width: 38px;
+        height: 38px;
+        padding: 0 10px;
+        font-size: 0.9rem;
+    }
+
     .form-container {
         padding: 18px;
     }
 
-    .chart-container {
+    .chart-container,
+    .chart-container-compact,
+    .chart-container-stock {
         height: 260px;
     }
 }
