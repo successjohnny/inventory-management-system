@@ -7,7 +7,9 @@
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
+
     <title>Inventory Management System</title>
+
     <link
         rel="stylesheet"
         href="{{ url_for('static', path='style.css') }}"
@@ -15,125 +17,273 @@
 </head>
 
 <body>
-    <header>
-        <h1>Inventory Management System</h1>
-        <p>Manage your products and stock</p>
+    <!-- ==========================================
+         Application Header
+    =========================================== -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="brand">
+                <div class="brand-icon" aria-hidden="true">
+                    IM
+                </div>
 
-        <form action="/logout" method="post">
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="{{ csrf_token }}"
+                <div>
+                    <h1>Inventory Manager</h1>
+                    <p>Smart inventory control and insights</p>
+                </div>
+            </div>
+
+            <form
+                action="/logout"
+                method="post"
+                class="logout-form"
             >
-            <button type="submit">Log Out</button>
-        </form>
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token }}"
+                >
+
+                <button
+                    type="submit"
+                    class="logout-button"
+                >
+                    Log Out
+                </button>
+            </form>
+        </div>
     </header>
 
-    <main>
-        <!-- Dashboard Summary -->
-        <section class="summary">
-            <div class="card">
-                <h2>{{ total_products }}</h2>
-                <p>Total Products</p>
-            </div>
+    <main class="dashboard">
+        <!-- ==========================================
+             Dashboard Introduction
+        =========================================== -->
+        <section class="dashboard-intro">
+            <div>
+                <p class="eyebrow">Inventory Dashboard</p>
 
-            <div class="card">
-                <h2>{{ total_items }}</h2>
-                <p>Total Items</p>
-            </div>
+                <h2>Inventory Overview</h2>
 
-            <div class="card">
-                <h2>{{ total_categories }}</h2>
-                <p>Categories</p>
-            </div>
-
-            <div class="card">
-                <h2>{{ low_stock_products }}</h2>
-                <p>Low Stock</p>
-            </div>
-        </section>
-
-                <!-- AI Inventory Insights -->
-        <section class="inventory ai-insights">
-            <div class="section-header">
-                <h2>AI Inventory Insights</h2>
-            </div>
-
-            <p class="ai-description">
-                Generate AI-assisted recommendations based on
-                the current inventory data and low-stock levels.
-            </p>
-
-            <input
-                type="hidden"
-                id="aiCsrfToken"
-                value="{{ csrf_token }}"
-            >
-
-            <button
-                type="button"
-                id="generateAiInsights"
-                class="ai-insights-button"
-            >
-                Generate AI Analysis
-            </button>
-
-            <p
-                id="aiInsightsStatus"
-                class="ai-status"
-                aria-live="polite"
-            ></p>
-
-            <div
-                id="aiInsightsResult"
-                class="ai-result"
-                aria-live="polite"
-            >
-                Click "Generate AI Analysis" to analyze
-                the current inventory.
-            </div>
-        </section>
-
-                <!-- AI Analysis History -->
-        <section class="inventory ai-history">
-            <div class="section-header">
-                <h2>AI Analysis History</h2>
-            </div>
-
-            {% if ai_analysis_history %}
-                <div class="ai-history-list">
-                    {% for record in ai_analysis_history %}
-                        <article class="ai-history-item">
-                            <p class="ai-history-date">
-                                {{ record.created_at.strftime(
-                                    "%d %b %Y, %H:%M"
-                                ) }}
-                            </p>
-
-                            <div class="ai-history-analysis">
-                                {{ record.analysis }}
-                            </div>
-
-                            <a
-                                href="/ai-analysis/{{ record.id }}"
-                                class="ai-history-link"
-                            >
-                                View Details
-                            </a>
-                        </article>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p>
-                    No previous AI analyses available.
+                <p class="dashboard-description">
+                    Monitor stock levels, inventory value,
+                    suppliers and AI-powered recommendations
+                    from one dashboard.
                 </p>
-            {% endif %}
+            </div>
+
+            <a
+                href="#add-product"
+                class="primary-action"
+            >
+                + Add Product
+            </a>
         </section>
 
-        <!-- Inventory Value by Category Chart -->
+        <!-- ==========================================
+             Dashboard Summary
+        =========================================== -->
+        <section
+            class="summary"
+            aria-label="Inventory summary"
+        >
+            <article class="card metric-products">
+                <div class="metric-icon" aria-hidden="true">
+                    P
+                </div>
+
+                <div class="metric-content">
+                    <p class="metric-label">
+                        Total Products
+                    </p>
+
+                    <h2>{{ total_products }}</h2>
+
+                    <p class="metric-note">
+                        Products being managed
+                    </p>
+                </div>
+            </article>
+
+            <article class="card metric-items">
+                <div class="metric-icon" aria-hidden="true">
+                    I
+                </div>
+
+                <div class="metric-content">
+                    <p class="metric-label">
+                        Total Items
+                    </p>
+
+                    <h2>{{ total_items }}</h2>
+
+                    <p class="metric-note">
+                        Units currently in stock
+                    </p>
+                </div>
+            </article>
+
+            <article class="card metric-categories">
+                <div class="metric-icon" aria-hidden="true">
+                    C
+                </div>
+
+                <div class="metric-content">
+                    <p class="metric-label">
+                        Categories
+                    </p>
+
+                    <h2>{{ total_categories }}</h2>
+
+                    <p class="metric-note">
+                        Product categories
+                    </p>
+                </div>
+            </article>
+
+            <article class="card metric-low-stock">
+                <div class="metric-icon" aria-hidden="true">
+                    !
+                </div>
+
+                <div class="metric-content">
+                    <p class="metric-label">
+                        Low Stock
+                    </p>
+
+                    <h2>{{ low_stock_products }}</h2>
+
+                    <p class="metric-note">
+                        Products requiring attention
+                    </p>
+                </div>
+            </article>
+        </section>
+
+        <!-- ==========================================
+             AI Workspace
+        =========================================== -->
+        <section class="ai-workspace">
+            <!-- AI Inventory Insights -->
+            <article class="inventory ai-insights">
+                <div class="ai-heading">
+                    <div
+                        class="ai-heading-icon"
+                        aria-hidden="true"
+                    >
+                        AI
+                    </div>
+
+                    <div>
+                        <p class="section-kicker">
+                            Intelligent Assistant
+                        </p>
+
+                        <h2>AI Inventory Insights</h2>
+                    </div>
+                </div>
+
+                <p class="ai-description">
+                    Generate AI-assisted recommendations using
+                    your current inventory quantities,
+                    low-stock thresholds and inventory value.
+                </p>
+
+                <input
+                    type="hidden"
+                    id="aiCsrfToken"
+                    value="{{ csrf_token }}"
+                >
+
+                <button
+                    type="button"
+                    id="generateAiInsights"
+                    class="ai-insights-button"
+                >
+                    Generate AI Analysis
+                </button>
+
+                <p
+                    id="aiInsightsStatus"
+                    class="ai-status"
+                    aria-live="polite"
+                ></p>
+
+                <div
+                    id="aiInsightsResult"
+                    class="ai-result"
+                    aria-live="polite"
+                >
+                    <p class="ai-placeholder">
+                        Generate an analysis to receive
+                        inventory health insights and
+                        recommended actions.
+                    </p>
+                </div>
+            </article>
+
+            <!-- AI Analysis History -->
+            <article class="inventory ai-history">
+                <div class="section-header">
+                    <div>
+                        <p class="section-kicker">
+                            Recent Activity
+                        </p>
+
+                        <h2>AI Analysis History</h2>
+                    </div>
+                </div>
+
+                {% if ai_analysis_history %}
+                    <div class="ai-history-list">
+                        {% for record in ai_analysis_history %}
+                            <article class="ai-history-item">
+                                <div class="history-top">
+                                    <p class="ai-history-date">
+                                        {{ record.created_at.strftime(
+                                            "%d %b %Y, %H:%M"
+                                        ) }}
+                                    </p>
+
+                                    <span class="history-badge">
+                                        AI
+                                    </span>
+                                </div>
+
+                                <div class="ai-history-analysis">
+                                    {{ record.analysis }}
+                                </div>
+
+                                <a
+                                    href="/ai-analysis/{{ record.id }}"
+                                    class="ai-history-link"
+                                >
+                                    View Details
+                                </a>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>
+                            No previous AI analyses available.
+                        </p>
+                    </div>
+                {% endif %}
+            </article>
+        </section>
+
+        <!-- ==========================================
+             Inventory Value by Category Chart
+        =========================================== -->
         <section class="inventory">
             <div class="section-header">
-                <h2>Inventory Value by Category</h2>
+                <div>
+                    <p class="section-kicker">
+                        Analytics
+                    </p>
+
+                    <h2>Inventory Value by Category</h2>
+                </div>
             </div>
 
             <div class="chart-container">
@@ -141,10 +291,18 @@
             </div>
         </section>
 
-        <!-- Inventory Value by Supplier Chart -->
+        <!-- ==========================================
+             Inventory Value by Supplier Chart
+        =========================================== -->
         <section class="inventory">
             <div class="section-header">
-                <h2>Inventory Value by Supplier</h2>
+                <div>
+                    <p class="section-kicker">
+                        Analytics
+                    </p>
+
+                    <h2>Inventory Value by Supplier</h2>
+                </div>
             </div>
 
             <div class="chart-container">
@@ -152,10 +310,18 @@
             </div>
         </section>
 
-        <!-- Low-Stock Overview Chart -->
+        <!-- ==========================================
+             Low-Stock Overview Chart
+        =========================================== -->
         <section class="inventory">
             <div class="section-header">
-                <h2>Low-Stock Overview</h2>
+                <div>
+                    <p class="section-kicker">
+                        Stock Health
+                    </p>
+
+                    <h2>Low-Stock Overview</h2>
+                </div>
             </div>
 
             <div class="chart-container">
@@ -163,120 +329,178 @@
             </div>
         </section>
 
-        <!-- Category Inventory Valuation -->
+        <!-- ==========================================
+             Category Inventory Valuation
+        =========================================== -->
         <section class="inventory">
             <div class="section-header">
-                <h2>Category Inventory Valuation</h2>
+                <div>
+                    <p class="section-kicker">
+                        Valuation
+                    </p>
+
+                    <h2>Category Inventory Valuation</h2>
+                </div>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Category</th>
-                        <th>Inventory Value</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% if category_valuations %}
-                        {% for category, inventory_value in category_valuations.items() %}
-                            <tr>
-                                <td>{{ category }}</td>
-                                <td>₦{{ inventory_value }}</td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
                         <tr>
-                            <td colspan="2">
-                                No category valuation data available.
-                            </td>
+                            <th>Category</th>
+                            <th>Inventory Value</th>
                         </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </section>
+                    </thead>
 
-        <!-- Supplier Inventory Valuation -->
-        <section class="inventory">
-            <div class="section-header">
-                <h2>Supplier Inventory Valuation</h2>
-            </div>
+                    <tbody>
+                        {% if category_valuations %}
+                            {% for category, inventory_value in category_valuations.items() %}
+                                <tr>
+                                    <td>{{ category }}</td>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Supplier</th>
-                        <th>Inventory Value</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% if supplier_valuations %}
-                        {% for supplier, inventory_value in supplier_valuations.items() %}
+                                    <td>
+                                        ₦{{ inventory_value }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
                             <tr>
-                                <td>{{ supplier }}</td>
-                                <td>₦{{ inventory_value }}</td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="2">
-                                No supplier valuation data available.
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </section>
-
-        <!-- Low-Stock Insights -->
-        <section class="inventory">
-            <div class="section-header">
-                <h2>Low-Stock Insights</h2>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Current Quantity</th>
-                        <th>Low Stock Level</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% if low_stock_insights %}
-                        {% for product in low_stock_insights %}
-                            <tr>
-                                <td>{{ product.name }}</td>
-                                <td>{{ product.quantity }}</td>
-                                <td>{{ product.low_stock_level }}</td>
-                                <td>
-                                    <span class="low-stock">
-                                        Low Stock
-                                    </span>
+                                <td colspan="2">
+                                    No category valuation data available.
                                 </td>
                             </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="4">
-                                No low-stock products.
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </section>
 
-        <!-- Products Section -->
+        <!-- ==========================================
+             Supplier Inventory Valuation
+        =========================================== -->
         <section class="inventory">
             <div class="section-header">
-                <h2>Products</h2>
+                <div>
+                    <p class="section-kicker">
+                        Suppliers
+                    </p>
 
-                <a href="#add-product" class="add-button">
-                    Add Product
+                    <h2>Supplier Inventory Valuation</h2>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Supplier</th>
+                            <th>Inventory Value</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% if supplier_valuations %}
+                            {% for supplier, inventory_value in supplier_valuations.items() %}
+                                <tr>
+                                    <td>{{ supplier }}</td>
+
+                                    <td>
+                                        ₦{{ inventory_value }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="2">
+                                    No supplier valuation data available.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             Low-Stock Insights
+        =========================================== -->
+        <section class="inventory">
+            <div class="section-header">
+                <div>
+                    <p class="section-kicker">
+                        Attention Required
+                    </p>
+
+                    <h2>Low-Stock Insights</h2>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Current Quantity</th>
+                            <th>Low Stock Level</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% if low_stock_insights %}
+                            {% for product in low_stock_insights %}
+                                <tr>
+                                    <td>
+                                        {{ product.name }}
+                                    </td>
+
+                                    <td>
+                                        {{ product.quantity }}
+                                    </td>
+
+                                    <td>
+                                        {{ product.low_stock_level }}
+                                    </td>
+
+                                    <td>
+                                        <span
+                                            class="status-badge status-low"
+                                        >
+                                            Low Stock
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4">
+                                    No low-stock products.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             Products
+        =========================================== -->
+        <section class="inventory">
+            <div class="section-header">
+                <div>
+                    <p class="section-kicker">
+                        Inventory
+                    </p>
+
+                    <h2>Products</h2>
+                </div>
+
+                <a
+                    href="#add-product"
+                    class="add-button"
+                >
+                    + Add Product
                 </a>
             </div>
 
@@ -291,107 +515,147 @@
                     name="search"
                     value="{{ search }}"
                     placeholder="Search products..."
+                    aria-label="Search products"
                 >
 
-                <button type="submit">Search</button>
+                <button type="submit">
+                    Search
+                </button>
 
-                <a href="/" class="clear-button">
+                <a
+                    href="/"
+                    class="clear-button"
+                >
                     Clear
                 </a>
             </form>
 
             <!-- Product Table -->
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Low Stock Level</th>
-                        <th>Category</th>
-                        <th>Supplier</th>
-                        <th>Stock Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Low Stock Level</th>
+                            <th>Category</th>
+                            <th>Supplier</th>
+                            <th>Stock Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
 
-                <tbody>
-                    {% if products %}
-                        {% for product in products %}
+                    <tbody>
+                        {% if products %}
+                            {% for product in products %}
+                                <tr>
+                                    <td class="product-name">
+                                        {{ product.name }}
+                                    </td>
+
+                                    <td>
+                                        ₦{{ product.price }}
+                                    </td>
+
+                                    <td>
+                                        {{ product.quantity }}
+                                    </td>
+
+                                    <td>
+                                        {{ product.low_stock_level }}
+                                    </td>
+
+                                    <td>
+                                        {{ product.category }}
+                                    </td>
+
+                                    <td>
+                                        {{
+                                            product.supplier
+                                            or "Not specified"
+                                        }}
+                                    </td>
+
+                                    <td>
+                                        {% if product.quantity <= product.low_stock_level %}
+                                            <span
+                                                class="status-badge status-low"
+                                            >
+                                                Low Stock
+                                            </span>
+                                        {% else %}
+                                            <span
+                                                class="status-badge status-good"
+                                            >
+                                                In Stock
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="action-cell">
+                                        <a
+                                            href="/edit-product/{{ product.id }}"
+                                            class="edit-button"
+                                        >
+                                            Edit
+                                        </a>
+
+                                        <form
+                                            action="/delete-product/{{ product.id }}"
+                                            method="post"
+                                            class="delete-form"
+                                            onsubmit="return confirm('Are you sure you want to delete this product?');"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token }}"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="delete-button"
+                                            >
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
                             <tr>
-                                <td>{{ product.name }}</td>
-                                <td>₦{{ product.price }}</td>
-                                <td>{{ product.quantity }}</td>
-                                <td>{{ product.low_stock_level }}</td>
-                                <td>{{ product.category }}</td>
-
-                                <td>
-                                    {{ product.supplier or "Not specified" }}
-                                </td>
-
-                                <td>
-                                    {% if product.quantity <= product.low_stock_level %}
-                                        <span class="low-stock">
-                                            Low Stock
-                                        </span>
-                                    {% else %}
-                                        <span class="in-stock">
-                                            In Stock
-                                        </span>
-                                    {% endif %}
-                                </td>
-
-                                <td>
-                                    <a
-                                        href="/edit-product/{{ product.id }}"
-                                        class="edit-button"
-                                    >
-                                        Edit
-                                    </a>
-
-                                    <span>/</span>
-
-                                    <form
-                                        action="/delete-product/{{ product.id }}"
-                                        method="post"
-                                        style="display: inline; margin: 0;"
-                                        onsubmit="return confirm('Are you sure you want to delete this product?');"
-                                    >
-                                        <input
-                                            type="hidden"
-                                            name="csrf_token"
-                                            value="{{ csrf_token }}"
-                                        >
-
-                                        <button
-                                            type="submit"
-                                            class="delete-button"
-                                        >
-                                            Delete
-                                        </button>
-                                    </form>
+                                <td
+                                    colspan="8"
+                                    class="search-not-found"
+                                >
+                                    Search not found.
                                 </td>
                             </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td
-                                colspan="9"
-                                class="search-not-found"
-                            >
-                                Search not found.
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
 
-            <!-- Add Product Form -->
+            <!-- ======================================
+                 Add Product
+            ======================================= -->
             <div
                 id="add-product"
                 class="form-container"
             >
-                <h2>Add New Product</h2>
+                <div class="form-heading">
+                    <p class="section-kicker">
+                        New Inventory
+                    </p>
+
+                    <h2>Add New Product</h2>
+
+                    <p>
+                        Add a product and its initial stock
+                        information to your inventory.
+                    </p>
+                </div>
 
                 {% if error %}
                     <p class="error-message">
@@ -399,146 +663,190 @@
                     </p>
                 {% endif %}
 
-                <form action="/add-product" method="post">
+                <form
+                    action="/add-product"
+                    method="post"
+                    class="product-form"
+                >
                     <input
                         type="hidden"
                         name="csrf_token"
                         value="{{ csrf_token }}"
                     >
 
-                    <label for="name">
-                        Product Name
-                    </label>
+                    <div class="form-field">
+                        <label for="name">
+                            Product Name
+                        </label>
 
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        required
-                    >
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            required
+                        >
+                    </div>
 
-                    <label for="price">
-                        Price
-                    </label>
+                    <div class="form-field">
+                        <label for="price">
+                            Price
+                        </label>
 
-                    <input
-                        type="number"
-                        id="price"
-                        name="price"
-                        min="1"
-                        required
-                    >
+                        <input
+                            type="number"
+                            id="price"
+                            name="price"
+                            min="1"
+                            required
+                        >
+                    </div>
 
-                    <label for="quantity">
-                        Quantity
-                    </label>
+                    <div class="form-field">
+                        <label for="quantity">
+                            Quantity
+                        </label>
 
-                    <input
-                        type="number"
-                        id="quantity"
-                        name="quantity"
-                        min="0"
-                        required
-                    >
+                        <input
+                            type="number"
+                            id="quantity"
+                            name="quantity"
+                            min="0"
+                            required
+                        >
+                    </div>
 
-                    <label for="low_stock_level">
-                        Low Stock Level
-                    </label>
+                    <div class="form-field">
+                        <label for="low_stock_level">
+                            Low Stock Level
+                        </label>
 
-                    <input
-                        type="number"
-                        id="low_stock_level"
-                        name="low_stock_level"
-                        min="0"
-                        required
-                    >
+                        <input
+                            type="number"
+                            id="low_stock_level"
+                            name="low_stock_level"
+                            min="0"
+                            required
+                        >
+                    </div>
 
-                    <label for="category">
-                        Category
-                    </label>
+                    <div class="form-field">
+                        <label for="category">
+                            Category
+                        </label>
 
-                    <input
-                        type="text"
-                        id="category"
-                        name="category"
-                        required
-                    >
+                        <input
+                            type="text"
+                            id="category"
+                            name="category"
+                            required
+                        >
+                    </div>
 
-                    <label for="supplier">
-                        Supplier
-                    </label>
+                    <div class="form-field">
+                        <label for="supplier">
+                            Supplier
+                        </label>
 
-                    <input
-                        type="text"
-                        id="supplier"
-                        name="supplier"
-                        placeholder="e.g. ABC Electronics"
-                    >
+                        <input
+                            type="text"
+                            id="supplier"
+                            name="supplier"
+                            placeholder="e.g. ABC Electronics"
+                        >
+                    </div>
 
-                    <button type="submit">
-                        Add Product
-                    </button>
+                    <div class="form-actions">
+                        <button type="submit">
+                            Add Product
+                        </button>
+                    </div>
                 </form>
             </div>
         </section>
 
-        <!-- Stock Movement History -->
+        <!-- ==========================================
+             Stock Movement History
+        =========================================== -->
         <section class="inventory">
             <div class="section-header">
-                <h2>Stock Movement History</h2>
+                <div>
+                    <p class="section-kicker">
+                        Activity
+                    </p>
+
+                    <h2>Stock Movement History</h2>
+                </div>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Movement</th>
-                        <th>Quantity</th>
-                        <th>Note</th>
-                        <th>Date &amp; Time</th>
-                    </tr>
-                </thead>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Movement</th>
+                            <th>Quantity</th>
+                            <th>Note</th>
+                            <th>Date &amp; Time</th>
+                        </tr>
+                    </thead>
 
-                <tbody>
-                    {% if movements %}
-                        {% for movement in movements %}
+                    <tbody>
+                        {% if movements %}
+                            {% for movement in movements %}
+                                <tr>
+                                    <td class="product-name">
+                                        {{ movement.product.name }}
+                                    </td>
+
+                                    <td>
+                                        {% if movement.movement_type == "IN" %}
+                                            <span
+                                                class="status-badge status-good"
+                                            >
+                                                Stock In
+                                            </span>
+                                        {% else %}
+                                            <span
+                                                class="status-badge status-low"
+                                            >
+                                                Stock Out
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {{ movement.quantity }}
+                                    </td>
+
+                                    <td>
+                                        {{ movement.note }}
+                                    </td>
+
+                                    <td>
+                                        {{
+                                            movement.created_at.strftime(
+                                                "%d %b %Y, %I:%M %p"
+                                            )
+                                        }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
                             <tr>
-                                <td>
-                                    {{ movement.product.name }}
-                                </td>
-
-                                <td>
-                                    {% if movement.movement_type == "IN" %}
-                                        <span class="in-stock">
-                                            Stock In
-                                        </span>
-                                    {% else %}
-                                        <span class="low-stock">
-                                            Stock Out
-                                        </span>
-                                    {% endif %}
-                                </td>
-
-                                <td>{{ movement.quantity }}</td>
-                                <td>{{ movement.note }}</td>
-
-                                <td>
-                                    {{ movement.created_at.strftime("%d %b %Y, %I:%M %p") }}
+                                <td colspan="5">
+                                    No stock movements recorded.
                                 </td>
                             </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="5">
-                                No stock movements recorded.
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </section>
     </main>
 
+    <!-- ==========================================
+         Chart Data
+    =========================================== -->
     <script
         id="categoryValuationData"
         type="application/json"
@@ -572,4 +880,5 @@
         src="{{ url_for('static', path='dashboard.js') }}"
     ></script>
 </body>
+
 </html>
