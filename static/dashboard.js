@@ -205,6 +205,64 @@ document.addEventListener("DOMContentLoaded", () => {
         "aiCsrfToken"
     );
 
+
+    // Safely format AI-generated text without using innerHTML.
+    const displayAiAnalysis = (analysis) => {
+        aiResult.replaceChildren();
+
+        const lines = analysis
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => line);
+
+        if (lines.length === 0) {
+            const paragraph = document.createElement("p");
+
+            paragraph.textContent =
+                "AI analysis did not return any content.";
+
+            aiResult.appendChild(paragraph);
+
+            return;
+        }
+
+        let list = null;
+
+        lines.forEach((line) => {
+            if (line.startsWith("- ")) {
+                if (!list) {
+                    list = document.createElement("ul");
+                    list.classList.add("ai-result-list");
+                    aiResult.appendChild(list);
+                }
+
+                const item = document.createElement("li");
+
+                const cleanedLine = line
+                    .slice(2)
+                    .replace(/\*\*/g, "");
+
+                item.textContent = cleanedLine;
+
+                list.appendChild(item);
+
+                return;
+            }
+
+            list = null;
+
+            const paragraph = document.createElement("p");
+
+            paragraph.textContent = line.replace(
+                /\*\*/g,
+                ""
+            );
+
+            aiResult.appendChild(paragraph);
+        });
+    };
+
+
     if (
         aiButton
         && aiResult
@@ -258,8 +316,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     aiStatus.textContent =
                         "AI analysis generated successfully.";
 
-                    aiResult.textContent =
-                        data.ai_analysis;
+                    displayAiAnalysis(
+                        data.ai_analysis
+                    );
                 } catch (error) {
                     aiStatus.textContent =
                         "AI analysis could not be generated.";

@@ -275,6 +275,26 @@ th {
     white-space: pre-wrap;
 }
 
+.ai-result p {
+    margin-bottom: 12px;
+}
+
+.ai-result p:last-child {
+    margin-bottom: 0;
+}
+
+.ai-result-list {
+    padding-left: 24px;
+}
+
+.ai-result-list li {
+    margin-bottom: 12px;
+}
+
+.ai-result-list li:last-child {
+    margin-bottom: 0;
+}
+
 
 /* ==========================================
    Responsive Design
