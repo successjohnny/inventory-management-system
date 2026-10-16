@@ -1,17 +1,29 @@
+import json
 import os
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi import (
+    APIRouter,
+    Depends,
+    Form,
+    HTTPException,
+    Request,
+)
 from openai import OpenAI
 from sqlalchemy.orm import Session
 
-from browser_security import require_admin, require_csrf
+from browser_security import (
+    require_admin,
+    require_csrf,
+)
 from database import get_db
-from models import Product
+from models import AIAnalysis, Product
 from services.inventory_ai import (
     generate_ai_inventory_analysis,
     get_ai_model,
 )
-from services.inventory_insights import build_inventory_insights
+from services.inventory_insights import (
+    build_inventory_insights,
+)
 
 
 router = APIRouter(
@@ -28,6 +40,9 @@ def generate_browser_ai_insights(
     """
     Generate AI-assisted inventory insights for an
     authenticated dashboard user.
+
+    Successful analyses are stored with the inventory
+    snapshot that produced them.
     """
 
     redirect = require_admin(request)
@@ -87,6 +102,28 @@ def generate_browser_ai_insights(
             detail=(
                 "AI inventory analysis is temporarily "
                 "unavailable."
+            ),
+        ) from exc
+
+    analysis_record = AIAnalysis(
+        inventory_snapshot=json.dumps(
+            insights,
+        ),
+        analysis=ai_analysis,
+    )
+
+    try:
+        db.add(analysis_record)
+        db.commit()
+
+    except Exception as exc:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "AI analysis was generated but could not "
+                "be saved."
             ),
         ) from exc
 

@@ -1,6 +1,13 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -97,4 +104,30 @@ class StockMovement(Base):
     product = relationship(
         "Product",
         back_populates="stock_movements",
+    )
+
+
+class AIAnalysis(Base):
+    __tablename__ = "ai_analyses"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    inventory_snapshot = Column(
+        Text,
+        nullable=False,
+    )
+
+    analysis = Column(
+        Text,
+        nullable=False,
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
