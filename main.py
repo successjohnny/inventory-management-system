@@ -2,6 +2,7 @@ import os
 
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
@@ -22,6 +23,12 @@ from routers import (
     api_insights,
     auth,
 )
+
+# ==========================================
+# ENVIRONMENT CONFIGURATION
+# ==========================================
+
+load_dotenv()
 
 
 # ==========================================
