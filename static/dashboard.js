@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // ==========================================
     // Category Inventory Valuation Chart
+    // ==========================================
+
     const categoryChartCanvas = document.getElementById(
         "categoryValuationChart"
     );
@@ -58,7 +61,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+
+    // ==========================================
     // Supplier Inventory Valuation Chart
+    // ==========================================
+
     const supplierChartCanvas = document.getElementById(
         "supplierValuationChart"
     );
@@ -117,7 +124,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+
+    // ==========================================
     // Low-Stock Overview Chart
+    // ==========================================
+
     const lowStockChartCanvas = document.getElementById(
         "lowStockChart"
     );
@@ -171,5 +182,94 @@ document.addEventListener("DOMContentLoaded", () => {
                 },
             },
         });
+    }
+
+
+    // ==========================================
+    // AI Inventory Insights
+    // ==========================================
+
+    const aiButton = document.getElementById(
+        "generateAiInsights"
+    );
+
+    const aiResult = document.getElementById(
+        "aiInsightsResult"
+    );
+
+    const aiStatus = document.getElementById(
+        "aiInsightsStatus"
+    );
+
+    const csrfInput = document.getElementById(
+        "aiCsrfToken"
+    );
+
+    if (
+        aiButton
+        && aiResult
+        && aiStatus
+        && csrfInput
+    ) {
+        aiButton.addEventListener(
+            "click",
+            async () => {
+                aiButton.disabled = true;
+
+                aiStatus.textContent =
+                    "Generating AI inventory analysis...";
+
+                aiResult.textContent = "";
+
+                const formData = new FormData();
+
+                formData.append(
+                    "csrf_token",
+                    csrfInput.value
+                );
+
+                try {
+                    const response = await fetch(
+                        "/ai-insights",
+                        {
+                            method: "POST",
+                            body: formData,
+                            credentials: "same-origin",
+                        }
+                    );
+
+                    let data;
+
+                    try {
+                        data = await response.json();
+                    } catch {
+                        throw new Error(
+                            "The server returned an invalid response."
+                        );
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(
+                            data.detail
+                            || "Unable to generate AI analysis."
+                        );
+                    }
+
+                    aiStatus.textContent =
+                        "AI analysis generated successfully.";
+
+                    aiResult.textContent =
+                        data.ai_analysis;
+                } catch (error) {
+                    aiStatus.textContent =
+                        "AI analysis could not be generated.";
+
+                    aiResult.textContent =
+                        error.message;
+                } finally {
+                    aiButton.disabled = false;
+                }
+            }
+        );
     }
 });

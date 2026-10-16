@@ -53,6 +53,47 @@
             </div>
         </section>
 
+                <!-- AI Inventory Insights -->
+        <section class="inventory ai-insights">
+            <div class="section-header">
+                <h2>AI Inventory Insights</h2>
+            </div>
+
+            <p class="ai-description">
+                Generate AI-assisted recommendations based on
+                the current inventory data and low-stock levels.
+            </p>
+
+            <input
+                type="hidden"
+                id="aiCsrfToken"
+                value="{{ csrf_token }}"
+            >
+
+            <button
+                type="button"
+                id="generateAiInsights"
+                class="ai-insights-button"
+            >
+                Generate AI Analysis
+            </button>
+
+            <p
+                id="aiInsightsStatus"
+                class="ai-status"
+                aria-live="polite"
+            ></p>
+
+            <div
+                id="aiInsightsResult"
+                class="ai-result"
+                aria-live="polite"
+            >
+                Click "Generate AI Analysis" to analyze
+                the current inventory.
+            </div>
+        </section>
+
         <!-- Inventory Value by Category Chart -->
         <section class="inventory">
             <div class="section-header">

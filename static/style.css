@@ -51,6 +51,7 @@ main {
     background: white;
     padding: 25px;
     border-radius: 8px;
+    margin-bottom: 30px;
 }
 
 .section-header {
@@ -71,6 +72,11 @@ button {
 
 button:hover {
     background: #1d4ed8;
+}
+
+button:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
 }
 
 table {
@@ -198,16 +204,10 @@ th {
     font-weight: bold;
 }
 
-.error-message {
-    background: #fee2e2;
-    color: #b91c1c;
-    padding: 12px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    font-weight: bold;
-}
 
-/* Delete product form */
+/* ==========================================
+   Delete Product
+========================================== */
 
 .delete-form {
     display: inline;
@@ -227,7 +227,11 @@ th {
 .delete-btn:hover {
     background: #b91c1c;
 }
-/* Dashboard charts */
+
+
+/* ==========================================
+   Dashboard Charts
+========================================== */
 
 .chart-container {
     position: relative;
@@ -236,8 +240,66 @@ th {
     margin-top: 20px;
 }
 
+
+/* ==========================================
+   AI Inventory Insights
+========================================== */
+
+.ai-insights {
+    border-left: 5px solid #2563eb;
+}
+
+.ai-description {
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.ai-insights-button {
+    margin-bottom: 18px;
+}
+
+.ai-status {
+    color: #475569;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.ai-result {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    min-height: 70px;
+    padding: 18px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+
+/* ==========================================
+   Responsive Design
+========================================== */
+
 @media (max-width: 768px) {
+    .summary {
+        flex-direction: column;
+    }
+
+    .section-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .search-form {
+        flex-direction: column;
+    }
+
     .chart-container {
         height: 300px;
+    }
+
+    .inventory {
+        overflow-x: auto;
     }
 }

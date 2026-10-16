@@ -22,7 +22,9 @@ from routers import (
     api_reports,
     api_insights,
     auth,
+    browser_insights,
 )
+
 
 # ==========================================
 # ENVIRONMENT CONFIGURATION
@@ -137,6 +139,8 @@ app.include_router(auth.router)
 app.include_router(products.router)
 
 app.include_router(stock.router)
+
+app.include_router(browser_insights.router)
 
 
 # ==========================================
