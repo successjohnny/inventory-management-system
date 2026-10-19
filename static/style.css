@@ -1566,3 +1566,181 @@ tbody tr:last-child td {
         font-size: 0.8rem;
     }
 }
+
+
+/* ==========================================
+   PASS 5: HISTORICAL INVENTORY TRENDS
+========================================== */
+
+/* Date filter container */
+
+.trend-filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+
+    margin: 24px 0 28px;
+    padding: 20px;
+
+    background: var(--slate-100);
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-sm);
+}
+
+/* Individual date fields */
+
+.trend-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    flex: 1 1 180px;
+    min-width: 0;
+}
+
+.trend-filter-field label {
+    color: var(--slate-700);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+/* Date inputs */
+
+.trend-filter-field input {
+    width: 100%;
+    min-height: 44px;
+
+    padding: 10px 12px;
+
+    background: var(--white);
+    color: var(--slate-900);
+
+    border: 1px solid var(--slate-300);
+    border-radius: var(--radius-sm);
+
+    font: inherit;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.trend-filter-field input:hover {
+    border-color: var(--blue-500);
+}
+
+.trend-filter-field input:focus {
+    outline: 2px solid var(--blue-500);
+    outline-offset: 2px;
+}
+
+/* Filter action buttons */
+
+.trend-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.trend-filter-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 44px;
+    padding: 10px 20px;
+
+    background: var(--blue-600);
+    color: var(--white);
+
+    border: none;
+    border-radius: var(--radius-sm);
+
+    font: inherit;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.trend-filter-actions button:hover {
+    background: var(--blue-700);
+    transform: translateY(-1px);
+}
+
+.trend-filter-actions button:focus-visible {
+    outline: 2px solid var(--blue-500);
+    outline-offset: 3px;
+}
+
+/* Reset button */
+
+.trend-filter-actions .clear-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 44px;
+    padding: 10px 20px;
+
+    text-decoration: none;
+}
+
+/* Historical chart spacing */
+
+#stockTrendsChart {
+    max-width: 100%;
+}
+
+/* ==========================================
+   RESPONSIVE: TABLETS
+========================================== */
+
+@media (max-width: 768px) {
+    .trend-filter-form {
+        gap: 14px;
+        padding: 18px;
+    }
+
+    .trend-filter-field {
+        flex: 1 1 160px;
+    }
+
+    .trend-filter-actions {
+        width: 100%;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE: MOBILE PHONES
+========================================== */
+
+@media (max-width: 560px) {
+    .trend-filter-form {
+        flex-direction: column;
+        align-items: stretch;
+
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .trend-filter-field {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    .trend-filter-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .trend-filter-actions button,
+    .trend-filter-actions .clear-button {
+        width: 100%;
+    }
+}
