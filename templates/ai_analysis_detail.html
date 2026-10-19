@@ -1,37 +1,23 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Analysis Details | Inventory Management</title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', path='style.css') }}"
-    >
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
-
 <body>
     <header class="app-header">
         <div class="header-content">
             <div class="brand">
                 <div class="brand-icon">AI</div>
-
                 <div>
                     <h1>Inventory Management</h1>
                     <p>Saved AI Analysis Report</p>
                 </div>
             </div>
-
-            <a href="/" class="report-header-link">
-                Back to Dashboard
-            </a>
+            <a href="/" class="report-header-link">Back to Dashboard</a>
         </div>
     </header>
 
@@ -40,186 +26,166 @@
             <div>
                 <p class="eyebrow">AI REPORT HISTORY</p>
                 <h2>Inventory Analysis Details</h2>
-
-                <p class="dashboard-description">
-                    Review your saved inventory analysis
-                    and the data used to generate it.
-                </p>
+                <p class="dashboard-description">Review your saved recommendations and the inventory snapshot used to generate them.</p>
             </div>
-
-            <a href="/" class="primary-action">
-                Back to Dashboard
-            </a>
+            <a href="/" class="primary-action">Back to Dashboard</a>
         </div>
 
         <section class="inventory ai-history report-panel">
             <div class="section-header">
                 <div>
-                    <p class="section-kicker">
-                        Saved Analysis
-                    </p>
-
+                    <p class="section-kicker">Saved Analysis</p>
                     <h2>AI Inventory Recommendations</h2>
-
-                    <p class="ai-history-date">
-                        Generated:
-                        {{ analysis.created_at.strftime(
-                            "%d %b %Y, %H:%M"
-                        ) }}
-                    </p>
+                    <p class="ai-history-date">Generated: {{ analysis.created_at.strftime("%d %b %Y, %H:%M") }}</p>
                 </div>
-
-                <span class="history-badge">
-                    AI REPORT
-                </span>
+                <span class="history-badge">AI REPORT</span>
             </div>
-
-            <div
-                id="savedAiAnalysis"
-                class="ai-result report-analysis"
-                aria-label="Saved AI analysis"
-            ></div>
+            <div id="savedAiAnalysis" class="ai-result report-analysis" aria-label="Saved AI analysis"></div>
         </section>
 
-        <section class="inventory report-panel">
+        <section class="inventory report-panel" aria-labelledby="snapshotHeading">
             <div class="section-header">
                 <div>
-                    <p class="section-kicker">
-                        Supporting Data
-                    </p>
-
-                    <h2>Inventory Snapshot</h2>
+                    <p class="section-kicker">Supporting Data</p>
+                    <h2 id="snapshotHeading">Inventory Snapshot</h2>
                 </div>
             </div>
+            <p class="report-description">These figures reflect the inventory when this analysis was saved, not necessarily today's stock.</p>
 
-            <p class="report-description">
-                This snapshot contains the inventory data
-                saved when the analysis was generated.
-            </p>
-
-            <pre
-                id="inventorySnapshot"
-                class="report-snapshot"
-                aria-label="Saved inventory snapshot"
-            ></pre>
+            <div id="snapshotMetrics" class="snapshot-metrics" aria-label="Inventory summary metrics"></div>
+            <div class="snapshot-columns">
+                <div class="snapshot-subpanel">
+                    <h3>Low-Stock Products</h3>
+                    <div id="snapshotLowStock"></div>
+                </div>
+                <div class="snapshot-subpanel">
+                    <h3>Inventory Recommendations</h3>
+                    <div id="snapshotRecommendations"></div>
+                </div>
+            </div>
+            <pre id="snapshotFallback" class="snapshot-fallback" hidden></pre>
         </section>
-
-        <a href="/" class="back-button">
-            ← Back to Dashboard
-        </a>
+        <a href="/" class="back-button">← Back to Dashboard</a>
     </main>
 
-    <script id="savedAnalysisData" type="application/json">
-        {{ analysis.analysis | tojson }}
-    </script>
-
-    <script id="savedSnapshotData" type="application/json">
-        {{ analysis.inventory_snapshot | tojson }}
-    </script>
-
+    <script id="savedAnalysisData" type="application/json">{{ analysis.analysis | tojson }}</script>
+    <script id="savedSnapshotData" type="application/json">{{ analysis.inventory_snapshot | tojson }}</script>
     <script>
         "use strict";
 
-        const analysisContainer =
-            document.getElementById("savedAiAnalysis");
+        const analysisContainer = document.getElementById("savedAiAnalysis");
+        const metricContainer = document.getElementById("snapshotMetrics");
+        const lowStockContainer = document.getElementById("snapshotLowStock");
+        const recommendationContainer = document.getElementById("snapshotRecommendations");
+        const fallbackContainer = document.getElementById("snapshotFallback");
+        const analysisText = JSON.parse(document.getElementById("savedAnalysisData").textContent);
+        const snapshotText = JSON.parse(document.getElementById("savedSnapshotData").textContent);
 
-        const snapshotContainer =
-            document.getElementById("inventorySnapshot");
-
-        const analysisText = JSON.parse(
-            document.getElementById(
-                "savedAnalysisData"
-            ).textContent
-        );
-
-        const snapshotText = JSON.parse(
-            document.getElementById(
-                "savedSnapshotData"
-            ).textContent
-        );
+        function makeElement(tag, text, className) {
+            const node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text !== undefined && text !== null) node.textContent = String(text);
+            return node;
+        }
 
         function renderAnalysis(text) {
             analysisContainer.replaceChildren();
-
-            const lines = text
-                .split("\n")
-                .map(line => line.trim())
-                .filter(Boolean);
-
+            const lines = String(text || "").split("\n").map(line => line.trim()).filter(Boolean);
+            const sections = new Set(["Inventory Health", "Low-Stock Alerts", "Recommended Actions", "Inventory Summary"]);
             let list = null;
-
             for (const line of lines) {
-                if (
-                    line.startsWith("## ") ||
-                    line.startsWith("### ")
-                ) {
+                const plain = line.replace(/^#{1,6}\s*/, "").replace(/\*\*/g, "").replace(/:$/, "").trim();
+                if (/^#{1,6}\s/.test(line) || sections.has(plain)) {
                     list = null;
-
-                    const heading =
-                        document.createElement("h3");
-
-                    heading.textContent = line
-                        .replace(/^#{2,3}\s+/, "")
-                        .replace(/\*\*/g, "");
-
-                    analysisContainer.appendChild(heading);
-                    continue;
-                }
-
-                if (line.startsWith("- ")) {
+                    analysisContainer.appendChild(makeElement("h3", plain));
+                } else if (/^[-*]\s+/.test(line)) {
                     if (!list) {
-                        list = document.createElement("ul");
-                        list.className = "ai-result-list";
+                        list = makeElement("ul", null, "ai-result-list");
                         analysisContainer.appendChild(list);
                     }
-
-                    const item =
-                        document.createElement("li");
-
-                    item.textContent = line
-                        .slice(2)
-                        .replace(/\*\*/g, "");
-
-                    list.appendChild(item);
-                    continue;
+                    list.appendChild(makeElement("li", line.replace(/^[-*]\s+/, "").replace(/\*\*/g, "")));
+                } else {
+                    list = null;
+                    analysisContainer.appendChild(makeElement("p", line.replace(/\*\*/g, "")));
                 }
-
-                list = null;
-
-                const paragraph =
-                    document.createElement("p");
-
-                paragraph.textContent =
-                    line.replace(/\*\*/g, "");
-
-                analysisContainer.appendChild(paragraph);
             }
-
-            if (!lines.length) {
-                const paragraph =
-                    document.createElement("p");
-
-                paragraph.textContent =
-                    "No saved analysis content is available.";
-
-                analysisContainer.appendChild(paragraph);
-            }
+            if (!lines.length) analysisContainer.appendChild(makeElement("p", "No saved analysis content is available."));
         }
 
-        function renderSnapshot(text) {
-            try {
-                const data = JSON.parse(text);
+        function numberText(value) {
+            return typeof value === "number" && Number.isFinite(value)
+                ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                : "Not available";
+        }
 
-                snapshotContainer.textContent =
-                    JSON.stringify(data, null, 2);
-            } catch {
-                snapshotContainer.textContent = text;
+        function renderSnapshot(raw) {
+            let data;
+            try { data = JSON.parse(raw); }
+            catch { data = null; }
+            if (!data || typeof data !== "object" || Array.isArray(data)) {
+                metricContainer.replaceChildren();
+                lowStockContainer.replaceChildren(makeElement("p", "Structured snapshot data is unavailable.", "snapshot-empty"));
+                recommendationContainer.replaceChildren();
+                fallbackContainer.hidden = false;
+                fallbackContainer.textContent = String(raw || "No snapshot saved.");
+                return;
             }
+
+            const metrics = [
+                ["Total Products", data.total_products],
+                ["Total Items", data.total_items],
+                ["Inventory Value", data.total_inventory_value],
+                ["Low-Stock Products", data.low_stock_count]
+            ];
+            metricContainer.replaceChildren();
+            for (const [label, value] of metrics) {
+                const card = makeElement("div", null, "snapshot-metric");
+                card.appendChild(makeElement("p", label, "snapshot-metric-label"));
+                card.appendChild(makeElement("p", numberText(value), "snapshot-metric-value"));
+                metricContainer.appendChild(card);
+            }
+
+            lowStockContainer.replaceChildren();
+            const lowStock = Array.isArray(data.low_stock_products) ? data.low_stock_products : [];
+            if (!lowStock.length) {
+                lowStockContainer.appendChild(makeElement("p", "No low-stock products were recorded in this snapshot.", "snapshot-empty"));
+            } else {
+                const wrapper = makeElement("div", null, "table-wrapper");
+                const table = makeElement("table");
+                const head = makeElement("thead");
+                const headingRow = makeElement("tr");
+                for (const label of ["Product", "Quantity", "Low-stock level"]) headingRow.appendChild(makeElement("th", label));
+                head.appendChild(headingRow);
+                table.appendChild(head);
+                const body = makeElement("tbody");
+                for (const item of lowStock) {
+                    const row = makeElement("tr");
+                    row.appendChild(makeElement("td", item && item.name != null ? item.name : "Unnamed product"));
+                    row.appendChild(makeElement("td", numberText(item && item.quantity)));
+                    row.appendChild(makeElement("td", numberText(item && item.low_stock_level)));
+                    body.appendChild(row);
+                }
+                table.appendChild(body);
+                wrapper.appendChild(table);
+                lowStockContainer.appendChild(wrapper);
+            }
+
+            recommendationContainer.replaceChildren();
+            const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
+            if (!recommendations.length) {
+                recommendationContainer.appendChild(makeElement("p", "No rule-based recommendations were recorded.", "snapshot-empty"));
+            } else {
+                const list = makeElement("ul", null, "snapshot-recommendations");
+                for (const recommendation of recommendations) {
+                    list.appendChild(makeElement("li", recommendation && recommendation.message != null ? recommendation.message : "Recommendation unavailable."));
+                }
+                recommendationContainer.appendChild(list);
+            }
+            fallbackContainer.hidden = true;
         }
 
         renderAnalysis(analysisText);
         renderSnapshot(snapshotText);
     </script>
 </body>
-
 </html>
