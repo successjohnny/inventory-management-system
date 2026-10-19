@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -312,6 +313,93 @@
                 </div>
             </section>
         </div>
+
+        <!-- ==========================================
+             Pass 5: Historical Inventory Trends
+        =========================================== -->
+        <section class="inventory analytics-card">
+            <div class="section-header">
+                <div>
+                    <p class="section-kicker">
+                        Historical Insights
+                    </p>
+
+                    <h2>Stock In vs. Stock Out</h2>
+
+                    <p>
+                        Daily stock movements recorded in UTC.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Historical Trends Date Filter -->
+            <form
+                action="/"
+                method="get"
+                class="trend-filter-form"
+            >
+                <div class="trend-filter-field">
+                    <label for="trend_start">
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="trend_start"
+                        name="trend_start"
+                        value="{{ trend_start }}"
+                        required
+                    >
+                </div>
+
+                <div class="trend-filter-field">
+                    <label for="trend_end">
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="trend_end"
+                        name="trend_end"
+                        value="{{ trend_end }}"
+                        required
+                    >
+                </div>
+
+                <div class="trend-filter-actions">
+                    <button type="submit">
+                        Apply Filter
+                    </button>
+
+                    <a href="/" class="clear-button">
+                        Reset
+                    </a>
+                </div>
+            </form>
+
+            <!-- Historical Stock Movement Summary -->
+            <div class="summary">
+                <article class="card">
+                    <h3>Total Stock In</h3>
+                    <p>{{ stock_trends.total_stock_in }}</p>
+                </article>
+
+                <article class="card">
+                    <h3>Total Stock Out</h3>
+                    <p>{{ stock_trends.total_stock_out }}</p>
+                </article>
+
+                <article class="card">
+                    <h3>Net Movement</h3>
+                    <p>{{ stock_trends.net_change }}</p>
+                </article>
+            </div>
+
+            <!-- Historical Stock Movement Chart -->
+            <div class="chart-container">
+                <canvas id="stockTrendsChart"></canvas>
+            </div>
+        </section>
 
         <!-- ==========================================
              Valuation Tables
@@ -855,6 +943,11 @@
     <!-- ==========================================
          Chart Data
     =========================================== -->
+    <script
+        id="stockTrendsData"
+        type="application/json"
+    >{{ stock_trends | tojson }}</script>
+
     <script
         id="categoryValuationData"
         type="application/json"

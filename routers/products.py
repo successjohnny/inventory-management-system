@@ -1,4 +1,15 @@
-from fastapi import APIRouter, Depends, Form, Request
+
+from datetime import date, datetime, time, timedelta, timezone
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    status,
+)
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
@@ -17,6 +28,7 @@ from services.product_service import (
     validate_product,
     delete_product,
 )
+from services.stock_trends import build_stock_trends
 
 
 # Browser-only routes are excluded from the OpenAPI/Swagger schema.
@@ -32,6 +44,8 @@ def home(
     request: Request,
     search: str = "",
     error: str = "",
+    trend_start: date | None = Query(default=None),
+    trend_end: date | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
     redirect = require_admin(request)
@@ -39,7 +53,15 @@ def home(
     if redirect is not None:
         return redirect
 
+    # ==========================================
+    # Inventory Products
+    # ==========================================
+
     all_products = db.query(Product).all()
+
+    # ==========================================
+    # Category Inventory Valuations
+    # ==========================================
 
     category_valuations = {}
 
@@ -50,6 +72,10 @@ def home(
         category_valuations[product.category] += (
             product.price * product.quantity
         )
+
+    # ==========================================
+    # Supplier Inventory Valuations
+    # ==========================================
 
     supplier_valuations = {}
 
@@ -64,11 +90,19 @@ def home(
             product.price * product.quantity
         )
 
+    # ==========================================
+    # Low-Stock Insights
+    # ==========================================
+
     low_stock_insights = [
         product
         for product in all_products
         if product.quantity <= product.low_stock_level
     ]
+
+    # ==========================================
+    # Complete Stock Movement History
+    # ==========================================
 
     movements = (
         db.query(StockMovement)
@@ -77,6 +111,85 @@ def home(
         )
         .all()
     )
+
+    # ==========================================
+    # Pass 5: Historical Stock Trends
+    # ==========================================
+
+    today = datetime.now(timezone.utc).date()
+
+    # Use today when no end date is provided.
+    end_date = (
+        trend_end
+        if trend_end is not None
+        else today
+    )
+
+    # Default to 30 calendar days, including
+    # the selected end date.
+    start_date = (
+        trend_start
+        if trend_start is not None
+        else end_date - timedelta(days=29)
+    )
+
+    # Validate the selected reporting period.
+    if start_date > end_date:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=(
+                "Trend start date cannot be later "
+                "than trend end date."
+            ),
+        )
+
+    # Both boundary dates count toward the limit.
+    if (end_date - start_date).days >= 365:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=(
+                "The reporting period cannot "
+                "exceed 365 calendar days."
+            ),
+        )
+
+    # Convert inclusive dates to UTC timestamps.
+    start_datetime = datetime.combine(
+        start_date,
+        time.min,
+        tzinfo=timezone.utc,
+    )
+
+    # Exclusive boundary at midnight after end_date.
+    end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min,
+        tzinfo=timezone.utc,
+    )
+
+    # Query only movements in the chart period.
+    trend_movements = (
+        db.query(StockMovement)
+        .filter(
+            StockMovement.created_at >= start_datetime,
+            StockMovement.created_at < end_datetime,
+        )
+        .order_by(
+            StockMovement.created_at.asc(),
+            StockMovement.id.asc(),
+        )
+        .all()
+    )
+
+    stock_trends = build_stock_trends(
+        trend_movements,
+        start_date,
+        end_date,
+    )
+
+    # ==========================================
+    # Saved AI Analysis History
+    # ==========================================
 
     ai_analysis_history = (
         db.query(AIAnalysis)
@@ -87,6 +200,10 @@ def home(
         .limit(5)
         .all()
     )
+
+    # ==========================================
+    # Product Search
+    # ==========================================
 
     normalized_search = search.strip().lower()
 
@@ -103,43 +220,56 @@ def home(
     else:
         products = all_products
 
+    # ==========================================
+    # Dashboard Template Response
+    # ==========================================
+
     return templates.TemplateResponse(
-    request=request,
-    name="index.html",
-    context={
-        "products": products,
-        "category_valuations": category_valuations,
-        "supplier_valuations": supplier_valuations,
-        "low_stock_insights": low_stock_insights,
-        "total_products": len(all_products),
-        "total_items": sum(
-            product.quantity
-            for product in all_products
-        ),
-        "total_categories": len(
-            {
-                product.category
+        request=request,
+        name="index.html",
+        context={
+            "products": products,
+            "category_valuations": category_valuations,
+            "supplier_valuations": supplier_valuations,
+            "low_stock_insights": low_stock_insights,
+            "total_products": len(all_products),
+            "total_items": sum(
+                product.quantity
                 for product in all_products
-            }
-        ),
-        "low_stock_products": sum(
-            1
-            for product in all_products
-            if product.quantity
-            <= product.low_stock_level
-        ),
-        "movements": movements,
-        "ai_analysis_history": ai_analysis_history,
-        "error": ERROR_MESSAGES.get(
-            error,
-            error,
-        ),
-        "search": search,
-        "csrf_token": get_csrf_token(
-            request
-        ),
-    },
-)
+            ),
+            "total_categories": len(
+                {
+                    product.category
+                    for product in all_products
+                }
+            ),
+            "low_stock_products": sum(
+                1
+                for product in all_products
+                if product.quantity
+                <= product.low_stock_level
+            ),
+            "movements": movements,
+            "stock_trends": stock_trends,
+            "trend_start": start_date.isoformat(),
+            "trend_end": end_date.isoformat(),
+            "ai_analysis_history": ai_analysis_history,
+            "error": ERROR_MESSAGES.get(
+                error,
+                error,
+            ),
+            "search": search,
+            "csrf_token": get_csrf_token(
+                request
+            ),
+        },
+    )
+
+
+# ==========================================
+# Saved AI Analysis Detail
+# ==========================================
+
 @router.get("/ai-analysis/{analysis_id}")
 def ai_analysis_detail(
     request: Request,
@@ -173,6 +303,10 @@ def ai_analysis_detail(
         },
     )
 
+
+# ==========================================
+# Add Product
+# ==========================================
 
 @router.post("/add-product")
 def add_product(
@@ -237,6 +371,10 @@ def add_product(
     )
 
 
+# ==========================================
+# Edit Product Page
+# ==========================================
+
 @router.get("/edit-product/{product_id}")
 def edit_product(
     request: Request,
@@ -278,6 +416,10 @@ def edit_product(
         },
     )
 
+
+# ==========================================
+# Update Product
+# ==========================================
 
 @router.post("/edit-product/{product_id}")
 def update_product_route(
@@ -341,6 +483,10 @@ def update_product_route(
         status_code=303,
     )
 
+
+# ==========================================
+# Delete Product
+# ==========================================
 
 @router.post("/delete-product/{product_id}")
 def delete_product_route(

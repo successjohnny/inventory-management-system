@@ -1,4 +1,75 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+
+
+    // ==========================================
+    // Pass 5: Historical Stock Movement Trends
+    // ==========================================
+
+    const trendsCanvas = document.getElementById(
+        "stockTrendsChart"
+    );
+
+    const trendsDataElement = document.getElementById(
+        "stockTrendsData"
+    );
+
+    if (trendsCanvas && trendsDataElement) {
+        const trends = JSON.parse(
+            trendsDataElement.textContent
+        );
+
+        new Chart(trendsCanvas, {
+            type: "line",
+
+            data: {
+                labels: trends.labels,
+                datasets: [
+                    {
+                        label: "Stock In",
+                        data: trends.stock_in,
+                        borderColor: "#16a34a",
+                        backgroundColor: "#16a34a",
+                        tension: 0.3,
+                    },
+                    {
+                        label: "Stock Out",
+                        data: trends.stock_out,
+                        borderColor: "#dc2626",
+                        backgroundColor: "#dc2626",
+                        tension: 0.3,
+                    },
+                ],
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false,
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: "Units",
+                        },
+                    },
+                    x: {
+                        ticks: {
+                            maxTicksLimit: 8,
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+
     // ==========================================
     // Category Inventory Valuation Chart
     // ==========================================
