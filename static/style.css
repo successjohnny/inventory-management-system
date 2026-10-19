@@ -556,7 +556,7 @@ button:disabled {
     border-radius: var(--radius-md);
     color: var(--slate-700);
     line-height: 1.7;
-    white-space: pre-wrap;
+    white-space: normal;
 }
 
 .ai-placeholder {
@@ -762,6 +762,11 @@ button:disabled {
 
 .valuation-card .table-wrapper {
     max-height: 360px;
+}
+
+/* Two-column valuation tables do not need the global 650px minimum. */
+.valuation-card table {
+    min-width: 0;
 }
 
 
@@ -1304,5 +1309,85 @@ tbody tr:last-child td {
     .chart-container-compact,
     .chart-container-stock {
         height: 260px;
+    }
+}
+
+/* ==========================================
+   Saved AI Analysis Detail Page
+========================================== */
+
+.analysis-detail-page {
+    width: min(94%, 1100px);
+    margin: 0 auto;
+    padding: 34px 0 60px;
+}
+
+.analysis-detail-header {
+    padding: 28px;
+    background: linear-gradient(135deg, var(--navy-950), var(--navy-800));
+    color: var(--white);
+    border-radius: var(--radius-lg);
+    margin-bottom: 24px;
+}
+
+.analysis-detail-header h1 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.25;
+}
+
+.analysis-detail-header p {
+    color: var(--slate-300);
+    margin-top: 8px;
+}
+
+.analysis-detail-body {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.analysis-detail-body h3 {
+    margin: 20px 0 8px;
+    color: var(--slate-900);
+}
+
+.analysis-detail-body h3:first-child {
+    margin-top: 0;
+}
+
+.analysis-detail-body p {
+    margin: 0 0 12px;
+}
+
+.analysis-detail-body ul {
+    padding-left: 24px;
+    margin-bottom: 14px;
+}
+
+.analysis-detail-body li {
+    margin-bottom: 8px;
+}
+
+.analysis-snapshot {
+    max-height: 380px;
+    overflow: auto;
+    padding: 18px;
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    color: var(--slate-700);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+    .analysis-detail-header {
+        padding: 20px;
+    }
+
+    .analysis-snapshot {
+        padding: 12px;
     }
 }

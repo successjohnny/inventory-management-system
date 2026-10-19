@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,7 +9,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>AI Analysis Details</title>
+    <title>AI Analysis Details | Inventory Management</title>
 
     <link
         rel="stylesheet"
@@ -17,47 +18,208 @@
 </head>
 
 <body>
-    <header>
-        <h1>AI Analysis Details</h1>
-        <p>Review a saved inventory AI analysis</p>
+    <header class="app-header">
+        <div class="header-content">
+            <div class="brand">
+                <div class="brand-icon">AI</div>
+
+                <div>
+                    <h1>Inventory Management</h1>
+                    <p>Saved AI Analysis Report</p>
+                </div>
+            </div>
+
+            <a href="/" class="report-header-link">
+                Back to Dashboard
+            </a>
+        </div>
     </header>
 
-    <main>
-        <section class="inventory ai-history">
+    <main class="dashboard report-dashboard">
+        <div class="dashboard-intro">
+            <div>
+                <p class="eyebrow">AI REPORT HISTORY</p>
+                <h2>Inventory Analysis Details</h2>
+
+                <p class="dashboard-description">
+                    Review your saved inventory analysis
+                    and the data used to generate it.
+                </p>
+            </div>
+
+            <a href="/" class="primary-action">
+                Back to Dashboard
+            </a>
+        </div>
+
+        <section class="inventory ai-history report-panel">
             <div class="section-header">
                 <div>
-                    <h2>Saved Analysis</h2>
+                    <p class="section-kicker">
+                        Saved Analysis
+                    </p>
+
+                    <h2>AI Inventory Recommendations</h2>
 
                     <p class="ai-history-date">
+                        Generated:
                         {{ analysis.created_at.strftime(
                             "%d %b %Y, %H:%M"
                         ) }}
                     </p>
                 </div>
+
+                <span class="history-badge">
+                    AI REPORT
+                </span>
             </div>
 
-            <div class="ai-history-analysis">
-                {{ analysis.analysis }}
-            </div>
+            <div
+                id="savedAiAnalysis"
+                class="ai-result report-analysis"
+                aria-label="Saved AI analysis"
+            ></div>
         </section>
 
-        <section class="inventory">
+        <section class="inventory report-panel">
             <div class="section-header">
-                <h2>Inventory Snapshot</h2>
+                <div>
+                    <p class="section-kicker">
+                        Supporting Data
+                    </p>
+
+                    <h2>Inventory Snapshot</h2>
+                </div>
             </div>
 
-            <div class="ai-result">
-                {{ analysis.inventory_snapshot }}
-            </div>
+            <p class="report-description">
+                This snapshot contains the inventory data
+                saved when the analysis was generated.
+            </p>
+
+            <pre
+                id="inventorySnapshot"
+                class="report-snapshot"
+                aria-label="Saved inventory snapshot"
+            ></pre>
         </section>
 
-        <a
-            href="/"
-            class="back-button"
-        >
+        <a href="/" class="back-button">
             ← Back to Dashboard
         </a>
     </main>
+
+    <script id="savedAnalysisData" type="application/json">
+        {{ analysis.analysis | tojson }}
+    </script>
+
+    <script id="savedSnapshotData" type="application/json">
+        {{ analysis.inventory_snapshot | tojson }}
+    </script>
+
+    <script>
+        "use strict";
+
+        const analysisContainer =
+            document.getElementById("savedAiAnalysis");
+
+        const snapshotContainer =
+            document.getElementById("inventorySnapshot");
+
+        const analysisText = JSON.parse(
+            document.getElementById(
+                "savedAnalysisData"
+            ).textContent
+        );
+
+        const snapshotText = JSON.parse(
+            document.getElementById(
+                "savedSnapshotData"
+            ).textContent
+        );
+
+        function renderAnalysis(text) {
+            analysisContainer.replaceChildren();
+
+            const lines = text
+                .split("\n")
+                .map(line => line.trim())
+                .filter(Boolean);
+
+            let list = null;
+
+            for (const line of lines) {
+                if (
+                    line.startsWith("## ") ||
+                    line.startsWith("### ")
+                ) {
+                    list = null;
+
+                    const heading =
+                        document.createElement("h3");
+
+                    heading.textContent = line
+                        .replace(/^#{2,3}\s+/, "")
+                        .replace(/\*\*/g, "");
+
+                    analysisContainer.appendChild(heading);
+                    continue;
+                }
+
+                if (line.startsWith("- ")) {
+                    if (!list) {
+                        list = document.createElement("ul");
+                        list.className = "ai-result-list";
+                        analysisContainer.appendChild(list);
+                    }
+
+                    const item =
+                        document.createElement("li");
+
+                    item.textContent = line
+                        .slice(2)
+                        .replace(/\*\*/g, "");
+
+                    list.appendChild(item);
+                    continue;
+                }
+
+                list = null;
+
+                const paragraph =
+                    document.createElement("p");
+
+                paragraph.textContent =
+                    line.replace(/\*\*/g, "");
+
+                analysisContainer.appendChild(paragraph);
+            }
+
+            if (!lines.length) {
+                const paragraph =
+                    document.createElement("p");
+
+                paragraph.textContent =
+                    "No saved analysis content is available.";
+
+                analysisContainer.appendChild(paragraph);
+            }
+        }
+
+        function renderSnapshot(text) {
+            try {
+                const data = JSON.parse(text);
+
+                snapshotContainer.textContent =
+                    JSON.stringify(data, null, 2);
+            } catch {
+                snapshotContainer.textContent = text;
+            }
+        }
+
+        renderAnalysis(analysisText);
+        renderSnapshot(snapshotText);
+    </script>
 </body>
 
 </html>
