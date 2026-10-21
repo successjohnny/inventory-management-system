@@ -1,13 +1,30 @@
+
 import os
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import TypedDict
 
 from dotenv import load_dotenv
+
+
+# ==========================================
+# ENVIRONMENT CONFIGURATION
+# ==========================================
+
+# Return type: bool
+# Load environment variables before importing
+# application modules that depend on them.
+environment_loaded: bool = load_dotenv()
+
+
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.staticfiles import StaticFiles
+
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+
 from starlette.middleware.sessions import SessionMiddleware
 
 from api_security import get_api_token
@@ -23,14 +40,27 @@ from routers import (
     api_insights,
     auth,
     browser_insights,
+    browser_reports,
 )
 
 
 # ==========================================
-# ENVIRONMENT CONFIGURATION
+# HEALTH RESPONSE DATA TYPE
 # ==========================================
 
-load_dotenv()
+class HealthResponse(TypedDict):
+    """
+    Define the structure of the health-check response.
+
+    status: str
+        Application health status.
+
+    database: str
+        Database connection status.
+    """
+
+    status: str
+    database: str
 
 
 # ==========================================
@@ -38,12 +68,25 @@ load_dotenv()
 # ==========================================
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(
+    app: FastAPI,
+) -> AsyncIterator[None]:
     """
-    Validate required application configuration
-    when the FastAPI application starts.
+    Validate application configuration on startup.
+
+    Parameters:
+        app (FastAPI):
+            The FastAPI application instance.
+
+    Returns:
+        AsyncIterator[None]:
+            An asynchronous lifespan iterator.
+
+    The application runs while execution is
+    suspended at the yield statement.
     """
 
+    # Validate the API token configuration.
     get_api_token()
 
     yield
@@ -53,7 +96,7 @@ async def lifespan(app: FastAPI):
 # FASTAPI APPLICATION
 # ==========================================
 
-app = FastAPI(
+app: FastAPI = FastAPI(
     title="Inventory Management System API",
     description=(
         "REST API for managing inventory products and stock movements. "
@@ -70,17 +113,29 @@ app = FastAPI(
 # SESSION MIDDLEWARE
 # ==========================================
 
+# Data type: str
+# Read the HTTPS-only configuration from the environment.
+session_https_setting: str = os.getenv(
+    "SESSION_HTTPS_ONLY",
+    "false",
+)
+
+# Data type: bool
+# Convert the environment setting to a boolean.
+session_https_only: bool = (
+    session_https_setting.lower() == "true"
+)
+
+# Data type: str
+# Retrieve the validated session secret.
+session_secret: str = get_session_secret()
+
 app.add_middleware(
     SessionMiddleware,
-    secret_key=get_session_secret(),
+    secret_key=session_secret,
     session_cookie="inventory_session",
     same_site="lax",
-    https_only=(
-        os.getenv(
-            "SESSION_HTTPS_ONLY",
-            "false",
-        ).lower() == "true"
-    ),
+    https_only=session_https_only,
 )
 
 
@@ -110,24 +165,41 @@ app.mount(
 )
 def health_check(
     db: Session = Depends(get_db),
-):
+) -> HealthResponse:
     """
     Verify application and database availability.
+
+    Parameters:
+        db (Session):
+            SQLAlchemy database session supplied
+            through FastAPI dependency injection.
+
+    Returns:
+        HealthResponse:
+            A dictionary containing two string fields:
+            status and database.
+
+    Raises:
+        HTTPException:
+            HTTP 503 when the database is unavailable.
     """
 
     try:
         db.execute(text("SELECT 1"))
 
-    except SQLAlchemyError:
+    except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database unavailable",
-        )
+        ) from exc
 
-    return {
+    # Data type: HealthResponse
+    response: HealthResponse = {
         "status": "healthy",
         "database": "connected",
     }
+
+    return response
 
 
 # ==========================================
@@ -141,6 +213,8 @@ app.include_router(products.router)
 app.include_router(stock.router)
 
 app.include_router(browser_insights.router)
+
+app.include_router(browser_reports.router)
 
 
 # ==========================================

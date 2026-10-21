@@ -1,0 +1,375 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Inventory Reports Dashboard</title>
+
+    <link rel="stylesheet"
+          href="/static/style.css">
+
+    <style>
+        .reports-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .reports-header {
+            margin-bottom: 30px;
+        }
+
+        .reports-header h1 {
+            margin-bottom: 10px;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .report-card {
+            background: #1e293b;
+            color: #f8fafc;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .report-card h2 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #cbd5e1;
+        }
+
+        .report-card p {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .breakdown-section {
+            margin: 35px 0;
+        }
+
+        .breakdown-section h2 {
+            margin-bottom: 10px;
+        }
+
+        .breakdown-description {
+            margin-bottom: 20px;
+            color: #64748b;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+        }
+
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .breakdown-table th,
+        .breakdown-table td {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .breakdown-table th {
+            background: #1e293b;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .breakdown-table td {
+            color: #0f172a;
+        }
+
+        .breakdown-table tbody tr:hover {
+            background: #f1f5f9;
+        }
+
+        .breakdown-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .empty-report {
+            padding: 24px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .reports-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .report-link {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .report-link:hover {
+            background: #1d4ed8;
+        }
+
+        .download-link {
+            background: #059669;
+        }
+
+        .download-link:hover {
+            background: #047857;
+        }
+
+        .reports-note {
+            margin-top: 20px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .reports-container {
+                margin: 15px auto;
+                padding: 15px;
+            }
+
+            .report-card {
+                padding: 18px;
+            }
+
+            .breakdown-table th,
+            .breakdown-table td {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .reports-actions {
+                flex-direction: column;
+            }
+
+            .report-link {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="reports-container">
+
+        <header class="reports-header">
+            <h1>Inventory Reports Dashboard</h1>
+
+            <p>
+                View inventory statistics and monitor
+                your stock performance.
+            </p>
+        </header>
+
+        <!-- Inventory summary cards -->
+        <section class="reports-grid"
+                 aria-label="Inventory report statistics">
+
+            <article class="report-card">
+                <h2>Total Products</h2>
+                <p>{{ total_products }}</p>
+            </article>
+
+            <article class="report-card">
+                <h2>Total Items</h2>
+                <p>{{ total_items }}</p>
+            </article>
+
+            <article class="report-card">
+                <h2>Total Inventory Value</h2>
+                <p>{{ "{:,.2f}".format(total_inventory_value) }}</p>
+            </article>
+
+            <article class="report-card">
+                <h2>Low-Stock Products</h2>
+                <p>{{ low_stock_products }}</p>
+            </article>
+
+        </section>
+
+        <!-- Category breakdown -->
+        <section class="breakdown-section"
+                 aria-label="Category breakdown">
+
+            <h2>Category Breakdown</h2>
+
+            <p class="breakdown-description">
+                Inventory quantities and values grouped
+                by product category.
+            </p>
+
+            <div class="table-wrapper">
+
+                {% if category_reports %}
+
+                <table class="breakdown-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Category</th>
+                            <th scope="col">Products</th>
+                            <th scope="col">Total Items</th>
+                            <th scope="col">Inventory Value</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for category in category_reports %}
+                        <tr>
+                            <td>{{ category.category }}</td>
+                            <td>{{ category.total_products }}</td>
+                            <td>{{ category.total_items }}</td>
+                            <td>
+                                {{
+                                    "{:,.2f}".format(
+                                        category.inventory_value
+                                    )
+                                }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% else %}
+
+                <p class="empty-report">
+                    No category data available.
+                    Add products to generate category reports.
+                </p>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+        <!-- Supplier breakdown -->
+        <section class="breakdown-section"
+                 aria-label="Supplier breakdown">
+
+            <h2>Supplier Breakdown</h2>
+
+            <p class="breakdown-description">
+                Inventory quantities and values grouped
+                by supplier.
+            </p>
+
+            <div class="table-wrapper">
+
+                {% if supplier_reports %}
+
+                <table class="breakdown-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Supplier</th>
+                            <th scope="col">Products</th>
+                            <th scope="col">Total Items</th>
+                            <th scope="col">Inventory Value</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for supplier in supplier_reports %}
+                        <tr>
+                            <td>{{ supplier.supplier }}</td>
+                            <td>{{ supplier.total_products }}</td>
+                            <td>{{ supplier.total_items }}</td>
+                            <td>
+                                {{
+                                    "{:,.2f}".format(
+                                        supplier.inventory_value
+                                    )
+                                }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% else %}
+
+                <p class="empty-report">
+                    No supplier data available.
+                    Add products with suppliers to generate
+                    supplier reports.
+                </p>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+        <!-- CSV downloads -->
+        <section class="breakdown-section"
+                 aria-label="Download reports">
+
+            <h2>Download Reports</h2>
+
+            <p class="breakdown-description">
+                Export your inventory data as CSV files
+                for analysis or record keeping.
+            </p>
+
+            <div class="reports-actions">
+
+                <a
+                    href="/reports/download/inventory"
+                    class="report-link download-link"
+                >
+                    Download Inventory CSV
+                </a>
+
+                <a
+                    href="/reports/download/stock-movements"
+                    class="report-link download-link"
+                >
+                    Download Stock Movements CSV
+                </a>
+
+            </div>
+
+        </section>
+
+        <!-- Navigation -->
+        <section aria-label="Dashboard navigation">
+            <h2>Navigation</h2>
+
+            <div class="reports-actions">
+                <a href="/" class="report-link">
+                    Back to Inventory
+                </a>
+            </div>
+        </section>
+
+        <p class="reports-note">
+            Inventory statistics reflect current stock quantities.
+        </p>
+
+    </main>
+
+</body>
+</html>

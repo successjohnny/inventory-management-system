@@ -15,6 +15,37 @@
         rel="stylesheet"
         href="{{ url_for('static', path='style.css') }}"
     >
+    <style>
+        .dashboard-intro-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dashboard-intro-actions .primary-action {
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .dashboard-intro-actions .reports-action {
+            background: #0f766e;
+        }
+
+        .dashboard-intro-actions .reports-action:hover {
+            background: #115e59;
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-intro-actions {
+                width: 100%;
+            }
+
+            .dashboard-intro-actions .primary-action {
+                flex: 1 1 160px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -72,12 +103,21 @@
                 </p>
             </div>
 
-            <a
-                href="#add-product"
-                class="primary-action"
-            >
-                + Add Product
-            </a>
+            <div class="dashboard-intro-actions">
+                <a
+                    href="/reports"
+                    class="primary-action reports-action"
+                >
+                    View Reports
+                </a>
+
+                <a
+                    href="#add-product"
+                    class="primary-action"
+                >
+                    + Add Product
+                </a>
+            </div>
         </section>
 
         <!-- ==========================================
