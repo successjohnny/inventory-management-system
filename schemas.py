@@ -1,4 +1,3 @@
-
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -7,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 # ==========================================
 # PRODUCT CREATION SCHEMA
 # ==========================================
+
 
 class ProductCreate(BaseModel):
     """
@@ -33,6 +33,7 @@ class ProductCreate(BaseModel):
 # PRODUCT UPDATE SCHEMA
 # ==========================================
 
+
 class ProductUpdate(BaseModel):
     """
     Validate data when updating a product.
@@ -50,9 +51,7 @@ class ProductUpdate(BaseModel):
     Quantity changes must use stock movements.
     """
 
-    model_config = ConfigDict(
-        extra="forbid"
-    )
+    model_config = ConfigDict(extra="forbid")
 
     name: str
     price: int = Field(gt=0)
@@ -64,6 +63,7 @@ class ProductUpdate(BaseModel):
 # ==========================================
 # PRODUCT RESPONSE SCHEMA
 # ==========================================
+
 
 class ProductResponse(BaseModel):
     """
@@ -87,14 +87,13 @@ class ProductResponse(BaseModel):
     category: str
     supplier: str | None = None
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ==========================================
 # PRODUCT LIST RESPONSE SCHEMA
 # ==========================================
+
 
 class ProductListResponse(BaseModel):
     """
@@ -119,6 +118,7 @@ class ProductListResponse(BaseModel):
 # STOCK MOVEMENT CREATION SCHEMA
 # ==========================================
 
+
 class StockMovementCreate(BaseModel):
     """
     Validate a stock-in or stock-out request.
@@ -137,6 +137,7 @@ class StockMovementCreate(BaseModel):
 # ==========================================
 # STOCK MOVEMENT RESPONSE SCHEMA
 # ==========================================
+
 
 class StockMovementResponse(BaseModel):
     """
@@ -158,14 +159,13 @@ class StockMovementResponse(BaseModel):
     note: str | None = None
     created_at: datetime
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ==========================================
 # STOCK MOVEMENT LIST RESPONSE SCHEMA
 # ==========================================
+
 
 class StockMovementListResponse(BaseModel):
     """

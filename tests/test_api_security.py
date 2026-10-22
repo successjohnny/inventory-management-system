@@ -182,20 +182,17 @@ def test_missing_token_blocks_inventory_export(
 ):
     test_client, _ = configured_client
 
-    response = test_client.get(
-        "/api/reports/inventory.csv"
-    )
+    response = test_client.get("/api/reports/inventory.csv")
 
     assert response.status_code == 401
+
 
 def test_missing_token_blocks_stock_movement_export(
     configured_client,
 ):
     test_client, _ = configured_client
 
-    response = test_client.get(
-        "/api/reports/stock-movements.csv"
-    )
+    response = test_client.get("/api/reports/stock-movements.csv")
 
     assert response.status_code == 401
 
@@ -205,9 +202,7 @@ def test_missing_token_blocks_inventory_summary(
 ):
     test_client, _ = configured_client
 
-    response = test_client.get(
-        "/api/reports/summary"
-    )
+    response = test_client.get("/api/reports/summary")
 
     assert response.status_code == 401
 
@@ -217,9 +212,7 @@ def test_missing_token_blocks_low_stock_report(
 ):
     test_client, _ = configured_client
 
-    response = test_client.get(
-        "/api/reports/low-stock"
-    )
+    response = test_client.get("/api/reports/low-stock")
 
     assert response.status_code == 401
 
@@ -229,9 +222,7 @@ def test_missing_token_blocks_category_summary_report(
 ):
     test_client, _ = configured_client
 
-    response = test_client.get(
-        "/api/reports/categories"
-    )
+    response = test_client.get("/api/reports/categories")
 
     assert response.status_code == 401
 
@@ -241,9 +232,7 @@ def test_missing_token_blocks_inventory_valuation_report(
 ):
     test_client, _ = configured_client
 
-    response = test_client.get(
-        "/api/reports/valuation"
-    )
+    response = test_client.get("/api/reports/valuation")
 
     assert response.status_code == 401
 
@@ -253,9 +242,7 @@ def test_missing_token_blocks_supplier_summary_report(
 ):
     test_client, _ = configured_client
 
-    response = test_client.get(
-        "/api/reports/suppliers"
-    )
+    response = test_client.get("/api/reports/suppliers")
 
     assert response.status_code == 401
 
@@ -265,8 +252,6 @@ def test_missing_token_blocks_category_valuation_report(
 ):
     test_client, _ = configured_client
 
-    response = test_client.get(
-        "/api/reports/category-valuations"
-    )
+    response = test_client.get("/api/reports/category-valuations")
 
     assert response.status_code == 401

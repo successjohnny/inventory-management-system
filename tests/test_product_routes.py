@@ -1,5 +1,6 @@
 from models import Product, StockMovement
 
+
 def test_home_page(authenticated_client):
 
     test_client, db = authenticated_client
@@ -8,43 +9,29 @@ def test_home_page(authenticated_client):
 
     assert response.status_code == 200
 
+
 def test_add_product(authenticated_client):
 
     test_client, db = authenticated_client
 
     response = test_client.post(
-
         "/add-product",
-
         data={
-
             "name": "Laptop",
-
             "price": "100000",
-
             "quantity": "10",
-
             "low_stock_level": "5",
-
             "category": "Electronics",
-
             "supplier": "ABC Electronics",
-
         },
-
         follow_redirects=False,
-
     )
 
     assert response.status_code == 303
 
     assert response.headers["location"] == "/"
 
-    product = db.query(Product).filter(
-
-        Product.name == "Laptop"
-
-    ).first()
+    product = db.query(Product).filter(Product.name == "Laptop").first()
 
     assert product is not None
 
@@ -58,6 +45,7 @@ def test_add_product(authenticated_client):
 
     assert product.supplier == "ABC Electronics"
 
+
 def test_add_duplicate_product(authenticated_client):
 
     test_client, db = authenticated_client
@@ -65,27 +53,16 @@ def test_add_duplicate_product(authenticated_client):
     # Create the first product
 
     first_response = test_client.post(
-
         "/add-product",
-
         data={
-
             "name": "Laptop",
-
             "price": "100000",
-
             "quantity": "10",
-
             "low_stock_level": "5",
-
             "category": "Electronics",
-
             "supplier": "ABC Electronics",
-
         },
-
         follow_redirects=False,
-
     )
 
     assert first_response.status_code == 303
@@ -93,140 +70,80 @@ def test_add_duplicate_product(authenticated_client):
     # Try to create the same product again
 
     second_response = test_client.post(
-
         "/add-product",
-
         data={
-
             "name": "Laptop",
-
             "price": "120000",
-
             "quantity": "5",
-
             "low_stock_level": "2",
-
             "category": "Computers",
-
             "supplier": "XYZ Electronics",
-
         },
-
         follow_redirects=False,
-
     )
 
     assert second_response.status_code == 303
 
-    assert (
-
-        second_response.headers["location"]
-
-        == "/?error=duplicate_product"
-
-    )
+    assert second_response.headers["location"] == "/?error=duplicate_product"
 
     # Only one Laptop should exist
 
-    products = db.query(Product).filter(
-
-        Product.normalized_name == "laptop"
-
-    ).all()
+    products = db.query(Product).filter(Product.normalized_name == "laptop").all()
 
     assert len(products) == 1
+
 
 def test_add_product_invalid_price(authenticated_client):
 
     test_client, db = authenticated_client
 
     response = test_client.post(
-
         "/add-product",
-
         data={
-
             "name": "Mouse",
-
             "price": "0",
-
             "quantity": "10",
-
             "low_stock_level": "5",
-
             "category": "Electronics",
-
             "supplier": "ABC Electronics",
-
         },
-
         follow_redirects=False,
-
     )
 
     assert response.status_code == 303
 
-    assert (
+    assert response.headers["location"] == "/?error=invalid_price"
 
-        response.headers["location"]
-
-        == "/?error=invalid_price"
-
-    )
-
-    product = db.query(Product).filter(
-
-        Product.normalized_name == "mouse"
-
-    ).first()
+    product = db.query(Product).filter(Product.normalized_name == "mouse").first()
 
     assert product is None
+
 
 def test_add_product_invalid_quantity(authenticated_client):
 
     test_client, db = authenticated_client
 
     response = test_client.post(
-
         "/add-product",
-
         data={
-
             "name": "Keyboard",
-
             "price": "5000",
-
             "quantity": "-1",
-
             "low_stock_level": "5",
-
             "category": "Electronics",
-
             "supplier": "ABC Electronics",
-
         },
-
         follow_redirects=False,
-
     )
 
     assert response.status_code == 303
 
-    assert (
+    assert response.headers["location"] == "/?error=invalid_quantity"
 
-        response.headers["location"]
-
-        == "/?error=invalid_quantity"
-
-    )
-
-    product = db.query(Product).filter(
-
-        Product.normalized_name == "keyboard"
-
-    ).first()
+    product = db.query(Product).filter(Product.normalized_name == "keyboard").first()
 
     assert product is None
+
 
 def test_edit_product(authenticated_client):
 
@@ -235,21 +152,13 @@ def test_edit_product(authenticated_client):
     # Create a product first
 
     product = Product(
-
         name="Laptop",
-
         normalized_name="laptop",
-
         price=100000,
-
         quantity=10,
-
         low_stock_level=5,
-
         category="Electronics",
-
         supplier="ABC Electronics",
-
     )
 
     db.add(product)
@@ -259,25 +168,15 @@ def test_edit_product(authenticated_client):
     db.refresh(product)
 
     response = test_client.post(
-
         f"/edit-product/{product.id}",
-
         data={
-
             "name": "Gaming Laptop",
-
             "price": "150000",
-
             "low_stock_level": "3",
-
             "category": "Computers",
-
             "supplier": "XYZ Electronics",
-
         },
-
         follow_redirects=False,
-
     )
 
     assert response.status_code == 303
@@ -300,47 +199,37 @@ def test_edit_product(authenticated_client):
 
     assert product.supplier == "XYZ Electronics"
 
+
 def test_edit_product_not_found(authenticated_client):
 
     test_client, db = authenticated_client
 
     response = test_client.post(
-
         "/edit-product/9999",
-
         data={
-
             "name": "Laptop",
-
             "price": "100000",
-
             "low_stock_level": "5",
-
             "category": "Electronics",
-
             "supplier": "ABC Electronics",
-
         },
-
         follow_redirects=False,
-
     )
 
     assert response.status_code == 303
 
-    assert (
+    assert response.headers["location"] == "/edit-product/9999?error=product_not_found"
 
-        response.headers["location"]
-
-        == "/edit-product/9999?error=product_not_found"
-
-    )
 
 def test_delete_product(authenticated_client):
     test_client, db = authenticated_client
     product = Product(
-        name="Laptop", normalized_name="laptop", price=100000,
-        quantity=10, low_stock_level=5, category="Electronics",
+        name="Laptop",
+        normalized_name="laptop",
+        price=100000,
+        quantity=10,
+        low_stock_level=5,
+        category="Electronics",
         supplier="ABC Electronics",
     )
     db.add(product)
@@ -349,32 +238,26 @@ def test_delete_product(authenticated_client):
     product_id = product.id
 
     response = test_client.post(
-        f"/delete-product/{product_id}", follow_redirects=False,
+        f"/delete-product/{product_id}",
+        follow_redirects=False,
     )
     assert response.status_code == 303
     assert response.headers["location"] == "/"
     assert db.query(Product).filter(Product.id == product_id).first() is None
+
 
 def test_dashboard_displays_products(authenticated_client):
 
     test_client, db = authenticated_client
 
     product = Product(
-
         name="Laptop",
-
         normalized_name="laptop",
-
         price=100000,
-
         quantity=10,
-
         low_stock_level=5,
-
         category="Electronics",
-
         supplier="ABC Electronics",
-
     )
 
     db.add(product)
@@ -391,55 +274,36 @@ def test_dashboard_displays_products(authenticated_client):
 
     assert "ABC Electronics" in response.text
 
+
 def test_dashboard_search(authenticated_client):
 
     test_client, db = authenticated_client
 
     laptop = Product(
-
         name="Laptop",
-
         normalized_name="laptop",
-
         price=100000,
-
         quantity=10,
-
         low_stock_level=5,
-
         category="Electronics",
-
         supplier="ABC Electronics",
-
     )
 
     keyboard = Product(
-
         name="Keyboard",
-
         normalized_name="keyboard",
-
         price=5000,
-
         quantity=20,
-
         low_stock_level=5,
-
         category="Electronics",
-
         supplier="XYZ Electronics",
-
     )
 
     db.add_all([laptop, keyboard])
 
     db.commit()
 
-    response = test_client.get(
-
-        "/?search=laptop"
-
-    )
+    response = test_client.get("/?search=laptop")
 
     assert response.status_code == 200
 
@@ -447,37 +311,26 @@ def test_dashboard_search(authenticated_client):
 
     assert "Keyboard" not in response.text
 
+
 def test_dashboard_search_not_found(authenticated_client):
 
     test_client, db = authenticated_client
 
     product = Product(
-
         name="Laptop",
-
         normalized_name="laptop",
-
         price=100000,
-
         quantity=10,
-
         low_stock_level=5,
-
         category="Electronics",
-
         supplier="ABC Electronics",
-
     )
 
     db.add(product)
 
     db.commit()
 
-    response = test_client.get(
-
-        "/?search=phone"
-
-    )
+    response = test_client.get("/?search=phone")
 
     assert response.status_code == 200
 
@@ -485,21 +338,34 @@ def test_dashboard_search_not_found(authenticated_client):
 
     assert "search not found" in response.text.lower()
 
+
 def test_dashboard_statistics(authenticated_client):
     test_client, db = authenticated_client
     laptop = Product(
-        name="Laptop", normalized_name="laptop", price=100000,
-        quantity=10, low_stock_level=5, category="Electronics",
+        name="Laptop",
+        normalized_name="laptop",
+        price=100000,
+        quantity=10,
+        low_stock_level=5,
+        category="Electronics",
         supplier="ABC Electronics",
     )
     mouse = Product(
-        name="Mouse", normalized_name="mouse", price=2000,
-        quantity=3, low_stock_level=5, category="Electronics",
+        name="Mouse",
+        normalized_name="mouse",
+        price=2000,
+        quantity=3,
+        low_stock_level=5,
+        category="Electronics",
         supplier="XYZ Electronics",
     )
     chair = Product(
-        name="Office Chair", normalized_name="office chair", price=50000,
-        quantity=8, low_stock_level=2, category="Furniture",
+        name="Office Chair",
+        normalized_name="office chair",
+        price=50000,
+        quantity=8,
+        low_stock_level=2,
+        category="Furniture",
         supplier="Office Supplies Ltd",
     )
     db.add_all([laptop, mouse, chair])
@@ -511,26 +377,19 @@ def test_dashboard_statistics(authenticated_client):
     assert "2" in response.text
     assert "1" in response.text
 
+
 def test_dashboard_displays_stock_movement(authenticated_client):
 
     test_client, db = authenticated_client
 
     product = Product(
-
         name="Laptop",
-
         normalized_name="laptop",
-
         price=100000,
-
         quantity=10,
-
         low_stock_level=5,
-
         category="Electronics",
-
         supplier="ABC Electronics",
-
     )
 
     db.add(product)
@@ -540,21 +399,13 @@ def test_dashboard_displays_stock_movement(authenticated_client):
     db.refresh(product)
 
     response = test_client.post(
-
         f"/stock-movement/{product.id}",
-
         data={
-
             "movement_type": "IN",
-
             "quantity": "5",
-
             "note": "New shipment received",
-
         },
-
         follow_redirects=False,
-
     )
 
     assert response.status_code == 303
@@ -571,26 +422,19 @@ def test_dashboard_displays_stock_movement(authenticated_client):
 
     assert "New shipment received" in dashboard_response.text
 
+
 def test_delete_product_deletes_stock_movements(authenticated_client):
 
     test_client, db = authenticated_client
 
     product = Product(
-
         name="Laptop",
-
         normalized_name="laptop",
-
         price=100000,
-
         quantity=10,
-
         low_stock_level=5,
-
         category="Electronics",
-
         supplier="ABC Electronics",
-
     )
 
     db.add(product)
@@ -600,72 +444,54 @@ def test_delete_product_deletes_stock_movements(authenticated_client):
     db.refresh(product)
 
     response = test_client.post(
-
         f"/stock-movement/{product.id}",
-
         data={
-
             "movement_type": "IN",
-
             "quantity": "5",
-
             "note": "New shipment",
-
         },
-
         follow_redirects=False,
-
     )
 
     assert response.status_code == 303
 
-    movement_count = db.query(StockMovement).filter(
-
-        StockMovement.product_id == product.id
-
-    ).count()
+    movement_count = (
+        db.query(StockMovement).filter(StockMovement.product_id == product.id).count()
+    )
 
     assert movement_count == 1
 
     product_id = product.id
 
     response = test_client.post(
-
         f"/delete-product/{product_id}",
-
         follow_redirects=False,
-
     )
 
     assert response.status_code == 303
 
     assert response.headers["location"] == "/"
 
-    deleted_product = db.query(Product).filter(
-
-        Product.id == product_id
-
-    ).first()
+    deleted_product = db.query(Product).filter(Product.id == product_id).first()
 
     assert deleted_product is None
 
-    remaining_movements = db.query(
-
-        StockMovement
-
-    ).filter(
-
-        StockMovement.product_id == product_id
-
-    ).count()
+    remaining_movements = (
+        db.query(StockMovement).filter(StockMovement.product_id == product_id).count()
+    )
 
     assert remaining_movements == 0
+
 
 def test_delete_product_get_not_allowed(authenticated_client):
     test_client, db = authenticated_client
     product = Product(
-        name="Monitor", normalized_name="monitor", price=50000,
-        quantity=5, low_stock_level=2, category="Electronics",
+        name="Monitor",
+        normalized_name="monitor",
+        price=50000,
+        quantity=5,
+        low_stock_level=2,
+        category="Electronics",
         supplier="ABC Electronics",
     )
     db.add(product)
@@ -674,7 +500,8 @@ def test_delete_product_get_not_allowed(authenticated_client):
     product_id = product.id
 
     response = test_client.get(
-        f"/delete-product/{product_id}", follow_redirects=False,
+        f"/delete-product/{product_id}",
+        follow_redirects=False,
     )
     assert response.status_code == 405
     assert db.query(Product).filter(Product.id == product_id).first() is not None
@@ -738,10 +565,7 @@ def test_home_page_displays_empty_category_valuations(
 
     assert response.status_code == 200
     assert "Category Inventory Valuation" in response.text
-    assert (
-        "No category valuation data available."
-        in response.text
-    )
+    assert "No category valuation data available." in response.text
 
 
 def test_home_page_displays_supplier_valuations(
@@ -801,6 +625,7 @@ def test_home_page_displays_supplier_valuations(
     assert "Supplier B" in response.text
     assert "400000" in response.text
 
+
 def test_home_page_excludes_products_without_supplier_from_supplier_valuations(
     authenticated_client,
 ):
@@ -823,10 +648,7 @@ def test_home_page_excludes_products_without_supplier_from_supplier_valuations(
 
     assert response.status_code == 200
     assert "Supplier Inventory Valuation" in response.text
-    assert (
-        "No supplier valuation data available."
-        in response.text
-    )
+    assert "No supplier valuation data available." in response.text
 
 
 def test_home_page_displays_low_stock_insights(
@@ -1017,6 +839,7 @@ def test_home_page_displays_low_stock_chart(
     assert "Low-Stock Overview" in response.text
     assert 'id="lowStockChart"' in response.text
 
+
 def test_dashboard_displays_ai_analysis_history(
     authenticated_client,
 ):
@@ -1027,13 +850,8 @@ def test_dashboard_displays_ai_analysis_history(
     test_client, db = authenticated_client
 
     analysis = AIAnalysis(
-        inventory_snapshot=(
-            '{"total_products": 1, "total_items": 2}'
-        ),
-        analysis=(
-            "Inventory Health\n"
-            "Laptop inventory requires attention."
-        ),
+        inventory_snapshot=('{"total_products": 1, "total_items": 2}'),
+        analysis=("Inventory Health\nLaptop inventory requires attention."),
         created_at=datetime(
             2026,
             10,
@@ -1051,10 +869,7 @@ def test_dashboard_displays_ai_analysis_history(
 
     assert response.status_code == 200
     assert "AI Analysis History" in response.text
-    assert (
-        "Laptop inventory requires attention."
-        in response.text
-    )
+    assert "Laptop inventory requires attention." in response.text
 
 
 def test_dashboard_displays_empty_ai_analysis_history(
@@ -1066,10 +881,7 @@ def test_dashboard_displays_empty_ai_analysis_history(
 
     assert response.status_code == 200
     assert "AI Analysis History" in response.text
-    assert (
-        "No previous AI analyses available."
-        in response.text
-    )
+    assert "No previous AI analyses available." in response.text
 
 
 def test_dashboard_limits_ai_analysis_history_to_five(
@@ -1097,10 +909,7 @@ def test_dashboard_limits_ai_analysis_history_to_five(
             AIAnalysis(
                 inventory_snapshot="{}",
                 analysis=f"Analysis number {number}",
-                created_at=(
-                    base_time
-                    + timedelta(minutes=number)
-                ),
+                created_at=(base_time + timedelta(minutes=number)),
             )
         )
 
@@ -1119,6 +928,7 @@ def test_dashboard_limits_ai_analysis_history_to_five(
 
     assert "Analysis number 1" not in response.text
 
+
 def test_ai_analysis_detail_page_displays_saved_analysis(
     authenticated_client,
 ):
@@ -1130,14 +940,9 @@ def test_ai_analysis_detail_page_displays_saved_analysis(
 
     analysis = AIAnalysis(
         inventory_snapshot=(
-            '{"total_products": 1, '
-            '"total_items": 2, '
-            '"total_inventory_value": 1700000}'
+            '{"total_products": 1, "total_items": 2, "total_inventory_value": 1700000}'
         ),
-        analysis=(
-            "## Inventory Health\n"
-            "- Laptop inventory requires attention."
-        ),
+        analysis=("## Inventory Health\n- Laptop inventory requires attention."),
         created_at=datetime(
             2026,
             10,
@@ -1152,9 +957,7 @@ def test_ai_analysis_detail_page_displays_saved_analysis(
     db.commit()
     db.refresh(analysis)
 
-    response = test_client.get(
-        f"/ai-analysis/{analysis.id}"
-    )
+    response = test_client.get(f"/ai-analysis/{analysis.id}")
 
     assert response.status_code == 200
     assert "AI Analysis Details" in response.text
@@ -1188,6 +991,7 @@ def test_ai_analysis_detail_requires_login(
     assert response.status_code == 303
     assert response.headers["location"] == "/login"
 
+
 def test_ai_analysis_detail_missing_record_redirects(
     authenticated_client,
 ):
@@ -1200,6 +1004,7 @@ def test_ai_analysis_detail_missing_record_redirects(
 
     assert response.status_code == 303
     assert response.headers["location"] == "/"
+
 
 def test_dashboard_ai_history_has_details_link(
     authenticated_client,
@@ -1220,8 +1025,5 @@ def test_dashboard_ai_history_has_details_link(
     response = test_client.get("/")
 
     assert response.status_code == 200
-    assert (
-        f'href="/ai-analysis/{analysis.id}"'
-        in response.text
-    )
+    assert f'href="/ai-analysis/{analysis.id}"' in response.text
     assert "View Details" in response.text

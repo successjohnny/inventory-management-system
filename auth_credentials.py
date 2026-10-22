@@ -28,12 +28,7 @@ def hash_password(password: str) -> str:
         ITERATIONS,
     )
 
-    return (
-        f"{ALGORITHM}$"
-        f"{ITERATIONS}$"
-        f"{salt.hex()}$"
-        f"{password_hash.hex()}"
-    )
+    return f"{ALGORITHM}${ITERATIONS}${salt.hex()}${password_hash.hex()}"
 
 
 def verify_password(
@@ -53,9 +48,7 @@ def verify_password(
         return False
 
     try:
-        algorithm, iterations_text, salt_hex, hash_hex = (
-            stored_hash.split("$")
-        )
+        algorithm, iterations_text, salt_hex, hash_hex = stored_hash.split("$")
 
         if algorithm != ALGORITHM:
             return False

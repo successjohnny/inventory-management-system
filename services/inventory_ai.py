@@ -10,6 +10,7 @@ from services.inventory_insights import InventoryInsights
 # AI RESPONSE DATA TYPE
 # ==========================================
 
+
 class AIResponse(Protocol):
     """
     Describe the response fields used by this service.
@@ -19,13 +20,13 @@ class AIResponse(Protocol):
     """
 
     @property
-    def output_text(self) -> str | None:
-        ...
+    def output_text(self) -> str | None: ...
 
 
 # ==========================================
 # AI RESPONSE CREATION INTERFACE
 # ==========================================
+
 
 class AIResponsesAPI(Protocol):
     """
@@ -44,13 +45,13 @@ class AIResponsesAPI(Protocol):
         *,
         model: str,
         input: str,
-    ) -> AIResponse:
-        ...
+    ) -> AIResponse: ...
 
 
 # ==========================================
 # AI CLIENT INTERFACE
 # ==========================================
+
 
 class AIClient(Protocol):
     """
@@ -62,13 +63,13 @@ class AIClient(Protocol):
     """
 
     @property
-    def responses(self) -> AIResponsesAPI:
-        ...
+    def responses(self) -> AIResponsesAPI: ...
 
 
 # ==========================================
 # GET CONFIGURED AI MODEL
 # ==========================================
+
 
 def get_ai_model() -> str:
     """
@@ -91,6 +92,7 @@ def get_ai_model() -> str:
 # ==========================================
 # BUILD INVENTORY AI PROMPT
 # ==========================================
+
 
 def build_inventory_ai_prompt(
     insights: InventoryInsights,
@@ -119,41 +121,32 @@ def build_inventory_ai_prompt(
     prompt: str = (
         "Analyze the following inventory data and provide "
         "clear, practical inventory recommendations.\n\n"
-
         "Use only the facts provided in the inventory data. "
         "Do not invent products, quantities, stock levels, "
         "prices, or inventory values.\n\n"
-
         "Do not invent reorder quantities, supplier information, "
         "currency, demand patterns, sales trends, lead times, "
         "or other facts that are not provided.\n\n"
-
         "Pay particular attention to low-stock products. "
         "Recommendations must be based only on the supplied "
         "inventory facts.\n\n"
-
         "Structure the response using exactly these sections:\n\n"
-
         "Inventory Health\n"
         "Give a short assessment of the overall inventory "
         "condition based only on the supplied data.\n\n"
-
         "Low-Stock Alerts\n"
         "List low-stock products and their supplied quantities "
         "and low-stock levels. If there are no low-stock "
         "products, state that clearly.\n\n"
-
         "Recommended Actions\n"
         "Give practical actions supported by the supplied data. "
         "Do not invent specific reorder quantities or unsupported "
         "business information.\n\n"
-
         "Inventory Summary\n"
         "Summarize the supplied totals, including total products, "
         "total items, total inventory value, and low-stock count. "
         "Do not assign a currency unless one is explicitly "
         "provided in the inventory data.\n\n"
-
         "Inventory data:\n"
         f"{inventory_data}"
     )
@@ -164,6 +157,7 @@ def build_inventory_ai_prompt(
 # ==========================================
 # GENERATE AI INVENTORY ANALYSIS
 # ==========================================
+
 
 def generate_ai_inventory_analysis(
     insights: InventoryInsights,
@@ -193,9 +187,7 @@ def generate_ai_inventory_analysis(
 
     # Avoid AI requests when inventory is empty.
     if insights.get("total_products", 0) == 0:
-        return (
-            "No inventory data is available for AI analysis."
-        )
+        return "No inventory data is available for AI analysis."
 
     # Data type: str
     prompt: str = build_inventory_ai_prompt(insights)
@@ -207,8 +199,6 @@ def generate_ai_inventory_analysis(
     )
 
     if not response.output_text:
-        return (
-            "AI analysis did not return any content."
-        )
+        return "AI analysis did not return any content."
 
     return response.output_text

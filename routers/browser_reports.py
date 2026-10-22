@@ -1,4 +1,3 @@
-
 """
 Browser routes for the Inventory Reports Dashboard.
 """
@@ -31,14 +30,13 @@ router: APIRouter = APIRouter(
     include_in_schema=False,
 )
 
-templates: Jinja2Templates = Jinja2Templates(
-    directory="templates"
-)
+templates: Jinja2Templates = Jinja2Templates(directory="templates")
 
 
 # ==========================================
 # REPORTS DASHBOARD
 # ==========================================
+
 
 @router.get("/reports")
 def reports_dashboard(
@@ -54,35 +52,23 @@ def reports_dashboard(
     if redirect is not None:
         return redirect
 
-    products: list[Product] = (
-        db.query(Product).all()
-    )
+    products: list[Product] = db.query(Product).all()
 
     total_products: int = len(products)
 
-    total_items: int = sum(
-        product.quantity
-        for product in products
-    )
+    total_items: int = sum(product.quantity for product in products)
 
     total_inventory_value: int = sum(
-        product.price * product.quantity
-        for product in products
+        product.price * product.quantity for product in products
     )
 
     low_stock_products: int = sum(
-        1
-        for product in products
-        if product.quantity <= product.low_stock_level
+        1 for product in products if product.quantity <= product.low_stock_level
     )
 
-    category_reports = get_category_valuation_report(
-        db=db
-    )
+    category_reports = get_category_valuation_report(db=db)
 
-    supplier_reports = get_supplier_summary_report(
-        db=db
-    )
+    supplier_reports = get_supplier_summary_report(db=db)
 
     return templates.TemplateResponse(
         request=request,
@@ -102,6 +88,7 @@ def reports_dashboard(
 # DOWNLOAD INVENTORY CSV
 # ==========================================
 
+
 @router.get("/reports/download/inventory")
 def download_inventory_report(
     request: Request,
@@ -116,14 +103,13 @@ def download_inventory_report(
     if redirect is not None:
         return redirect
 
-    return export_inventory_csv(
-        db=db
-    )
+    return export_inventory_csv(db=db)
 
 
 # ==========================================
 # DOWNLOAD STOCK MOVEMENTS CSV
 # ==========================================
+
 
 @router.get("/reports/download/stock-movements")
 def download_stock_movements_report(

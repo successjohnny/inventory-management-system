@@ -1,4 +1,3 @@
-
 from datetime import (
     date,
     datetime,
@@ -37,6 +36,7 @@ from services.inventory_service import (
 # RESPONSE DATA TYPES
 # ==========================================
 
+
 class StockMovementSuccess(TypedDict):
     message: str
 
@@ -56,6 +56,7 @@ router: APIRouter = APIRouter(
 # LIST STOCK MOVEMENTS
 # ==========================================
 
+
 @router.get(
     "/",
     response_model=list[StockMovementResponse],
@@ -70,15 +71,11 @@ router: APIRouter = APIRouter(
 def get_stock_movements(
     start_date: date | None = Query(
         default=None,
-        description=(
-            "Return stock movements on or after this date."
-        ),
+        description=("Return stock movements on or after this date."),
     ),
     end_date: date | None = Query(
         default=None,
-        description=(
-            "Return stock movements on or before this date."
-        ),
+        description=("Return stock movements on or before this date."),
     ),
     db: Session = Depends(get_db),
 ) -> list[StockMovement]:
@@ -94,25 +91,14 @@ def get_stock_movements(
     Newest stock movements are returned first.
     """
 
-    if (
-        start_date is not None
-        and end_date is not None
-        and start_date > end_date
-    ):
+    if start_date is not None and end_date is not None and start_date > end_date:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=(
-                "start_date cannot be later than end_date."
-            ),
+            detail=("start_date cannot be later than end_date."),
         )
 
-    query: SQLAlchemyQuery = (
-        db.query(StockMovement)
-        .options(
-            joinedload(
-                StockMovement.product
-            )
-        )
+    query: SQLAlchemyQuery = db.query(StockMovement).options(
+        joinedload(StockMovement.product)
     )
 
     if start_date is not None:
@@ -122,9 +108,7 @@ def get_stock_movements(
             tzinfo=timezone.utc,
         )
 
-        query = query.filter(
-            StockMovement.created_at >= start_datetime
-        )
+        query = query.filter(StockMovement.created_at >= start_datetime)
 
     if end_date is not None:
         end_datetime: datetime = datetime.combine(
@@ -133,18 +117,12 @@ def get_stock_movements(
             tzinfo=timezone.utc,
         )
 
-        query = query.filter(
-            StockMovement.created_at < end_datetime
-        )
+        query = query.filter(StockMovement.created_at < end_datetime)
 
-    movements: list[StockMovement] = (
-        query
-        .order_by(
-            StockMovement.created_at.desc(),
-            StockMovement.id.desc(),
-        )
-        .all()
-    )
+    movements: list[StockMovement] = query.order_by(
+        StockMovement.created_at.desc(),
+        StockMovement.id.desc(),
+    ).all()
 
     return movements
 
@@ -152,6 +130,7 @@ def get_stock_movements(
 # ==========================================
 # CREATE STOCK MOVEMENT
 # ==========================================
+
 
 @router.post(
     "/{product_id}",
@@ -206,9 +185,7 @@ def create_stock_movement(
         )
 
     response: StockMovementSuccess = {
-        "message": (
-            "Stock movement created successfully."
-        )
+        "message": ("Stock movement created successfully.")
     }
 
     return response

@@ -109,9 +109,7 @@ def test_build_inventory_ai_prompt_prevents_unsupported_advice():
 
 def test_generate_ai_inventory_analysis_uses_client():
     class FakeResponse:
-        output_text = (
-            "Laptop should be reviewed for restocking."
-        )
+        output_text = "Laptop should be reviewed for restocking."
 
     class FakeResponses:
         def __init__(self):
@@ -148,24 +146,17 @@ def test_generate_ai_inventory_analysis_uses_client():
         model="test-model",
     )
 
-    assert analysis == (
-        "Laptop should be reviewed for restocking."
-    )
+    assert analysis == ("Laptop should be reviewed for restocking.")
 
     assert client.responses.request["model"] == "test-model"
 
-    assert (
-        "Laptop"
-        in client.responses.request["input"]
-    )
+    assert "Laptop" in client.responses.request["input"]
 
 
 def test_generate_ai_inventory_analysis_skips_empty_inventory():
     class FakeResponses:
         def create(self, **kwargs):
-            raise AssertionError(
-                "AI client should not be called for empty inventory."
-            )
+            raise AssertionError("AI client should not be called for empty inventory.")
 
     class FakeClient:
         def __init__(self):
@@ -186,9 +177,7 @@ def test_generate_ai_inventory_analysis_skips_empty_inventory():
         model="test-model",
     )
 
-    assert analysis == (
-        "No inventory data is available for AI analysis."
-    )
+    assert analysis == ("No inventory data is available for AI analysis.")
 
 
 def test_generate_ai_inventory_analysis_handles_empty_response():
@@ -218,9 +207,7 @@ def test_generate_ai_inventory_analysis_handles_empty_response():
         model="test-model",
     )
 
-    assert analysis == (
-        "AI analysis did not return any content."
-    )
+    assert analysis == ("AI analysis did not return any content.")
 
 
 def test_get_ai_model_uses_environment_variable(

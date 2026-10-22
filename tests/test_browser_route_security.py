@@ -37,6 +37,7 @@ def assert_login_redirect(response):
 # ANONYMOUS ACCESS
 # ==========================================
 
+
 def test_anonymous_user_cannot_access_dashboard(client):
     test_client, db = client
 
@@ -156,6 +157,7 @@ def test_anonymous_user_cannot_change_stock(client):
 # AUTHENTICATED ACCESS
 # ==========================================
 
+
 def test_authenticated_user_can_access_dashboard(
     authenticated_client,
 ):
@@ -169,6 +171,7 @@ def test_authenticated_user_can_access_dashboard(
 # ==========================================
 # PRODUCT CREATION CSRF TESTS
 # ==========================================
+
 
 @pytest.mark.parametrize(
     "submitted_token",
@@ -233,6 +236,7 @@ def test_missing_csrf_blocks_product_creation(
 # PRODUCT EDITING CSRF TEST
 # ==========================================
 
+
 def test_invalid_csrf_blocks_product_edit(
     authenticated_client,
 ):
@@ -267,6 +271,7 @@ def test_invalid_csrf_blocks_product_edit(
 # PRODUCT DELETION CSRF TEST
 # ==========================================
 
+
 def test_invalid_csrf_blocks_product_deletion(
     authenticated_client,
 ):
@@ -291,6 +296,7 @@ def test_invalid_csrf_blocks_product_deletion(
 # ==========================================
 # STOCK MOVEMENT CSRF TESTS
 # ==========================================
+
 
 def test_invalid_csrf_blocks_stock_movement(
     authenticated_client,
@@ -355,6 +361,7 @@ def test_missing_csrf_blocks_stock_movement(
 # ==========================================
 # LOGOUT TESTS
 # ==========================================
+
 
 def test_logout_prevents_dashboard_access(
     authenticated_client,

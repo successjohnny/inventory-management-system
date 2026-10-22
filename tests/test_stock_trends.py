@@ -1,4 +1,3 @@
-
 from datetime import datetime, date, timezone
 from datetime import timedelta
 from types import SimpleNamespace
@@ -12,7 +11,11 @@ def make_movement(day, movement_type, quantity):
     """Create a sample stock movement for testing."""
     return SimpleNamespace(
         created_at=datetime(
-            2026, 10, day, 12, 0,
+            2026,
+            10,
+            day,
+            12,
+            0,
             tzinfo=timezone.utc,
         ),
         movement_type=movement_type,
@@ -123,7 +126,11 @@ def test_timezone_aware_movement_uses_utc_date():
 
     movement = SimpleNamespace(
         created_at=datetime(
-            2026, 10, 20, 1, 30,
+            2026,
+            10,
+            20,
+            1,
+            30,
             tzinfo=timezone(timedelta(hours=3)),
         ),
         movement_type="IN",

@@ -1,4 +1,3 @@
-
 from collections import defaultdict
 from collections.abc import Iterable
 from datetime import date, datetime, timedelta, timezone
@@ -53,6 +52,7 @@ class StockTrends(TypedDict):
 # BUILD STOCK TRENDS
 # ==========================================
 
+
 def build_stock_trends(
     movements: Iterable[StockMovement],
     start_date: date,
@@ -89,9 +89,7 @@ def build_stock_trends(
     # ======================================
 
     if start_date > end_date:
-        raise ValueError(
-            "start_date cannot be after end_date"
-        )
+        raise ValueError("start_date cannot be after end_date")
 
     # ======================================
     # INITIALIZE DAILY TOTALS
@@ -102,9 +100,7 @@ def build_stock_trends(
     daily_totals: defaultdict[
         date,
         DailyStockTotals,
-    ] = defaultdict(
-        lambda: {"IN": 0, "OUT": 0}
-    )
+    ] = defaultdict(lambda: {"IN": 0, "OUT": 0})
 
     # ======================================
     # PROCESS STOCK MOVEMENTS
@@ -117,13 +113,9 @@ def build_stock_trends(
         if timestamp.tzinfo is None:
             # Existing SQLite timestamps are
             # interpreted as UTC.
-            timestamp = timestamp.replace(
-                tzinfo=timezone.utc
-            )
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
         else:
-            timestamp = timestamp.astimezone(
-                timezone.utc
-            )
+            timestamp = timestamp.astimezone(timezone.utc)
 
         # Data type: date
         movement_date: date = timestamp.date()
@@ -137,15 +129,9 @@ def build_stock_trends(
             continue
 
         # Data type: MovementType
-        movement_type: MovementType = (
-            "IN"
-            if movement.movement_type == "IN"
-            else "OUT"
-        )
+        movement_type: MovementType = "IN" if movement.movement_type == "IN" else "OUT"
 
-        daily_totals[movement_date][
-            movement_type
-        ] += movement.quantity
+        daily_totals[movement_date][movement_type] += movement.quantity
 
     # ======================================
     # PREPARE CHART DATA
@@ -165,21 +151,13 @@ def build_stock_trends(
 
     while current_date <= end_date:
         # Data type: DailyStockTotals
-        totals: DailyStockTotals = daily_totals[
-            current_date
-        ]
+        totals: DailyStockTotals = daily_totals[current_date]
 
-        labels.append(
-            current_date.isoformat()
-        )
+        labels.append(current_date.isoformat())
 
-        stock_in.append(
-            totals["IN"]
-        )
+        stock_in.append(totals["IN"])
 
-        stock_out.append(
-            totals["OUT"]
-        )
+        stock_out.append(totals["OUT"])
 
         current_date += timedelta(days=1)
 
@@ -194,9 +172,7 @@ def build_stock_trends(
     total_stock_out: int = sum(stock_out)
 
     # Data type: int
-    net_change: int = (
-        total_stock_in - total_stock_out
-    )
+    net_change: int = total_stock_in - total_stock_out
 
     # ======================================
     # BUILD FINAL REPORT

@@ -57,9 +57,7 @@ def test_get_products_pagination(api_client):
 
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?page=2&page_size=2"
-    )
+    response = test_client.get("/api/products/?page=2&page_size=2")
 
     assert response.status_code == 200
 
@@ -74,6 +72,7 @@ def test_get_products_pagination(api_client):
 
     assert data["items"][0]["name"] == "Product 3"
     assert data["items"][1]["name"] == "Product 4"
+
 
 def test_get_products_search_by_name(api_client):
     test_client, db = api_client
@@ -111,9 +110,7 @@ def test_get_products_search_by_name(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?search=laptop"
-    )
+    response = test_client.get("/api/products/?search=laptop")
 
     assert response.status_code == 200
 
@@ -128,6 +125,7 @@ def test_get_products_search_by_name(api_client):
 
     assert data["items"][0]["name"] == "Gaming Laptop"
     assert data["items"][1]["name"] == "Laptop Stand"
+
 
 def test_get_products_search_is_case_insensitive(api_client):
     test_client, db = api_client
@@ -145,9 +143,7 @@ def test_get_products_search_is_case_insensitive(api_client):
     db.add(product)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?search=GAMING"
-    )
+    response = test_client.get("/api/products/?search=GAMING")
 
     assert response.status_code == 200
 
@@ -156,6 +152,7 @@ def test_get_products_search_is_case_insensitive(api_client):
     assert data["total_items"] == 1
     assert len(data["items"]) == 1
     assert data["items"][0]["name"] == "Gaming Laptop"
+
 
 def test_get_products_filter_by_category(api_client):
     test_client, db = api_client
@@ -193,9 +190,7 @@ def test_get_products_filter_by_category(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?category=ELECTRONICS"
-    )
+    response = test_client.get("/api/products/?category=ELECTRONICS")
 
     assert response.status_code == 200
 
@@ -210,6 +205,7 @@ def test_get_products_filter_by_category(api_client):
 
     assert data["items"][0]["name"] == "Laptop"
     assert data["items"][1]["name"] == "Keyboard"
+
 
 def test_get_products_combined_search_and_category(api_client):
     test_client, db = api_client
@@ -247,9 +243,7 @@ def test_get_products_combined_search_and_category(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?search=gaming&category=computers"
-    )
+    response = test_client.get("/api/products/?search=gaming&category=computers")
 
     assert response.status_code == 200
 
@@ -261,6 +255,7 @@ def test_get_products_combined_search_and_category(api_client):
 
     assert data["items"][0]["name"] == "Gaming Laptop"
     assert data["items"][1]["name"] == "Gaming Mouse"
+
 
 def test_get_products_filter_no_matches(api_client):
     test_client, db = api_client
@@ -278,9 +273,7 @@ def test_get_products_filter_no_matches(api_client):
     db.add(product)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?search=projector"
-    )
+    response = test_client.get("/api/products/?search=projector")
 
     assert response.status_code == 200
 
@@ -291,6 +284,7 @@ def test_get_products_filter_no_matches(api_client):
     assert data["page_size"] == 10
     assert data["total_items"] == 0
     assert data["total_pages"] == 0
+
 
 def test_get_products_filter_with_pagination(api_client):
     test_client, db = api_client
@@ -321,12 +315,7 @@ def test_get_products_filter_with_pagination(api_client):
     db.add(other_product)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/"
-        "?search=laptop"
-        "&page=2"
-        "&page_size=2"
-    )
+    response = test_client.get("/api/products/?search=laptop&page=2&page_size=2")
 
     assert response.status_code == 200
 
@@ -341,6 +330,7 @@ def test_get_products_filter_with_pagination(api_client):
 
     assert data["items"][0]["name"] == "Laptop 3"
     assert data["items"][1]["name"] == "Laptop 4"
+
 
 def test_get_products_sort_by_name_ascending(api_client):
     test_client, db = api_client
@@ -378,9 +368,7 @@ def test_get_products_sort_by_name_ascending(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?sort_by=name&sort_order=asc"
-    )
+    response = test_client.get("/api/products/?sort_by=name&sort_order=asc")
 
     assert response.status_code == 200
 
@@ -388,16 +376,14 @@ def test_get_products_sort_by_name_ascending(api_client):
 
     assert data["total_items"] == 3
 
-    names = [
-        item["name"]
-        for item in data["items"]
-    ]
+    names = [item["name"] for item in data["items"]]
 
     assert names == [
         "Keyboard",
         "Laptop",
         "Mouse",
     ]
+
 
 def test_get_products_sort_by_name_descending(api_client):
     test_client, db = api_client
@@ -435,24 +421,20 @@ def test_get_products_sort_by_name_descending(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?sort_by=name&sort_order=desc"
-    )
+    response = test_client.get("/api/products/?sort_by=name&sort_order=desc")
 
     assert response.status_code == 200
 
     data = response.json()
 
-    names = [
-        item["name"]
-        for item in data["items"]
-    ]
+    names = [item["name"] for item in data["items"]]
 
     assert names == [
         "Mouse",
         "Laptop",
         "Keyboard",
     ]
+
 
 def test_get_products_sort_by_price_ascending(api_client):
     test_client, db = api_client
@@ -490,24 +472,20 @@ def test_get_products_sort_by_price_ascending(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?sort_by=price&sort_order=asc"
-    )
+    response = test_client.get("/api/products/?sort_by=price&sort_order=asc")
 
     assert response.status_code == 200
 
     data = response.json()
 
-    prices = [
-        item["price"]
-        for item in data["items"]
-    ]
+    prices = [item["price"] for item in data["items"]]
 
     assert prices == [
         10000,
         15000,
         350000,
     ]
+
 
 def test_get_products_sort_by_quantity_descending(api_client):
     test_client, db = api_client
@@ -545,24 +523,20 @@ def test_get_products_sort_by_quantity_descending(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?sort_by=quantity&sort_order=desc"
-    )
+    response = test_client.get("/api/products/?sort_by=quantity&sort_order=desc")
 
     assert response.status_code == 200
 
     data = response.json()
 
-    quantities = [
-        item["quantity"]
-        for item in data["items"]
-    ]
+    quantities = [item["quantity"] for item in data["items"]]
 
     assert quantities == [
         30,
         20,
         10,
     ]
+
 
 def test_get_products_sort_by_category_ascending(api_client):
     test_client, db = api_client
@@ -600,18 +574,13 @@ def test_get_products_sort_by_category_ascending(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?sort_by=category&sort_order=asc"
-    )
+    response = test_client.get("/api/products/?sort_by=category&sort_order=asc")
 
     assert response.status_code == 200
 
     data = response.json()
 
-    categories = [
-        item["category"]
-        for item in data["items"]
-    ]
+    categories = [item["category"] for item in data["items"]]
 
     assert categories == [
         "Accessories",
@@ -619,23 +588,22 @@ def test_get_products_sort_by_category_ascending(api_client):
         "Furniture",
     ]
 
+
 def test_get_products_rejects_invalid_sort_by(api_client):
     test_client, db = api_client
 
-    response = test_client.get(
-        "/api/products/?sort_by=supplier"
-    )
+    response = test_client.get("/api/products/?sort_by=supplier")
 
     assert response.status_code == 422
+
 
 def test_get_products_rejects_invalid_sort_order(api_client):
     test_client, db = api_client
 
-    response = test_client.get(
-        "/api/products/?sort_by=name&sort_order=random"
-    )
+    response = test_client.get("/api/products/?sort_by=name&sort_order=random")
 
     assert response.status_code == 422
+
 
 def test_get_products_filter_sort_and_paginate(api_client):
     test_client, db = api_client
@@ -706,6 +674,7 @@ def test_get_products_filter_sort_and_paginate(api_client):
     assert data["items"][0]["name"] == "Student Laptop"
     assert data["items"][0]["price"] == 180000
 
+
 def test_get_products_filter_by_low_stock(api_client):
     test_client, db = api_client
 
@@ -742,9 +711,7 @@ def test_get_products_filter_by_low_stock(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?low_stock=true"
-    )
+    response = test_client.get("/api/products/?low_stock=true")
 
     assert response.status_code == 200
 
@@ -752,15 +719,13 @@ def test_get_products_filter_by_low_stock(api_client):
 
     assert data["total_items"] == 2
 
-    names = [
-        item["name"]
-        for item in data["items"]
-    ]
+    names = [item["name"] for item in data["items"]]
 
     assert names == [
         "Laptop",
         "Keyboard",
     ]
+
 
 def test_get_products_low_stock_excludes_healthy_stock(api_client):
     test_client, db = api_client
@@ -789,9 +754,7 @@ def test_get_products_low_stock_excludes_healthy_stock(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?low_stock=true"
-    )
+    response = test_client.get("/api/products/?low_stock=true")
 
     assert response.status_code == 200
 
@@ -800,6 +763,7 @@ def test_get_products_low_stock_excludes_healthy_stock(api_client):
     assert data["total_items"] == 1
     assert len(data["items"]) == 1
     assert data["items"][0]["name"] == "Laptop"
+
 
 def test_get_products_low_stock_with_filter_sort_and_pagination(
     api_client,
@@ -872,6 +836,7 @@ def test_get_products_low_stock_with_filter_sort_and_pagination(
     assert data["items"][0]["name"] == "Business Laptop"
     assert data["items"][0]["price"] == 250000
 
+
 def test_get_products_filter_by_healthy_stock(api_client):
     test_client, db = api_client
 
@@ -908,9 +873,7 @@ def test_get_products_filter_by_healthy_stock(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/products/?low_stock=false"
-    )
+    response = test_client.get("/api/products/?low_stock=false")
 
     assert response.status_code == 200
 
@@ -924,9 +887,7 @@ def test_get_products_filter_by_healthy_stock(api_client):
 def test_get_products_page_must_be_positive(api_client):
     test_client, db = api_client
 
-    response = test_client.get(
-        "/api/products/?page=0"
-    )
+    response = test_client.get("/api/products/?page=0")
 
     assert response.status_code == 422
 
@@ -934,9 +895,7 @@ def test_get_products_page_must_be_positive(api_client):
 def test_get_products_page_size_limit(api_client):
     test_client, db = api_client
 
-    response = test_client.get(
-        "/api/products/?page_size=101"
-    )
+    response = test_client.get("/api/products/?page_size=101")
 
     assert response.status_code == 422
 
@@ -958,9 +917,7 @@ def test_get_product_by_id(api_client):
     db.commit()
     db.refresh(product)
 
-    response = test_client.get(
-        f"/api/products/{product.id}"
-    )
+    response = test_client.get(f"/api/products/{product.id}")
 
     assert response.status_code == 200
 
@@ -976,9 +933,7 @@ def test_get_product_by_id(api_client):
 def test_get_product_not_found(api_client):
     test_client, db = api_client
 
-    response = test_client.get(
-        "/api/products/999"
-    )
+    response = test_client.get("/api/products/999")
 
     assert response.status_code == 404
 
@@ -1167,9 +1122,7 @@ def test_get_product_stock_movements(api_client):
     assert second_movement.status_code == 201
 
     # Retrieve only the first product's history.
-    response = test_client.get(
-        f"/api/products/{first_product_id}/stock-movements"
-    )
+    response = test_client.get(f"/api/products/{first_product_id}/stock-movements")
 
     assert response.status_code == 200
 
@@ -1209,9 +1162,7 @@ def test_get_product_stock_movements_empty(api_client):
 
     product_id = response.json()["id"]
 
-    history_response = test_client.get(
-        f"/api/products/{product_id}/stock-movements"
-    )
+    history_response = test_client.get(f"/api/products/{product_id}/stock-movements")
 
     assert history_response.status_code == 200
 
@@ -1227,13 +1178,12 @@ def test_get_product_stock_movements_empty(api_client):
 def test_get_product_stock_movements_not_found(api_client):
     test_client, db = api_client
 
-    response = test_client.get(
-        "/api/products/9999/stock-movements"
-    )
+    response = test_client.get("/api/products/9999/stock-movements")
 
     assert response.status_code == 404
 
     assert response.json()["detail"] == "Product not found"
+
 
 def test_get_product_stock_movements_pagination(api_client):
     test_client, db = api_client
@@ -1267,8 +1217,7 @@ def test_get_product_stock_movements_pagination(api_client):
         assert movement_response.status_code == 201
 
     response = test_client.get(
-        f"/api/products/{product_id}/stock-movements"
-        "?page=2&page_size=2"
+        f"/api/products/{product_id}/stock-movements?page=2&page_size=2"
     )
 
     assert response.status_code == 200
@@ -1280,6 +1229,7 @@ def test_get_product_stock_movements_pagination(api_client):
     assert data["total_items"] == 5
     assert data["total_pages"] == 3
     assert len(data["items"]) == 2
+
 
 def test_get_product_stock_movements_rejects_invalid_page(
     api_client,
@@ -1302,12 +1252,10 @@ def test_get_product_stock_movements_rejects_invalid_page(
 
     product_id = product_response.json()["id"]
 
-    response = test_client.get(
-        f"/api/products/{product_id}/stock-movements"
-        "?page=0"
-    )
+    response = test_client.get(f"/api/products/{product_id}/stock-movements?page=0")
 
     assert response.status_code == 422
+
 
 def test_get_product_stock_movements_rejects_invalid_page_size(
     api_client,
@@ -1331,11 +1279,11 @@ def test_get_product_stock_movements_rejects_invalid_page_size(
     product_id = product_response.json()["id"]
 
     response = test_client.get(
-        f"/api/products/{product_id}/stock-movements"
-        "?page_size=101"
+        f"/api/products/{product_id}/stock-movements?page_size=101"
     )
 
     assert response.status_code == 422
+
 
 def test_get_product_stock_movements_page_beyond_results(
     api_client,
@@ -1370,8 +1318,7 @@ def test_get_product_stock_movements_page_beyond_results(
     assert movement_response.status_code == 201
 
     response = test_client.get(
-        f"/api/products/{product_id}/stock-movements"
-        "?page=5&page_size=10"
+        f"/api/products/{product_id}/stock-movements?page=5&page_size=10"
     )
 
     assert response.status_code == 200
@@ -1526,16 +1473,12 @@ def test_delete_product_api(api_client):
 
     product_id = create_response.json()["id"]
 
-    delete_response = test_client.delete(
-        f"/api/products/{product_id}"
-    )
+    delete_response = test_client.delete(f"/api/products/{product_id}")
 
     assert delete_response.status_code == 204
     assert delete_response.content == b""
 
-    get_response = test_client.get(
-        f"/api/products/{product_id}"
-    )
+    get_response = test_client.get(f"/api/products/{product_id}")
 
     assert get_response.status_code == 404
 
@@ -1543,9 +1486,7 @@ def test_delete_product_api(api_client):
 def test_delete_product_not_found(api_client):
     test_client, db = api_client
 
-    response = test_client.delete(
-        "/api/products/9999"
-    )
+    response = test_client.delete("/api/products/9999")
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Product not found"
@@ -1580,15 +1521,11 @@ def test_delete_product_removes_stock_movements(api_client):
 
     assert movement_response.status_code == 201
 
-    delete_response = test_client.delete(
-        f"/api/products/{product_id}"
-    )
+    delete_response = test_client.delete(f"/api/products/{product_id}")
 
     assert delete_response.status_code == 204
 
-    history_response = test_client.get(
-        "/api/stock-movements/"
-    )
+    history_response = test_client.get("/api/stock-movements/")
 
     assert history_response.status_code == 200
     assert history_response.json() == []

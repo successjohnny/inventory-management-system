@@ -170,9 +170,7 @@ def test_logout_clears_session(client, admin_credentials):
     from auth_config import get_session_secret
 
     signer = TimestampSigner(str(get_session_secret()))
-    session_data = json.loads(
-        b64decode(signer.unsign(session.encode("utf-8")))
-    )
+    session_data = json.loads(b64decode(signer.unsign(session.encode("utf-8"))))
 
     logout_token = session_data["csrf_token"]
 

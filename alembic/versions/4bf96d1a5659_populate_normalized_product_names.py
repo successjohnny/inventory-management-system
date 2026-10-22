@@ -20,10 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Populate normalized product names."""
 
-    op.execute(
-        "UPDATE products "
-        "SET normalized_name = lower(trim(name))"
-    )
+    op.execute("UPDATE products SET normalized_name = lower(trim(name))")
 
 
 def downgrade() -> None:

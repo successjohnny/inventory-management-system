@@ -141,11 +141,11 @@ def test_stock_movement_history(db_session):
 
     assert result is None
 
-    movement = db_session.query(
-        StockMovement
-    ).filter(
-        StockMovement.product_id == product.id
-    ).first()
+    movement = (
+        db_session.query(StockMovement)
+        .filter(StockMovement.product_id == product.id)
+        .first()
+    )
 
     assert movement is not None
     assert movement.product_id == product.id
@@ -177,11 +177,11 @@ def test_failed_stock_movement_creates_no_history(db_session):
     assert result == "insufficient_stock"
     assert product.quantity == 10
 
-    movements = db_session.query(
-        StockMovement
-    ).filter(
-        StockMovement.product_id == product.id
-    ).all()
+    movements = (
+        db_session.query(StockMovement)
+        .filter(StockMovement.product_id == product.id)
+        .all()
+    )
 
     assert movements == []
 
@@ -210,11 +210,11 @@ def test_invalid_movement_type_creates_no_history(
     assert result == "invalid_movement_type"
     assert product.quantity == 10
 
-    movements = db_session.query(
-        StockMovement
-    ).filter(
-        StockMovement.product_id == product.id
-    ).all()
+    movements = (
+        db_session.query(StockMovement)
+        .filter(StockMovement.product_id == product.id)
+        .all()
+    )
 
     assert movements == []
 
@@ -243,13 +243,14 @@ def test_invalid_movement_quantity_creates_no_history(
     assert result == "invalid_movement_quantity"
     assert product.quantity == 10
 
-    movements = db_session.query(
-        StockMovement
-    ).filter(
-        StockMovement.product_id == product.id
-    ).all()
+    movements = (
+        db_session.query(StockMovement)
+        .filter(StockMovement.product_id == product.id)
+        .all()
+    )
 
     assert movements == []
+
 
 def test_stock_movement_product_not_found(db_session):
     result = process_stock_movement(
@@ -262,11 +263,10 @@ def test_stock_movement_product_not_found(db_session):
 
     assert result == "product_not_found"
 
-    movements = db_session.query(
-        StockMovement
-    ).all()
+    movements = db_session.query(StockMovement).all()
 
     assert movements == []
+
 
 def test_stock_movement_transaction_rollback(
     db_session,
@@ -303,18 +303,16 @@ def test_stock_movement_transaction_rollback(
 
     db_session.expire_all()
 
-    refreshed_product = db_session.query(
-        Product
-    ).filter(
-        Product.id == product.id
-    ).first()
+    refreshed_product = (
+        db_session.query(Product).filter(Product.id == product.id).first()
+    )
 
     assert refreshed_product.quantity == 10
 
-    movements = db_session.query(
-        StockMovement
-    ).filter(
-        StockMovement.product_id == product.id
-    ).all()
+    movements = (
+        db_session.query(StockMovement)
+        .filter(StockMovement.product_id == product.id)
+        .all()
+    )
 
     assert movements == []

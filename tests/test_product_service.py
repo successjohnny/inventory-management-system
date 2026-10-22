@@ -153,7 +153,7 @@ def test_update_product(db_session):
 
 
 def test_update_product_duplicate_name(db_session):
-    first_product = create_product(
+    create_product(
         db_session,
         "Laptop",
         100000,

@@ -51,6 +51,7 @@ TEST_ADMIN_PASSWORD = "test-password-for-pytest"
 # DATABASE FIXTURE
 # ==========================================
 
+
 @pytest.fixture
 def db_session():
     """
@@ -90,6 +91,7 @@ def db_session():
 # ==========================================
 # UNAUTHENTICATED TEST CLIENT
 # ==========================================
+
 
 @pytest.fixture
 def client():
@@ -148,6 +150,7 @@ def client():
 # CSRF HELPER
 # ==========================================
 
+
 def extract_csrf_token(html: str) -> str:
     """
     Extract a CSRF token from an HTML form.
@@ -159,9 +162,7 @@ def extract_csrf_token(html: str) -> str:
     )
 
     if match is None:
-        raise AssertionError(
-            "CSRF token was not found in the HTML response."
-        )
+        raise AssertionError("CSRF token was not found in the HTML response.")
 
     return match.group(1)
 
@@ -169,6 +170,7 @@ def extract_csrf_token(html: str) -> str:
 # ==========================================
 # AUTHENTICATED CLIENT WRAPPER
 # ==========================================
+
 
 class AuthenticatedInventoryClient:
     """
@@ -208,10 +210,7 @@ class AuthenticatedInventoryClient:
         )
 
         if browser_form_routes:
-
-            data = dict(
-                kwargs.get("data") or {}
-            )
+            data = dict(kwargs.get("data") or {})
 
             data.setdefault(
                 "csrf_token",
@@ -242,6 +241,7 @@ class AuthenticatedInventoryClient:
 # AUTHENTICATED BROWSER CLIENT
 # ==========================================
 
+
 @pytest.fixture
 def authenticated_client(
     client,
@@ -265,22 +265,16 @@ def authenticated_client(
 
     monkeypatch.setenv(
         "ADMIN_PASSWORD_HASH",
-        hash_password(
-            TEST_ADMIN_PASSWORD
-        ),
+        hash_password(TEST_ADMIN_PASSWORD),
     )
 
     # Step 1: Open the login page.
-    login_page = test_client.get(
-        "/login"
-    )
+    login_page = test_client.get("/login")
 
     assert login_page.status_code == 200
 
     # Step 2: Extract the login CSRF token.
-    login_token = extract_csrf_token(
-        login_page.text
-    )
+    login_token = extract_csrf_token(login_page.text)
 
     # Step 3: Submit the actual login form.
     login_response = test_client.post(
@@ -295,23 +289,16 @@ def authenticated_client(
 
     assert login_response.status_code == 303
 
-    assert (
-        login_response.headers["location"]
-        == "/"
-    )
+    assert login_response.headers["location"] == "/"
 
     # Step 4: Open the authenticated dashboard.
-    dashboard = test_client.get(
-        "/"
-    )
+    dashboard = test_client.get("/")
 
     assert dashboard.status_code == 200
 
     # Step 5: Extract the authenticated session's
     # CSRF token from the dashboard.
-    dashboard_token = extract_csrf_token(
-        dashboard.text
-    )
+    dashboard_token = extract_csrf_token(dashboard.text)
 
     # Step 6: Return the authenticated client
     # and temporary database.
@@ -327,6 +314,7 @@ def authenticated_client(
 # AUTHENTICATED API CLIENT
 # ==========================================
 
+
 @pytest.fixture
 def api_client(
     client,
@@ -341,9 +329,7 @@ def api_client(
 
     test_client, db = client
 
-    test_token = (
-        "test-api-token-for-inventory-tests-123456789"
-    )
+    test_token = "test-api-token-for-inventory-tests-123456789"
 
     monkeypatch.setenv(
         "API_TOKEN",

@@ -1,4 +1,3 @@
-
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -8,6 +7,7 @@ from models import Product
 # ==========================================
 # NORMALIZE PRODUCT NAME
 # ==========================================
+
 
 def normalize_product_name(name: str) -> str:
     """
@@ -29,6 +29,7 @@ def normalize_product_name(name: str) -> str:
 # ==========================================
 # VALIDATE PRODUCT INFORMATION
 # ==========================================
+
 
 def validate_product(
     name: str,
@@ -69,6 +70,7 @@ def validate_product(
 # CREATE PRODUCT
 # ==========================================
 
+
 def create_product(
     db: Session,
     name: str,
@@ -103,11 +105,7 @@ def create_product(
 
     # Check for duplicate product names.
     existing_product: Product | None = (
-        db.query(Product)
-        .filter(
-            Product.normalized_name == normalized_name
-        )
-        .first()
+        db.query(Product).filter(Product.normalized_name == normalized_name).first()
     )
 
     if existing_product is not None:
@@ -141,6 +139,7 @@ def create_product(
 # ==========================================
 # UPDATE PRODUCT
 # ==========================================
+
 
 def update_product(
     db: Session,
@@ -178,11 +177,7 @@ def update_product(
     normalized_name: str = normalize_product_name(name)
 
     # Find the existing product.
-    product: Product | None = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product: Product | None = db.query(Product).filter(Product.id == product_id).first()
 
     if product is None:
         return "product_not_found"
@@ -225,6 +220,7 @@ def update_product(
 # DELETE PRODUCT
 # ==========================================
 
+
 def delete_product(
     db: Session,
     product_id: int,
@@ -241,11 +237,7 @@ def delete_product(
         str: Error code if the product does not exist.
     """
 
-    product: Product | None = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product: Product | None = db.query(Product).filter(Product.id == product_id).first()
 
     if product is None:
         return "product_not_found"

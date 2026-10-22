@@ -1,4 +1,3 @@
-
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -8,6 +7,7 @@ from models import Product, StockMovement
 # ==========================================
 # PROCESS STOCK MOVEMENT
 # ==========================================
+
 
 def process_stock_movement(
     db: Session,
@@ -49,11 +49,7 @@ def process_stock_movement(
     # ======================================
 
     # Data type: Product | None
-    product: Product | None = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    product: Product | None = db.query(Product).filter(Product.id == product_id).first()
 
     if product is None:
         return "product_not_found"

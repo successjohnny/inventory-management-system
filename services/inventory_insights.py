@@ -1,4 +1,3 @@
-
 from collections.abc import Iterable
 from typing import TypedDict
 
@@ -8,6 +7,7 @@ from models import Product
 # ==========================================
 # INVENTORY DATA TYPES
 # ==========================================
+
 
 class LowStockProductInfo(TypedDict):
     """
@@ -64,6 +64,7 @@ class InventoryInsights(TypedDict):
 # LOW-STOCK PRODUCTS
 # ==========================================
 
+
 def get_low_stock_products(
     products: Iterable[Product],
 ) -> list[Product]:
@@ -81,9 +82,7 @@ def get_low_stock_products(
     """
 
     low_stock_products: list[Product] = [
-        product
-        for product in products
-        if product.quantity <= product.low_stock_level
+        product for product in products if product.quantity <= product.low_stock_level
     ]
 
     return low_stock_products
@@ -92,6 +91,7 @@ def get_low_stock_products(
 # ==========================================
 # BUILD INVENTORY INSIGHTS
 # ==========================================
+
 
 def build_inventory_insights(
     products: Iterable[Product],
@@ -113,21 +113,15 @@ def build_inventory_insights(
     product_list: list[Product] = list(products)
 
     # Identify products requiring attention.
-    low_stock_products: list[Product] = (
-        get_low_stock_products(product_list)
-    )
+    low_stock_products: list[Product] = get_low_stock_products(product_list)
 
     # Calculate total inventory value.
     total_inventory_value: int = sum(
-        product.price * product.quantity
-        for product in product_list
+        product.price * product.quantity for product in product_list
     )
 
     # Calculate the total number of stock units.
-    total_items: int = sum(
-        product.quantity
-        for product in product_list
-    )
+    total_items: int = sum(product.quantity for product in product_list)
 
     # Build low-stock product summaries.
     low_stock_details: list[LowStockProductInfo] = [
@@ -140,8 +134,8 @@ def build_inventory_insights(
     ]
 
     # Generate inventory recommendations.
-    recommendations: list[InventoryRecommendation] = (
-        generate_inventory_recommendations(product_list)
+    recommendations: list[InventoryRecommendation] = generate_inventory_recommendations(
+        product_list
     )
 
     # Build the final structured response.
@@ -161,6 +155,7 @@ def build_inventory_insights(
 # INVENTORY RECOMMENDATIONS
 # ==========================================
 
+
 def generate_inventory_recommendations(
     products: Iterable[Product],
 ) -> list[InventoryRecommendation]:
@@ -176,9 +171,7 @@ def generate_inventory_recommendations(
             Inventory recommendations with explanations.
     """
 
-    low_stock_products: list[Product] = (
-        get_low_stock_products(products)
-    )
+    low_stock_products: list[Product] = get_low_stock_products(products)
 
     recommendations: list[InventoryRecommendation] = [
         {

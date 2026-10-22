@@ -128,9 +128,7 @@ def test_get_ai_inventory_insights(
     )
 
     class FakeResponse:
-        output_text = (
-            "Laptop should be reviewed for restocking."
-        )
+        output_text = "Laptop should be reviewed for restocking."
 
     class FakeResponses:
         def create(self, **kwargs):
@@ -156,14 +154,10 @@ def test_get_ai_inventory_insights(
     db.add(product)
     db.commit()
 
-    test_client.app.dependency_overrides[
-        get_ai_client
-    ] = override_ai_client
+    test_client.app.dependency_overrides[get_ai_client] = override_ai_client
 
     try:
-        response = test_client.get(
-            "/api/insights/ai"
-        )
+        response = test_client.get("/api/insights/ai")
     finally:
         test_client.app.dependency_overrides.pop(
             get_ai_client,
@@ -177,15 +171,11 @@ def test_get_ai_inventory_insights(
     assert data["insights"]["total_products"] == 1
     assert data["insights"]["total_items"] == 2
 
-    assert data["insights"][
-        "total_inventory_value"
-    ] == 400000
+    assert data["insights"]["total_inventory_value"] == 400000
 
     assert data["insights"]["low_stock_count"] == 1
 
-    assert data["ai_analysis"] == (
-        "Laptop should be reviewed for restocking."
-    )
+    assert data["ai_analysis"] == ("Laptop should be reviewed for restocking.")
 
 
 def test_get_ai_client_requires_api_key(
@@ -202,8 +192,7 @@ def test_get_ai_client_requires_api_key(
     assert exc_info.value.status_code == 503
 
     assert exc_info.value.detail == (
-        "AI inventory analysis is temporarily "
-        "unavailable."
+        "AI inventory analysis is temporarily unavailable."
     )
 
 
@@ -231,9 +220,7 @@ def test_get_ai_client_uses_configured_api_key(
 
     assert isinstance(client, FakeOpenAI)
 
-    assert captured["api_key"] == (
-        "test-only-openai-api-key"
-    )
+    assert captured["api_key"] == ("test-only-openai-api-key")
 
 
 def test_missing_token_blocks_ai_inventory_insights(
@@ -250,18 +237,13 @@ def test_missing_token_blocks_ai_inventory_insights(
     class FailingAIClient:
         def __init__(self):
             raise AssertionError(
-                "AI client should not be created "
-                "for an unauthenticated request."
+                "AI client should not be created for an unauthenticated request."
             )
 
-    test_client.app.dependency_overrides[
-        get_ai_client
-    ] = FailingAIClient
+    test_client.app.dependency_overrides[get_ai_client] = FailingAIClient
 
     try:
-        response = test_client.get(
-            "/api/insights/ai"
-        )
+        response = test_client.get("/api/insights/ai")
     finally:
         test_client.app.dependency_overrides.pop(
             get_ai_client,
@@ -285,13 +267,10 @@ def test_invalid_token_blocks_ai_inventory_insights(
     class FailingAIClient:
         def __init__(self):
             raise AssertionError(
-                "AI client should not be created "
-                "for an invalid API token."
+                "AI client should not be created for an invalid API token."
             )
 
-    test_client.app.dependency_overrides[
-        get_ai_client
-    ] = FailingAIClient
+    test_client.app.dependency_overrides[get_ai_client] = FailingAIClient
 
     try:
         response = test_client.get(
@@ -322,9 +301,7 @@ def test_ai_inventory_insights_handles_ai_failure(
 
     class FailingResponses:
         def create(self, **kwargs):
-            raise RuntimeError(
-                "Simulated AI provider failure."
-            )
+            raise RuntimeError("Simulated AI provider failure.")
 
     class FailingClient:
         def __init__(self):
@@ -346,14 +323,10 @@ def test_ai_inventory_insights_handles_ai_failure(
     db.add(product)
     db.commit()
 
-    test_client.app.dependency_overrides[
-        get_ai_client
-    ] = override_ai_client
+    test_client.app.dependency_overrides[get_ai_client] = override_ai_client
 
     try:
-        response = test_client.get(
-            "/api/insights/ai"
-        )
+        response = test_client.get("/api/insights/ai")
     finally:
         test_client.app.dependency_overrides.pop(
             get_ai_client,
@@ -363,10 +336,7 @@ def test_ai_inventory_insights_handles_ai_failure(
     assert response.status_code == 503
 
     assert response.json() == {
-        "detail": (
-            "AI inventory analysis is temporarily "
-            "unavailable."
-        )
+        "detail": ("AI inventory analysis is temporarily unavailable.")
     }
 
 
@@ -384,8 +354,7 @@ def test_ai_inventory_insights_handles_missing_model(
     class FakeResponses:
         def create(self, **kwargs):
             raise AssertionError(
-                "AI request should not be made "
-                "without a configured model."
+                "AI request should not be made without a configured model."
             )
 
     class FakeClient:
@@ -408,14 +377,10 @@ def test_ai_inventory_insights_handles_missing_model(
     db.add(product)
     db.commit()
 
-    test_client.app.dependency_overrides[
-        get_ai_client
-    ] = override_ai_client
+    test_client.app.dependency_overrides[get_ai_client] = override_ai_client
 
     try:
-        response = test_client.get(
-            "/api/insights/ai"
-        )
+        response = test_client.get("/api/insights/ai")
     finally:
         test_client.app.dependency_overrides.pop(
             get_ai_client,
@@ -425,10 +390,7 @@ def test_ai_inventory_insights_handles_missing_model(
     assert response.status_code == 503
 
     assert response.json() == {
-        "detail": (
-            "AI inventory analysis is temporarily "
-            "unavailable."
-        )
+        "detail": ("AI inventory analysis is temporarily unavailable.")
     }
 
 
@@ -451,18 +413,12 @@ def test_ai_inventory_insights_handles_missing_api_key(
     response = test_client.get(
         "/api/insights/ai",
         headers={
-            "Authorization": (
-                "Bearer "
-                "test-api-token-for-inventory-tests-123456789"
-            ),
+            "Authorization": ("Bearer test-api-token-for-inventory-tests-123456789"),
         },
     )
 
     assert response.status_code == 503
 
     assert response.json() == {
-        "detail": (
-            "AI inventory analysis is temporarily "
-            "unavailable."
-        )
+        "detail": ("AI inventory analysis is temporarily unavailable.")
     }
