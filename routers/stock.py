@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -12,11 +13,19 @@ from services.inventory_service import (
 )
 
 
+# ==========================================
+# STOCK BROWSER ROUTER
+# ==========================================
+
 # Browser-only routes are excluded from the OpenAPI/Swagger schema.
-router = APIRouter(
+router: APIRouter = APIRouter(
     include_in_schema=False,
 )
 
+
+# ==========================================
+# PROCESS STOCK MOVEMENT
+# ==========================================
 
 @router.post("/stock-movement/{product_id}")
 def stock_movement(
@@ -27,7 +36,7 @@ def stock_movement(
     note: str = Form(""),
     csrf_token: str = Form(""),
     db: Session = Depends(get_db),
-):
+) -> RedirectResponse:
     """
     Process a browser stock movement.
 
@@ -36,7 +45,9 @@ def stock_movement(
     """
 
     # Step 1: Require an authenticated administrator.
-    redirect = require_admin(request)
+    redirect: RedirectResponse | None = require_admin(
+        request
+    )
 
     if redirect is not None:
         return redirect
@@ -48,7 +59,7 @@ def stock_movement(
     )
 
     # Step 3: Process the stock movement.
-    error = process_stock_movement(
+    error: str | None = process_stock_movement(
         db,
         product_id,
         movement_type,
