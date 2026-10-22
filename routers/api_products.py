@@ -1,4 +1,3 @@
-
 from math import ceil
 from typing import Literal
 
@@ -6,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Query as SQLAlchemyQuery
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.elements import ColumnElement
 
 from api_security import require_api_token
@@ -17,6 +17,7 @@ from schemas import (
     ProductListResponse,
     ProductUpdate,
     ProductResponse,
+    StockMovementResponse,
     StockMovementListResponse,
 )
 
@@ -188,7 +189,7 @@ def get_products(
     # SELECT SORT COLUMN
     # ======================================
 
-    sort_column: ColumnElement | None = None
+    sort_column: ColumnElement | InstrumentedAttribute[int] | None = None
 
     if sort_by == "name":
         sort_column = func.lower(Product.name)
@@ -240,7 +241,7 @@ def get_products(
     # Construct the response using the
     # existing Pydantic response schema.
     response: ProductListResponse = ProductListResponse(
-        items=products,
+        items=[ProductResponse.model_validate(product) for product in products],
         page=page,
         page_size=page_size,
         total_items=total_items,
@@ -369,7 +370,10 @@ def get_product_stock_movements(
 
     response: StockMovementListResponse = (
         StockMovementListResponse(
-            items=movements,
+            items=[
+                StockMovementResponse.model_validate(movement)
+                for movement in movements
+            ],
             page=page,
             page_size=page_size,
             total_items=total_items,

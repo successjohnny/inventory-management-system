@@ -2,14 +2,17 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Column,
     DateTime,
     ForeignKey,
     Integer,
     String,
     Text,
 )
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    relationship,
+)
 
 from database import Base
 
@@ -36,44 +39,44 @@ class Product(Base):
 
     __tablename__ = "products"
 
-    id: Mapped[int] = Column(
+    id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
         index=True,
     )
 
-    name: Mapped[str] = Column(
+    name: Mapped[str] = mapped_column(
         String,
         nullable=False,
     )
 
-    normalized_name: Mapped[str] = Column(
+    normalized_name: Mapped[str] = mapped_column(
         String,
         nullable=False,
         unique=True,
     )
 
-    price: Mapped[int] = Column(
+    price: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
     )
 
-    quantity: Mapped[int] = Column(
+    quantity: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
     )
 
-    low_stock_level: Mapped[int] = Column(
+    low_stock_level: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
     )
 
-    category: Mapped[str] = Column(
+    category: Mapped[str] = mapped_column(
         String,
         nullable=False,
     )
 
-    supplier: Mapped[str | None] = Column(
+    supplier: Mapped[str | None] = mapped_column(
         String,
         nullable=True,
     )
@@ -105,34 +108,34 @@ class StockMovement(Base):
 
     __tablename__ = "stock_movements"
 
-    id: Mapped[int] = Column(
+    id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
         index=True,
     )
 
-    product_id: Mapped[int] = Column(
+    product_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("products.id"),
         nullable=False,
     )
 
-    movement_type: Mapped[str] = Column(
+    movement_type: Mapped[str] = mapped_column(
         String,
         nullable=False,
     )
 
-    quantity: Mapped[int] = Column(
+    quantity: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
     )
 
-    note: Mapped[str | None] = Column(
+    note: Mapped[str | None] = mapped_column(
         String,
         nullable=True,
     )
 
-    created_at: Mapped[datetime] = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
@@ -161,23 +164,23 @@ class AIAnalysis(Base):
 
     __tablename__ = "ai_analyses"
 
-    id: Mapped[int] = Column(
+    id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
         index=True,
     )
 
-    inventory_snapshot: Mapped[str] = Column(
+    inventory_snapshot: Mapped[str] = mapped_column(
         Text,
         nullable=False,
     )
 
-    analysis: Mapped[str] = Column(
+    analysis: Mapped[str] = mapped_column(
         Text,
         nullable=False,
     )
 
-    created_at: Mapped[datetime] = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,

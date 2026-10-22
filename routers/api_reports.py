@@ -1,4 +1,3 @@
-
 import csv
 import io
 from datetime import date, datetime, time, timedelta, timezone
@@ -13,6 +12,7 @@ from fastapi import (
 )
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
+from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import Query as SQLAlchemyQuery
 
@@ -369,7 +369,7 @@ def get_category_summary_report(
     grouped by category.
     """
 
-    results: list[tuple[str, int, int]] = (
+    results: list[Row[tuple[str, int, int]]] = (
         db.query(
             Product.category,
             func.count(Product.id).label("total_products"),
@@ -462,7 +462,7 @@ def get_supplier_summary_report(
     and inventory values grouped by supplier.
     """
 
-    results: list[tuple[str, int, int, int]] = (
+    results: list[Row[tuple[str | None, int, int, int]]] = (
         db.query(
             Product.supplier,
             func.count(Product.id).label(
@@ -483,7 +483,7 @@ def get_supplier_summary_report(
 
     report: list[SupplierSummary] = [
         {
-            "supplier": supplier,
+            "supplier": supplier or "",
             "total_products": total_products,
             "total_items": total_items,
             "inventory_value": inventory_value,
@@ -519,7 +519,7 @@ def get_category_valuation_report(
     and inventory values grouped by category.
     """
 
-    results: list[tuple[str, int, int, int]] = (
+    results: list[Row[tuple[str, int, int, int]]] = (
         db.query(
             Product.category,
             func.count(Product.id).label(

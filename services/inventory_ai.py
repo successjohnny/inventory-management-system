@@ -1,4 +1,3 @@
-
 import json
 import os
 
@@ -19,7 +18,9 @@ class AIResponse(Protocol):
         output_text: str | None
     """
 
-    output_text: str | None
+    @property
+    def output_text(self) -> str | None:
+        ...
 
 
 # ==========================================
@@ -60,7 +61,9 @@ class AIClient(Protocol):
         responses: AIResponsesAPI
     """
 
-    responses: AIResponsesAPI
+    @property
+    def responses(self) -> AIResponsesAPI:
+        ...
 
 
 # ==========================================
