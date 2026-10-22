@@ -1,28 +1,119 @@
+
 import json
 import os
 
+from typing import Protocol
+
+from services.inventory_insights import InventoryInsights
+
+
+# ==========================================
+# AI RESPONSE DATA TYPE
+# ==========================================
+
+class AIResponse(Protocol):
+    """
+    Describe the response fields used by this service.
+
+    Data types:
+        output_text: str | None
+    """
+
+    output_text: str | None
+
+
+# ==========================================
+# AI RESPONSE CREATION INTERFACE
+# ==========================================
+
+class AIResponsesAPI(Protocol):
+    """
+    Describe the response creation method.
+
+    Parameters:
+        model: str
+        input: str
+
+    Returns:
+        AIResponse
+    """
+
+    def create(
+        self,
+        *,
+        model: str,
+        input: str,
+    ) -> AIResponse:
+        ...
+
+
+# ==========================================
+# AI CLIENT INTERFACE
+# ==========================================
+
+class AIClient(Protocol):
+    """
+    Describe the client interface required
+    for generating inventory analysis.
+
+    Data types:
+        responses: AIResponsesAPI
+    """
+
+    responses: AIResponsesAPI
+
+
+# ==========================================
+# GET CONFIGURED AI MODEL
+# ==========================================
 
 def get_ai_model() -> str:
     """
     Return the configured OpenAI model name.
+
+    Returns:
+        str:
+            Model name stored in OPENAI_MODEL.
+
+    Raises:
+        KeyError:
+            If OPENAI_MODEL is not configured.
     """
 
-    return os.environ["OPENAI_MODEL"]
+    model: str = os.environ["OPENAI_MODEL"]
 
+    return model
+
+
+# ==========================================
+# BUILD INVENTORY AI PROMPT
+# ==========================================
 
 def build_inventory_ai_prompt(
-    insights: dict,
+    insights: InventoryInsights,
 ) -> str:
     """
-    Build a grounded, structured prompt from inventory insights.
+    Build a grounded, structured prompt
+    from inventory insights.
+
+    Parameters:
+        insights (InventoryInsights):
+            Dictionary containing inventory statistics,
+            low-stock products, and recommendations.
+
+    Returns:
+        str:
+            Formatted prompt for AI analysis.
     """
 
-    inventory_data = json.dumps(
+    # Data type: str
+    inventory_data: str = json.dumps(
         insights,
         indent=2,
     )
 
-    return (
+    # Data type: str
+    prompt: str = (
         "Analyze the following inventory data and provide "
         "clear, practical inventory recommendations.\n\n"
 
@@ -64,26 +155,50 @@ def build_inventory_ai_prompt(
         f"{inventory_data}"
     )
 
+    return prompt
+
+
+# ==========================================
+# GENERATE AI INVENTORY ANALYSIS
+# ==========================================
 
 def generate_ai_inventory_analysis(
-    insights: dict,
+    insights: InventoryInsights,
     *,
-    client,
+    client: AIClient,
     model: str,
 ) -> str:
     """
-    Generate AI-assisted analysis from structured
-    inventory insights.
+    Generate AI-assisted inventory analysis.
+
+    Parameters:
+        insights (InventoryInsights):
+            Structured inventory statistics.
+
+        client (AIClient):
+            AI client implementing the required
+            responses.create() interface.
+
+        model (str):
+            Name of the AI model to use.
+
+    Returns:
+        str:
+            Generated inventory analysis or
+            a descriptive fallback message.
     """
 
+    # Avoid AI requests when inventory is empty.
     if insights.get("total_products", 0) == 0:
         return (
             "No inventory data is available for AI analysis."
         )
 
-    prompt = build_inventory_ai_prompt(insights)
+    # Data type: str
+    prompt: str = build_inventory_ai_prompt(insights)
 
-    response = client.responses.create(
+    # Data type: AIResponse
+    response: AIResponse = client.responses.create(
         model=model,
         input=prompt,
     )
