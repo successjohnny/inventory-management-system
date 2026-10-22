@@ -1,28 +1,53 @@
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from models import Product
 
 
-def normalize_product_name(name):
-    """
-    Remove leading/trailing spaces
-    and convert the name to lowercase.
-    """
-    return name.strip().lower()
+# ==========================================
+# NORMALIZE PRODUCT NAME
+# ==========================================
 
+def normalize_product_name(name: str) -> str:
+    """
+    Remove leading/trailing spaces and
+    convert a product name to lowercase.
+
+    Parameters:
+        name (str): Product name.
+
+    Returns:
+        str: Normalized product name.
+    """
+
+    normalized_name: str = name.strip().lower()
+
+    return normalized_name
+
+
+# ==========================================
+# VALIDATE PRODUCT INFORMATION
+# ==========================================
 
 def validate_product(
-    name,
-    price,
-    low_stock_level,
-    category,
-):
+    name: str,
+    price: int,
+    low_stock_level: int,
+    category: str,
+) -> str | None:
     """
     Validate product information.
 
-    Returns an error code if validation fails.
-    Returns None when all values are valid.
+    Parameters:
+        name (str): Product name.
+        price (int): Product price.
+        low_stock_level (int): Low-stock threshold.
+        category (str): Product category.
+
+    Returns:
+        str: Validation error code.
+        None: All values are valid.
     """
 
     if not name.strip():
@@ -40,38 +65,56 @@ def validate_product(
     return None
 
 
+# ==========================================
+# CREATE PRODUCT
+# ==========================================
+
 def create_product(
     db: Session,
-    name,
-    price,
-    quantity,
-    low_stock_level,
-    category,
-    supplier,
-):
+    name: str,
+    price: int,
+    quantity: int,
+    low_stock_level: int,
+    category: str,
+    supplier: str,
+) -> Product | str:
     """
-    Create a new product.
+    Create a new inventory product.
+
+    Parameters:
+        db (Session): SQLAlchemy database session.
+        name (str): Product name.
+        price (int): Product price.
+        quantity (int): Initial stock quantity.
+        low_stock_level (int): Low-stock threshold.
+        category (str): Product category.
+        supplier (str): Product supplier.
 
     Returns:
-        Product object when successful.
-        Error code when the product already exists.
+        Product: Successfully created product.
+        str: Error code if the product already exists.
     """
 
     name = name.strip()
     category = category.strip()
     supplier = supplier.strip()
 
-    normalized_name = normalize_product_name(name)
+    normalized_name: str = normalize_product_name(name)
 
-    # Check for duplicate product name
-    existing_product = db.query(Product).filter(
-        Product.normalized_name == normalized_name
-    ).first()
+    # Check for duplicate product names.
+    existing_product: Product | None = (
+        db.query(Product)
+        .filter(
+            Product.normalized_name == normalized_name
+        )
+        .first()
+    )
 
-    if existing_product:
+    if existing_product is not None:
         return "duplicate_product"
 
-    product = Product(
+    # Data type: Product
+    product: Product = Product(
         name=name,
         normalized_name=normalized_name,
         price=price,
@@ -95,51 +138,70 @@ def create_product(
     return product
 
 
+# ==========================================
+# UPDATE PRODUCT
+# ==========================================
+
 def update_product(
     db: Session,
-    product_id,
-    name,
-    price,
-    low_stock_level,
-    category,
-    supplier,
-):
+    product_id: int,
+    name: str,
+    price: int,
+    low_stock_level: int,
+    category: str,
+    supplier: str,
+) -> Product | str:
     """
     Update an existing product.
 
     Quantity is intentionally not changed here.
     Quantity is controlled by stock movements.
 
+    Parameters:
+        db (Session): SQLAlchemy database session.
+        product_id (int): Product identifier.
+        name (str): Updated product name.
+        price (int): Updated product price.
+        low_stock_level (int): Low-stock threshold.
+        category (str): Updated product category.
+        supplier (str): Updated supplier.
+
     Returns:
-        Product object when successful.
-        Error code when the update fails.
+        Product: Successfully updated product.
+        str: Error code if the update fails.
     """
 
     name = name.strip()
     category = category.strip()
     supplier = supplier.strip()
 
-    normalized_name = normalize_product_name(name)
+    normalized_name: str = normalize_product_name(name)
 
-    # Find the product
-    product = db.query(Product).filter(
-        Product.id == product_id
-    ).first()
+    # Find the existing product.
+    product: Product | None = (
+        db.query(Product)
+        .filter(Product.id == product_id)
+        .first()
+    )
 
-    if not product:
+    if product is None:
         return "product_not_found"
 
-    # Check for duplicate product name.
-    # Exclude the current product.
-    existing_product = db.query(Product).filter(
-        Product.normalized_name == normalized_name,
-        Product.id != product_id,
-    ).first()
+    # Check for duplicate product names,
+    # excluding the current product.
+    existing_product: Product | None = (
+        db.query(Product)
+        .filter(
+            Product.normalized_name == normalized_name,
+            Product.id != product_id,
+        )
+        .first()
+    )
 
-    if existing_product:
+    if existing_product is not None:
         return "duplicate_product"
 
-    # Update product information
+    # Update product information.
     product.name = name
     product.normalized_name = normalized_name
     product.price = price
@@ -158,15 +220,28 @@ def update_product(
 
     return product
 
-def delete_product(db: Session, product_id: int):
+
+# ==========================================
+# DELETE PRODUCT
+# ==========================================
+
+def delete_product(
+    db: Session,
+    product_id: int,
+) -> str | None:
     """
     Delete a product by its ID.
 
-    Returns None on success or an error code if
-    the product does not exist.
+    Parameters:
+        db (Session): SQLAlchemy database session.
+        product_id (int): Product identifier.
+
+    Returns:
+        None: Product deleted successfully.
+        str: Error code if the product does not exist.
     """
 
-    product = (
+    product: Product | None = (
         db.query(Product)
         .filter(Product.id == product_id)
         .first()

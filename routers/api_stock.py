@@ -1,3 +1,4 @@
+
 from datetime import (
     date,
     datetime,
@@ -5,6 +6,7 @@ from datetime import (
     timedelta,
     timezone,
 )
+from typing import TypedDict
 
 from fastapi import (
     APIRouter,
@@ -13,7 +15,11 @@ from fastapi import (
     Query,
     status,
 )
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import (
+    Query as SQLAlchemyQuery,
+    Session,
+    joinedload,
+)
 
 from api_security import require_api_token
 from database import get_db
@@ -27,12 +33,28 @@ from services.inventory_service import (
 )
 
 
-router = APIRouter(
+# ==========================================
+# RESPONSE DATA TYPES
+# ==========================================
+
+class StockMovementSuccess(TypedDict):
+    message: str
+
+
+# ==========================================
+# API ROUTER
+# ==========================================
+
+router: APIRouter = APIRouter(
     prefix="/api/stock-movements",
     tags=["Stock Movements API"],
     dependencies=[Depends(require_api_token)],
 )
 
+
+# ==========================================
+# LIST STOCK MOVEMENTS
+# ==========================================
 
 @router.get(
     "/",
@@ -59,7 +81,7 @@ def get_stock_movements(
         ),
     ),
     db: Session = Depends(get_db),
-):
+) -> list[StockMovement]:
     """
     Return stock movements.
 
@@ -84,7 +106,7 @@ def get_stock_movements(
             ),
         )
 
-    query = (
+    query: SQLAlchemyQuery = (
         db.query(StockMovement)
         .options(
             joinedload(
@@ -94,7 +116,7 @@ def get_stock_movements(
     )
 
     if start_date is not None:
-        start_datetime = datetime.combine(
+        start_datetime: datetime = datetime.combine(
             start_date,
             time.min,
             tzinfo=timezone.utc,
@@ -105,7 +127,7 @@ def get_stock_movements(
         )
 
     if end_date is not None:
-        end_datetime = datetime.combine(
+        end_datetime: datetime = datetime.combine(
             end_date + timedelta(days=1),
             time.min,
             tzinfo=timezone.utc,
@@ -115,7 +137,7 @@ def get_stock_movements(
             StockMovement.created_at < end_datetime
         )
 
-    movements = (
+    movements: list[StockMovement] = (
         query
         .order_by(
             StockMovement.created_at.desc(),
@@ -126,6 +148,10 @@ def get_stock_movements(
 
     return movements
 
+
+# ==========================================
+# CREATE STOCK MOVEMENT
+# ==========================================
 
 @router.post(
     "/{product_id}",
@@ -142,12 +168,12 @@ def create_stock_movement(
     product_id: int,
     movement: StockMovementCreate,
     db: Session = Depends(get_db),
-):
+) -> StockMovementSuccess:
     """
     Create a stock IN or OUT movement for a product.
     """
 
-    error = process_stock_movement(
+    error: str | None = process_stock_movement(
         db,
         product_id,
         movement.movement_type,
@@ -179,8 +205,10 @@ def create_stock_movement(
             detail=error,
         )
 
-    return {
+    response: StockMovementSuccess = {
         "message": (
             "Stock movement created successfully."
         )
     }
+
+    return response

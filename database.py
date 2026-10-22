@@ -1,14 +1,24 @@
+
 import os
+from collections.abc import Generator
+from typing import Any
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import (
+    DeclarativeMeta,
+    Session,
+    declarative_base,
+    sessionmaker,
+)
 
 
 # ==========================================
 # DATABASE CONFIGURATION
 # ==========================================
 
-DATABASE_URL = os.getenv(
+# Data type: str
+DATABASE_URL: str = os.getenv(
     "DATABASE_URL",
     "sqlite:///./inventory.db",
 )
@@ -18,7 +28,8 @@ DATABASE_URL = os.getenv(
 # DATABASE ENGINE
 # ==========================================
 
-engine_options = {}
+# Data type: dict[str, Any]
+engine_options: dict[str, Any] = {}
 
 if DATABASE_URL.startswith("sqlite"):
     engine_options["connect_args"] = {
@@ -26,7 +37,8 @@ if DATABASE_URL.startswith("sqlite"):
     }
 
 
-engine = create_engine(
+# Data type: Engine
+engine: Engine = create_engine(
     DATABASE_URL,
     **engine_options,
 )
@@ -36,7 +48,8 @@ engine = create_engine(
 # DATABASE SESSION
 # ==========================================
 
-SessionLocal = sessionmaker(
+# Data type: sessionmaker[Session]
+SessionLocal: sessionmaker[Session] = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine,
@@ -47,22 +60,28 @@ SessionLocal = sessionmaker(
 # DATABASE MODELS BASE
 # ==========================================
 
-Base = declarative_base()
+# Data type: DeclarativeMeta
+Base: DeclarativeMeta = declarative_base()
 
 
 # ==========================================
 # DATABASE DEPENDENCY
 # ==========================================
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     """
     Create a database session for a request.
+
+    Yields:
+        Session:
+            A SQLAlchemy database session.
 
     The session is automatically closed after
     the request has finished.
     """
 
-    db = SessionLocal()
+    # Data type: Session
+    db: Session = SessionLocal()
 
     try:
         yield db

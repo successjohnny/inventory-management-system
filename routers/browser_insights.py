@@ -1,5 +1,7 @@
+
 import json
 import os
+from typing import TypedDict
 
 from fastapi import (
     APIRouter,
@@ -26,17 +28,34 @@ from services.inventory_insights import (
 )
 
 
-router = APIRouter(
+# ==========================================
+# RESPONSE DATA TYPES
+# ==========================================
+
+class BrowserAIInsightsResponse(TypedDict):
+    insights: dict[str, object]
+    ai_analysis: str
+
+
+# ==========================================
+# API ROUTER
+# ==========================================
+
+router: APIRouter = APIRouter(
     include_in_schema=False,
 )
 
+
+# ==========================================
+# GENERATE BROWSER AI INSIGHTS
+# ==========================================
 
 @router.post("/ai-insights")
 def generate_browser_ai_insights(
     request: Request,
     csrf_token: str = Form(""),
     db: Session = Depends(get_db),
-):
+) -> BrowserAIInsightsResponse:
     """
     Generate AI-assisted inventory insights for an
     authenticated dashboard user.
@@ -58,23 +77,27 @@ def generate_browser_ai_insights(
         csrf_token,
     )
 
-    products = (
+    products: list[Product] = (
         db.query(Product)
         .order_by(Product.id.asc())
         .all()
     )
 
-    insights = build_inventory_insights(products)
+    insights: dict[str, object] = (
+        build_inventory_insights(products)
+    )
 
     if insights.get("total_products", 0) == 0:
-        return {
+        response: BrowserAIInsightsResponse = {
             "insights": insights,
             "ai_analysis": (
                 "No inventory data is available for AI analysis."
             ),
         }
 
-    api_key = os.getenv("OPENAI_API_KEY")
+        return response
+
+    api_key: str | None = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
         raise HTTPException(
@@ -85,12 +108,12 @@ def generate_browser_ai_insights(
             ),
         )
 
-    client = OpenAI(
+    client: OpenAI = OpenAI(
         api_key=api_key,
     )
 
     try:
-        ai_analysis = generate_ai_inventory_analysis(
+        ai_analysis: str = generate_ai_inventory_analysis(
             insights,
             client=client,
             model=get_ai_model(),
@@ -105,7 +128,7 @@ def generate_browser_ai_insights(
             ),
         ) from exc
 
-    analysis_record = AIAnalysis(
+    analysis_record: AIAnalysis = AIAnalysis(
         inventory_snapshot=json.dumps(
             insights,
         ),
@@ -127,7 +150,9 @@ def generate_browser_ai_insights(
             ),
         ) from exc
 
-    return {
+    response: BrowserAIInsightsResponse = {
         "insights": insights,
         "ai_analysis": ai_analysis,
     }
+
+    return response

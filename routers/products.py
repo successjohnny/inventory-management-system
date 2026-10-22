@@ -10,9 +10,9 @@ from fastapi import (
     Request,
     status,
 )
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from browser_security import (
     get_csrf_token,
@@ -32,11 +32,13 @@ from services.stock_trends import build_stock_trends
 
 
 # Browser-only routes are excluded from the OpenAPI/Swagger schema.
-router = APIRouter(
+router: APIRouter = APIRouter(
     include_in_schema=False,
 )
 
-templates = Jinja2Templates(directory="templates")
+templates: Jinja2Templates = Jinja2Templates(
+    directory="templates"
+)
 
 
 @router.get("/")
@@ -47,8 +49,8 @@ def home(
     trend_start: date | None = Query(default=None),
     trend_end: date | None = Query(default=None),
     db: Session = Depends(get_db),
-):
-    redirect = require_admin(request)
+) -> Response:
+    redirect: RedirectResponse | None = require_admin(request)
 
     if redirect is not None:
         return redirect
@@ -57,13 +59,13 @@ def home(
     # Inventory Products
     # ==========================================
 
-    all_products = db.query(Product).all()
+    all_products: list[Product] = db.query(Product).all()
 
     # ==========================================
     # Category Inventory Valuations
     # ==========================================
 
-    category_valuations = {}
+    category_valuations: dict[str, int] = {}
 
     for product in all_products:
         if product.category not in category_valuations:
@@ -77,7 +79,7 @@ def home(
     # Supplier Inventory Valuations
     # ==========================================
 
-    supplier_valuations = {}
+    supplier_valuations: dict[str, int] = {}
 
     for product in all_products:
         if not product.supplier:
@@ -94,7 +96,7 @@ def home(
     # Low-Stock Insights
     # ==========================================
 
-    low_stock_insights = [
+    low_stock_insights: list[Product] = [
         product
         for product in all_products
         if product.quantity <= product.low_stock_level
@@ -104,7 +106,9 @@ def home(
     # Complete Stock Movement History
     # ==========================================
 
-    movements = (
+    from sqlalchemy.orm import joinedload
+
+    movements: list[StockMovement] = (
         db.query(StockMovement)
         .options(
             joinedload(StockMovement.product)
@@ -116,24 +120,20 @@ def home(
     # Pass 5: Historical Stock Trends
     # ==========================================
 
-    today = datetime.now(timezone.utc).date()
+    today: date = datetime.now(timezone.utc).date()
 
-    # Use today when no end date is provided.
-    end_date = (
+    end_date: date = (
         trend_end
         if trend_end is not None
         else today
     )
 
-    # Default to 30 calendar days, including
-    # the selected end date.
-    start_date = (
+    start_date: date = (
         trend_start
         if trend_start is not None
         else end_date - timedelta(days=29)
     )
 
-    # Validate the selected reporting period.
     if start_date > end_date:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -143,7 +143,6 @@ def home(
             ),
         )
 
-    # Both boundary dates count toward the limit.
     if (end_date - start_date).days >= 365:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -153,22 +152,19 @@ def home(
             ),
         )
 
-    # Convert inclusive dates to UTC timestamps.
-    start_datetime = datetime.combine(
+    start_datetime: datetime = datetime.combine(
         start_date,
         time.min,
         tzinfo=timezone.utc,
     )
 
-    # Exclusive boundary at midnight after end_date.
-    end_datetime = datetime.combine(
+    end_datetime: datetime = datetime.combine(
         end_date + timedelta(days=1),
         time.min,
         tzinfo=timezone.utc,
     )
 
-    # Query only movements in the chart period.
-    trend_movements = (
+    trend_movements: list[StockMovement] = (
         db.query(StockMovement)
         .filter(
             StockMovement.created_at >= start_datetime,
@@ -191,7 +187,7 @@ def home(
     # Saved AI Analysis History
     # ==========================================
 
-    ai_analysis_history = (
+    ai_analysis_history: list[AIAnalysis] = (
         db.query(AIAnalysis)
         .order_by(
             AIAnalysis.created_at.desc(),
@@ -205,10 +201,10 @@ def home(
     # Product Search
     # ==========================================
 
-    normalized_search = search.strip().lower()
+    normalized_search: str = search.strip().lower()
 
     if normalized_search:
-        products = (
+        products: list[Product] = (
             db.query(Product)
             .filter(
                 Product.normalized_name.ilike(
@@ -275,13 +271,13 @@ def ai_analysis_detail(
     request: Request,
     analysis_id: int,
     db: Session = Depends(get_db),
-):
-    redirect = require_admin(request)
+) -> Response:
+    redirect: RedirectResponse | None = require_admin(request)
 
     if redirect is not None:
         return redirect
 
-    analysis = (
+    analysis: AIAnalysis | None = (
         db.query(AIAnalysis)
         .filter(
             AIAnalysis.id == analysis_id
@@ -319,8 +315,8 @@ def add_product(
     supplier: str = Form(""),
     csrf_token: str = Form(""),
     db: Session = Depends(get_db),
-):
-    redirect = require_admin(request)
+) -> RedirectResponse:
+    redirect: RedirectResponse | None = require_admin(request)
 
     if redirect is not None:
         return redirect
@@ -330,7 +326,7 @@ def add_product(
         csrf_token,
     )
 
-    error = validate_product(
+    error: str | None = validate_product(
         name,
         price,
         low_stock_level,
@@ -349,7 +345,7 @@ def add_product(
             status_code=303,
         )
 
-    result = create_product(
+    result: Product | str = create_product(
         db,
         name,
         price,
@@ -381,13 +377,13 @@ def edit_product(
     product_id: int,
     error: str = "",
     db: Session = Depends(get_db),
-):
-    redirect = require_admin(request)
+) -> Response:
+    redirect: RedirectResponse | None = require_admin(request)
 
     if redirect is not None:
         return redirect
 
-    product = (
+    product: Product | None = (
         db.query(Product)
         .filter(
             Product.id == product_id
@@ -432,8 +428,8 @@ def update_product_route(
     supplier: str = Form(""),
     csrf_token: str = Form(""),
     db: Session = Depends(get_db),
-):
-    redirect = require_admin(request)
+) -> RedirectResponse:
+    redirect: RedirectResponse | None = require_admin(request)
 
     if redirect is not None:
         return redirect
@@ -443,7 +439,7 @@ def update_product_route(
         csrf_token,
     )
 
-    error = validate_product(
+    error: str | None = validate_product(
         name,
         price,
         low_stock_level,
@@ -459,7 +455,7 @@ def update_product_route(
             status_code=303,
         )
 
-    result = update_product(
+    result: Product | str = update_product(
         db,
         product_id,
         name,
@@ -494,8 +490,8 @@ def delete_product_route(
     product_id: int,
     csrf_token: str = Form(""),
     db: Session = Depends(get_db),
-):
-    redirect = require_admin(request)
+) -> RedirectResponse:
+    redirect: RedirectResponse | None = require_admin(request)
 
     if redirect is not None:
         return redirect
@@ -505,7 +501,7 @@ def delete_product_route(
         csrf_token,
     )
 
-    error = delete_product(
+    error: str | None = delete_product(
         db,
         product_id,
     )
