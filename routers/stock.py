@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -27,6 +26,7 @@ router: APIRouter = APIRouter(
 # PROCESS STOCK MOVEMENT
 # ==========================================
 
+
 @router.post("/stock-movement/{product_id}")
 def stock_movement(
     request: Request,
@@ -45,9 +45,7 @@ def stock_movement(
     """
 
     # Step 1: Require an authenticated administrator.
-    redirect: RedirectResponse | None = require_admin(
-        request
-    )
+    redirect: RedirectResponse | None = require_admin(request)
 
     if redirect is not None:
         return redirect
@@ -76,10 +74,7 @@ def stock_movement(
             )
 
         return RedirectResponse(
-            url=(
-                f"/edit-product/{product_id}"
-                f"?error={error}"
-            ),
+            url=(f"/edit-product/{product_id}?error={error}"),
             status_code=303,
         )
 

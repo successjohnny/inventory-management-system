@@ -32,6 +32,7 @@ from services.inventory_insights import (
 # RESPONSE DATA TYPES
 # ==========================================
 
+
 class BrowserAIInsightsResponse(TypedDict):
     insights: InventoryInsights
     ai_analysis: str
@@ -49,6 +50,7 @@ router: APIRouter = APIRouter(
 # ==========================================
 # GENERATE BROWSER AI INSIGHTS
 # ==========================================
+
 
 @router.post("/ai-insights")
 def generate_browser_ai_insights(
@@ -77,22 +79,14 @@ def generate_browser_ai_insights(
         csrf_token,
     )
 
-    products: list[Product] = (
-        db.query(Product)
-        .order_by(Product.id.asc())
-        .all()
-    )
+    products: list[Product] = db.query(Product).order_by(Product.id.asc()).all()
 
-    insights: InventoryInsights = (
-        build_inventory_insights(products)
-    )
+    insights: InventoryInsights = build_inventory_insights(products)
 
     if insights.get("total_products", 0) == 0:
         empty_response: BrowserAIInsightsResponse = {
             "insights": insights,
-            "ai_analysis": (
-                "No inventory data is available for AI analysis."
-            ),
+            "ai_analysis": ("No inventory data is available for AI analysis."),
         }
 
         return empty_response
@@ -102,10 +96,7 @@ def generate_browser_ai_insights(
     if not api_key:
         raise HTTPException(
             status_code=503,
-            detail=(
-                "AI inventory analysis is temporarily "
-                "unavailable."
-            ),
+            detail=("AI inventory analysis is temporarily unavailable."),
         )
 
     client: OpenAI = OpenAI(
@@ -122,10 +113,7 @@ def generate_browser_ai_insights(
     except Exception as exc:
         raise HTTPException(
             status_code=503,
-            detail=(
-                "AI inventory analysis is temporarily "
-                "unavailable."
-            ),
+            detail=("AI inventory analysis is temporarily unavailable."),
         ) from exc
 
     analysis_record: AIAnalysis = AIAnalysis(
@@ -144,10 +132,7 @@ def generate_browser_ai_insights(
 
         raise HTTPException(
             status_code=500,
-            detail=(
-                "AI analysis was generated but could not "
-                "be saved."
-            ),
+            detail=("AI analysis was generated but could not be saved."),
         ) from exc
 
     response: BrowserAIInsightsResponse = {

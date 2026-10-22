@@ -21,22 +21,16 @@ def get_api_token() -> str:
     token = os.getenv("API_TOKEN")
 
     if not token:
-        raise RuntimeError(
-            "API_TOKEN is not configured."
-        )
+        raise RuntimeError("API_TOKEN is not configured.")
 
     if len(token) < 32:
-        raise RuntimeError(
-            "API_TOKEN must contain at least 32 characters."
-        )
+        raise RuntimeError("API_TOKEN must contain at least 32 characters.")
 
     return token
 
 
 def require_api_token(
-    credentials: HTTPAuthorizationCredentials | None = Depends(
-        bearer_scheme
-    ),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> None:
     """
     Require a valid bearer token for protected API endpoints.

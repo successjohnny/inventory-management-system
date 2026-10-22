@@ -1,4 +1,3 @@
-
 import os
 
 from collections.abc import AsyncIterator
@@ -15,6 +14,7 @@ from dotenv import load_dotenv
 # Return type: bool
 # Load environment variables before importing
 # application modules that depend on them.
+# ruff: noqa: E402
 environment_loaded: bool = load_dotenv()
 
 
@@ -48,6 +48,7 @@ from routers import (
 # HEALTH RESPONSE DATA TYPE
 # ==========================================
 
+
 class HealthResponse(TypedDict):
     """
     Define the structure of the health-check response.
@@ -66,6 +67,7 @@ class HealthResponse(TypedDict):
 # ==========================================
 # APPLICATION LIFESPAN
 # ==========================================
+
 
 @asynccontextmanager
 async def lifespan(
@@ -122,9 +124,7 @@ session_https_setting: str = os.getenv(
 
 # Data type: bool
 # Convert the environment setting to a boolean.
-session_https_only: bool = (
-    session_https_setting.lower() == "true"
-)
+session_https_only: bool = session_https_setting.lower() == "true"
 
 # Data type: str
 # Retrieve the validated session secret.
@@ -153,6 +153,7 @@ app.mount(
 # ==========================================
 # HEALTH CHECK
 # ==========================================
+
 
 @app.get(
     "/health",

@@ -61,6 +61,7 @@ router: APIRouter = APIRouter(
 # LIST PRODUCTS
 # ==========================================
 
+
 @router.get(
     "/",
     response_model=ProductListResponse,
@@ -86,15 +87,11 @@ def get_products(
     ),
     search: str | None = Query(
         default=None,
-        description=(
-            "Case-insensitive partial search on the product name."
-        ),
+        description=("Case-insensitive partial search on the product name."),
     ),
     category: str | None = Query(
         default=None,
-        description=(
-            "Case-insensitive exact match on product category."
-        ),
+        description=("Case-insensitive exact match on product category."),
     ),
     low_stock: bool | None = Query(
         default=None,
@@ -114,9 +111,7 @@ def get_products(
     ),
     sort_order: SortOrder = Query(
         default="asc",
-        description=(
-            "Sort direction. Supported values are asc and desc."
-        ),
+        description=("Sort direction. Supported values are asc and desc."),
     ),
     db: Session = Depends(get_db),
 ) -> ProductListResponse:
@@ -138,11 +133,7 @@ def get_products(
         search_value: str = search.strip()
 
         if search_value:
-            query = query.filter(
-                Product.name.ilike(
-                    f"%{search_value}%"
-                )
-            )
+            query = query.filter(Product.name.ilike(f"%{search_value}%"))
 
     # ======================================
     # FILTER BY CATEGORY
@@ -152,26 +143,17 @@ def get_products(
         category_value: str = category.strip()
 
         if category_value:
-            query = query.filter(
-                func.lower(Product.category)
-                == category_value.lower()
-            )
+            query = query.filter(func.lower(Product.category) == category_value.lower())
 
     # ======================================
     # FILTER BY STOCK STATUS
     # ======================================
 
     if low_stock is True:
-        query = query.filter(
-            Product.quantity
-            <= Product.low_stock_level
-        )
+        query = query.filter(Product.quantity <= Product.low_stock_level)
 
     elif low_stock is False:
-        query = query.filter(
-            Product.quantity
-            > Product.low_stock_level
-        )
+        query = query.filter(Product.quantity > Product.low_stock_level)
 
     # ======================================
     # PAGINATION CALCULATIONS
@@ -179,11 +161,7 @@ def get_products(
 
     total_items: int = query.count()
 
-    total_pages: int = (
-        ceil(total_items / page_size)
-        if total_items > 0
-        else 0
-    )
+    total_pages: int = ceil(total_items / page_size) if total_items > 0 else 0
 
     # ======================================
     # SELECT SORT COLUMN
@@ -221,9 +199,7 @@ def get_products(
             )
 
     else:
-        query = query.order_by(
-            Product.id.asc()
-        )
+        query = query.order_by(Product.id.asc())
 
     # ======================================
     # FETCH PAGINATED PRODUCTS
@@ -231,12 +207,7 @@ def get_products(
 
     offset: int = (page - 1) * page_size
 
-    products: list[Product] = (
-        query
-        .offset(offset)
-        .limit(page_size)
-        .all()
-    )
+    products: list[Product] = query.offset(offset).limit(page_size).all()
 
     # Construct the response using the
     # existing Pydantic response schema.
@@ -255,13 +226,12 @@ def get_products(
 # GET SINGLE PRODUCT
 # ==========================================
 
+
 @router.get(
     "/{product_id}",
     response_model=ProductResponse,
     summary="Get product",
-    description=(
-        "Return a single inventory product using its product ID."
-    ),
+    description=("Return a single inventory product using its product ID."),
 )
 def get_product(
     product_id: int,
@@ -275,13 +245,7 @@ def get_product(
             If the product does not exist.
     """
 
-    product: Product | None = (
-        db.query(Product)
-        .filter(
-            Product.id == product_id
-        )
-        .first()
-    )
+    product: Product | None = db.query(Product).filter(Product.id == product_id).first()
 
     if not product:
         raise HTTPException(
@@ -295,6 +259,7 @@ def get_product(
 # ==========================================
 # GET PRODUCT STOCK MOVEMENTS
 # ==========================================
+
 
 @router.get(
     "/{product_id}/stock-movements",
@@ -316,9 +281,7 @@ def get_product_stock_movements(
         default=10,
         ge=1,
         le=100,
-        description=(
-            "Number of stock movements returned per page."
-        ),
+        description=("Number of stock movements returned per page."),
     ),
     db: Session = Depends(get_db),
 ) -> StockMovementListResponse:
@@ -326,13 +289,7 @@ def get_product_stock_movements(
     Return paginated stock movement history.
     """
 
-    product: Product | None = (
-        db.query(Product)
-        .filter(
-            Product.id == product_id
-        )
-        .first()
-    )
+    product: Product | None = db.query(Product).filter(Product.id == product_id).first()
 
     if not product:
         raise HTTPException(
@@ -340,26 +297,18 @@ def get_product_stock_movements(
             detail="Product not found",
         )
 
-    query: SQLAlchemyQuery = (
-        db.query(StockMovement)
-        .filter(
-            StockMovement.product_id == product_id
-        )
+    query: SQLAlchemyQuery = db.query(StockMovement).filter(
+        StockMovement.product_id == product_id
     )
 
     total_items: int = query.count()
 
-    total_pages: int = (
-        ceil(total_items / page_size)
-        if total_items > 0
-        else 0
-    )
+    total_pages: int = ceil(total_items / page_size) if total_items > 0 else 0
 
     offset: int = (page - 1) * page_size
 
     movements: list[StockMovement] = (
-        query
-        .order_by(
+        query.order_by(
             StockMovement.created_at.desc(),
             StockMovement.id.desc(),
         )
@@ -368,17 +317,14 @@ def get_product_stock_movements(
         .all()
     )
 
-    response: StockMovementListResponse = (
-        StockMovementListResponse(
-            items=[
-                StockMovementResponse.model_validate(movement)
-                for movement in movements
-            ],
-            page=page,
-            page_size=page_size,
-            total_items=total_items,
-            total_pages=total_pages,
-        )
+    response: StockMovementListResponse = StockMovementListResponse(
+        items=[
+            StockMovementResponse.model_validate(movement) for movement in movements
+        ],
+        page=page,
+        page_size=page_size,
+        total_items=total_items,
+        total_pages=total_pages,
     )
 
     return response
@@ -387,6 +333,7 @@ def get_product_stock_movements(
 # ==========================================
 # CREATE PRODUCT
 # ==========================================
+
 
 @router.post(
     "/",
@@ -428,6 +375,7 @@ def create_product_api(
 # ==========================================
 # UPDATE PRODUCT
 # ==========================================
+
 
 @router.put(
     "/{product_id}",
@@ -489,13 +437,12 @@ def update_product_api(
 # DELETE PRODUCT
 # ==========================================
 
+
 @router.delete(
     "/{product_id}",
     status_code=204,
     summary="Delete product",
-    description=(
-        "Delete an inventory product using its product ID."
-    ),
+    description=("Delete an inventory product using its product ID."),
 )
 def delete_product_api(
     product_id: int,

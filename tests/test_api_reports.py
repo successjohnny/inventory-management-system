@@ -21,24 +21,15 @@ def test_export_inventory_csv(api_client):
     db.add(product)
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/inventory.csv"
-    )
+    response = test_client.get("/api/reports/inventory.csv")
 
     assert response.status_code == 200
 
-    assert response.headers["content-type"].startswith(
-        "text/csv"
-    )
+    assert response.headers["content-type"].startswith("text/csv")
 
-    assert (
-        "attachment"
-        in response.headers["content-disposition"]
-    )
+    assert "attachment" in response.headers["content-disposition"]
 
-    reader = csv.DictReader(
-        io.StringIO(response.text)
-    )
+    reader = csv.DictReader(io.StringIO(response.text))
 
     rows = list(reader)
 
@@ -57,15 +48,11 @@ def test_export_inventory_csv(api_client):
 def test_export_inventory_csv_empty(api_client):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/reports/inventory.csv"
-    )
+    response = test_client.get("/api/reports/inventory.csv")
 
     assert response.status_code == 200
 
-    reader = csv.DictReader(
-        io.StringIO(response.text)
-    )
+    reader = csv.DictReader(io.StringIO(response.text))
 
     rows = list(reader)
 
@@ -109,24 +96,15 @@ def test_export_stock_movements_csv(api_client):
     db.add(movement)
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/stock-movements.csv"
-    )
+    response = test_client.get("/api/reports/stock-movements.csv")
 
     assert response.status_code == 200
 
-    assert response.headers["content-type"].startswith(
-        "text/csv"
-    )
+    assert response.headers["content-type"].startswith("text/csv")
 
-    assert (
-        "attachment"
-        in response.headers["content-disposition"]
-    )
+    assert "attachment" in response.headers["content-disposition"]
 
-    reader = csv.DictReader(
-        io.StringIO(response.text)
-    )
+    reader = csv.DictReader(io.StringIO(response.text))
 
     rows = list(reader)
 
@@ -144,15 +122,11 @@ def test_export_stock_movements_csv(api_client):
 def test_export_stock_movements_csv_empty(api_client):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/reports/stock-movements.csv"
-    )
+    response = test_client.get("/api/reports/stock-movements.csv")
 
     assert response.status_code == 200
 
-    reader = csv.DictReader(
-        io.StringIO(response.text)
-    )
+    reader = csv.DictReader(io.StringIO(response.text))
 
     rows = list(reader)
 
@@ -225,16 +199,11 @@ def test_export_stock_movements_csv_filters_by_start_date(
     )
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/stock-movements.csv"
-        "?start_date=2026-09-10"
-    )
+    response = test_client.get("/api/reports/stock-movements.csv?start_date=2026-09-10")
 
     assert response.status_code == 200
 
-    reader = csv.DictReader(
-        io.StringIO(response.text)
-    )
+    reader = csv.DictReader(io.StringIO(response.text))
 
     rows = list(reader)
 
@@ -299,16 +268,11 @@ def test_export_stock_movements_csv_filters_by_end_date(
     )
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/stock-movements.csv"
-        "?end_date=2026-09-10"
-    )
+    response = test_client.get("/api/reports/stock-movements.csv?end_date=2026-09-10")
 
     assert response.status_code == 200
 
-    reader = csv.DictReader(
-        io.StringIO(response.text)
-    )
+    reader = csv.DictReader(io.StringIO(response.text))
 
     rows = list(reader)
 
@@ -322,26 +286,20 @@ def test_export_stock_movements_csv_rejects_invalid_date_range(
     test_client, _ = api_client
 
     response = test_client.get(
-        "/api/reports/stock-movements.csv"
-        "?start_date=2026-09-20"
-        "&end_date=2026-09-10"
+        "/api/reports/stock-movements.csv?start_date=2026-09-20&end_date=2026-09-10"
     )
 
     assert response.status_code == 422
 
-    assert response.json()["detail"] == (
-        "start_date cannot be later than end_date."
-    )
+    assert response.json()["detail"] == ("start_date cannot be later than end_date.")
+
 
 def test_export_stock_movements_csv_rejects_invalid_date_format(
     api_client,
 ):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/reports/stock-movements.csv"
-        "?start_date=not-a-date"
-    )
+    response = test_client.get("/api/reports/stock-movements.csv?start_date=not-a-date")
 
     assert response.status_code == 422
 
@@ -382,9 +340,7 @@ def test_get_inventory_summary(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/summary"
-    )
+    response = test_client.get("/api/reports/summary")
 
     assert response.status_code == 200
 
@@ -399,9 +355,7 @@ def test_get_inventory_summary(api_client):
 def test_get_inventory_summary_empty(api_client):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/reports/summary"
-    )
+    response = test_client.get("/api/reports/summary")
 
     assert response.status_code == 200
 
@@ -449,9 +403,7 @@ def test_get_low_stock_report(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/low-stock"
-    )
+    response = test_client.get("/api/reports/low-stock")
 
     assert response.status_code == 200
 
@@ -480,9 +432,7 @@ def test_get_low_stock_report(api_client):
 def test_get_low_stock_report_empty(api_client):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/reports/low-stock"
-    )
+    response = test_client.get("/api/reports/low-stock")
 
     assert response.status_code == 200
     assert response.json() == []
@@ -524,9 +474,7 @@ def test_get_category_summary_report(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/categories"
-    )
+    response = test_client.get("/api/reports/categories")
 
     assert response.status_code == 200
 
@@ -547,9 +495,7 @@ def test_get_category_summary_report(api_client):
 def test_get_category_summary_report_empty(api_client):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/reports/categories"
-    )
+    response = test_client.get("/api/reports/categories")
 
     assert response.status_code == 200
     assert response.json() == []
@@ -582,9 +528,7 @@ def test_get_inventory_valuation_report(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/valuation"
-    )
+    response = test_client.get("/api/reports/valuation")
 
     assert response.status_code == 200
 
@@ -612,9 +556,7 @@ def test_get_inventory_valuation_report(api_client):
 def test_get_inventory_valuation_report_empty(api_client):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/reports/valuation"
-    )
+    response = test_client.get("/api/reports/valuation")
 
     assert response.status_code == 200
 
@@ -660,9 +602,7 @@ def test_get_supplier_summary_report(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/suppliers"
-    )
+    response = test_client.get("/api/reports/suppliers")
 
     assert response.status_code == 200
 
@@ -685,9 +625,7 @@ def test_get_supplier_summary_report(api_client):
 def test_get_supplier_summary_report_empty(api_client):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/reports/suppliers"
-    )
+    response = test_client.get("/api/reports/suppliers")
 
     assert response.status_code == 200
 
@@ -723,9 +661,7 @@ def test_supplier_summary_excludes_products_without_supplier(
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/suppliers"
-    )
+    response = test_client.get("/api/reports/suppliers")
 
     assert response.status_code == 200
 
@@ -775,9 +711,7 @@ def test_get_category_valuation_report(api_client):
     db.add_all(products)
     db.commit()
 
-    response = test_client.get(
-        "/api/reports/category-valuations"
-    )
+    response = test_client.get("/api/reports/category-valuations")
 
     assert response.status_code == 200
 
@@ -800,9 +734,7 @@ def test_get_category_valuation_report(api_client):
 def test_get_category_valuation_report_empty(api_client):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/reports/category-valuations"
-    )
+    response = test_client.get("/api/reports/category-valuations")
 
     assert response.status_code == 200
 

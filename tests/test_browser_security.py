@@ -36,9 +36,11 @@ def test_anonymous_user_is_redirected():
 
 
 def test_authenticated_admin_is_allowed():
-    request = make_request({
-        "authenticated": True,
-    })
+    request = make_request(
+        {
+            "authenticated": True,
+        }
+    )
 
     response = require_admin(request)
 
@@ -46,9 +48,11 @@ def test_authenticated_admin_is_allowed():
 
 
 def test_false_authentication_is_rejected():
-    request = make_request({
-        "authenticated": False,
-    })
+    request = make_request(
+        {
+            "authenticated": False,
+        }
+    )
 
     response = require_admin(request)
 
@@ -67,9 +71,11 @@ def test_csrf_token_is_created():
 
 
 def test_existing_csrf_token_is_reused():
-    request = make_request({
-        "csrf_token": "existing-test-token",
-    })
+    request = make_request(
+        {
+            "csrf_token": "existing-test-token",
+        }
+    )
 
     token = get_csrf_token(request)
 
@@ -77,20 +83,27 @@ def test_existing_csrf_token_is_reused():
 
 
 def test_valid_csrf_token_is_accepted():
-    request = make_request({
-        "csrf_token": "valid-test-token",
-    })
+    request = make_request(
+        {
+            "csrf_token": "valid-test-token",
+        }
+    )
 
-    assert require_csrf(
-        request,
-        "valid-test-token",
-    ) is None
+    assert (
+        require_csrf(
+            request,
+            "valid-test-token",
+        )
+        is None
+    )
 
 
 def test_invalid_csrf_token_is_rejected():
-    request = make_request({
-        "csrf_token": "correct-token",
-    })
+    request = make_request(
+        {
+            "csrf_token": "correct-token",
+        }
+    )
 
     with pytest.raises(HTTPException) as error:
         require_csrf(

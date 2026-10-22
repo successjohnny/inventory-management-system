@@ -1,4 +1,3 @@
-
 import os
 from collections.abc import Generator
 from typing import Any
@@ -55,6 +54,7 @@ SessionLocal: sessionmaker[Session] = sessionmaker(
 # DATABASE MODELS BASE
 # ==========================================
 
+
 class Base(DeclarativeBase):
     """
     Base class for all SQLAlchemy ORM models.
@@ -69,6 +69,7 @@ class Base(DeclarativeBase):
 # ==========================================
 # DATABASE DEPENDENCY
 # ==========================================
+
 
 def get_db() -> Generator[Session, None, None]:
     """

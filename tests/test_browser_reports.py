@@ -12,11 +12,22 @@ from services.product_service import create_product
 
 
 INVENTORY_HEADERS: list[str] = [
-    "id", "name", "price", "quantity", "low_stock_level", "category", "supplier",
+    "id",
+    "name",
+    "price",
+    "quantity",
+    "low_stock_level",
+    "category",
+    "supplier",
 ]
 
 MOVEMENT_HEADERS: list[str] = [
-    "id", "product_id", "movement_type", "quantity", "note", "created_at",
+    "id",
+    "product_id",
+    "movement_type",
+    "quantity",
+    "note",
+    "created_at",
 ]
 
 
@@ -36,7 +47,13 @@ def read_csv(response: Response) -> list[list[str]]:
 def make_product(db: Session, name: str = "Reports Test Laptop") -> Product:
     """Create a product using the existing service layer."""
     product: Product = create_product(
-        db, name, 500, 4, 2, "Electronics", "Reports Test Supplier",
+        db,
+        name,
+        500,
+        4,
+        2,
+        "Electronics",
+        "Reports Test Supplier",
     )
     assert isinstance(product, Product)
     return product
@@ -52,7 +69,8 @@ def test_anonymous_user_cannot_view_reports(client: Any) -> None:
 def test_anonymous_user_cannot_download_inventory_csv(client: Any) -> None:
     test_client, _ = client
     response: Response = test_client.get(
-        "/reports/download/inventory", follow_redirects=False,
+        "/reports/download/inventory",
+        follow_redirects=False,
     )
     assert_login_redirect(response)
 
@@ -60,7 +78,8 @@ def test_anonymous_user_cannot_download_inventory_csv(client: Any) -> None:
 def test_anonymous_user_cannot_download_stock_movements_csv(client: Any) -> None:
     test_client, _ = client
     response: Response = test_client.get(
-        "/reports/download/stock-movements", follow_redirects=False,
+        "/reports/download/stock-movements",
+        follow_redirects=False,
     )
     assert_login_redirect(response)
 

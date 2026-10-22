@@ -41,9 +41,9 @@ def test_stock_in(authenticated_client):
 
     assert product.quantity == 15
 
-    movement = db.query(StockMovement).filter(
-        StockMovement.product_id == product.id
-    ).first()
+    movement = (
+        db.query(StockMovement).filter(StockMovement.product_id == product.id).first()
+    )
 
     assert movement is not None
     assert movement.movement_type == "IN"
@@ -73,9 +73,9 @@ def test_stock_out(authenticated_client):
 
     assert product.quantity == 6
 
-    movement = db.query(StockMovement).filter(
-        StockMovement.product_id == product.id
-    ).first()
+    movement = (
+        db.query(StockMovement).filter(StockMovement.product_id == product.id).first()
+    )
 
     assert movement is not None
     assert movement.movement_type == "OUT"
@@ -108,9 +108,9 @@ def test_stock_out_insufficient_stock(authenticated_client):
 
     assert product.quantity == 10
 
-    movement = db.query(StockMovement).filter(
-        StockMovement.product_id == product.id
-    ).first()
+    movement = (
+        db.query(StockMovement).filter(StockMovement.product_id == product.id).first()
+    )
 
     assert movement is None
 
@@ -155,7 +155,4 @@ def test_stock_product_not_found(authenticated_client):
     )
 
     assert response.status_code == 303
-    assert (
-        response.headers["location"]
-        == "/?error=product_not_found"
-    )
+    assert response.headers["location"] == "/?error=product_not_found"

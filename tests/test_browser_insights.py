@@ -37,10 +37,7 @@ def test_successful_ai_analysis_is_saved(
 
     add_test_product(db)
 
-    generated_analysis = (
-        "Inventory Health\n"
-        "Laptop is currently low in stock."
-    )
+    generated_analysis = "Inventory Health\nLaptop is currently low in stock."
 
     monkeypatch.setattr(
         "routers.browser_insights.generate_ai_inventory_analysis",
@@ -76,9 +73,7 @@ def test_successful_ai_analysis_is_saved(
     assert saved_analysis.analysis == generated_analysis
     assert saved_analysis.created_at is not None
 
-    snapshot = json.loads(
-        saved_analysis.inventory_snapshot
-    )
+    snapshot = json.loads(saved_analysis.inventory_snapshot)
 
     assert snapshot["total_products"] == 1
     assert snapshot["total_items"] == 2
@@ -104,9 +99,7 @@ def test_failed_ai_analysis_is_not_saved(
         client,
         model,
     ):
-        raise RuntimeError(
-            "Simulated AI failure"
-        )
+        raise RuntimeError("Simulated AI failure")
 
     monkeypatch.setattr(
         "routers.browser_insights.generate_ai_inventory_analysis",
@@ -139,6 +132,7 @@ def test_failed_ai_analysis_is_not_saved(
 
     assert db.query(AIAnalysis).count() == 0
 
+
 def test_database_failure_rolls_back_ai_analysis(
     authenticated_client,
     monkeypatch,
@@ -154,9 +148,7 @@ def test_database_failure_rolls_back_ai_analysis(
 
     monkeypatch.setattr(
         "routers.browser_insights.generate_ai_inventory_analysis",
-        lambda insights, *, client, model: (
-            "Inventory analysis generated."
-        ),
+        lambda insights, *, client, model: "Inventory analysis generated.",
     )
 
     monkeypatch.setattr(
@@ -191,9 +183,7 @@ def test_database_failure_rolls_back_ai_analysis(
     )
 
     def fail_commit():
-        raise RuntimeError(
-            "Simulated database failure"
-        )
+        raise RuntimeError("Simulated database failure")
 
     monkeypatch.setattr(
         db,

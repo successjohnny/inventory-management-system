@@ -37,13 +37,9 @@ def test_stock_in(api_client):
 
     assert response.status_code == 201
 
-    assert response.json() == {
-        "message": "Stock movement created successfully."
-    }
+    assert response.json() == {"message": "Stock movement created successfully."}
 
-    product_response = test_client.get(
-        f"/api/products/{product_id}"
-    )
+    product_response = test_client.get(f"/api/products/{product_id}")
 
     assert product_response.status_code == 200
     assert product_response.json()["quantity"] == 15
@@ -65,13 +61,9 @@ def test_stock_out(api_client):
 
     assert response.status_code == 201
 
-    assert response.json() == {
-        "message": "Stock movement created successfully."
-    }
+    assert response.json() == {"message": "Stock movement created successfully."}
 
-    product_response = test_client.get(
-        f"/api/products/{product_id}"
-    )
+    product_response = test_client.get(f"/api/products/{product_id}")
 
     assert product_response.status_code == 200
     assert product_response.json()["quantity"] == 6
@@ -93,9 +85,7 @@ def test_stock_out_insufficient_stock(api_client):
 
     assert response.status_code == 400
 
-    assert response.json()["detail"] == (
-        "Not enough stock available."
-    )
+    assert response.json()["detail"] == ("Not enough stock available.")
 
 
 def test_stock_movement_product_not_found(api_client):
@@ -165,17 +155,13 @@ def test_stock_movement_invalid_type(api_client):
 
     assert response.status_code == 400
 
-    assert response.json()["detail"] == (
-        "invalid_movement_type"
-    )
+    assert response.json()["detail"] == ("invalid_movement_type")
 
 
 def test_get_stock_movements_empty(api_client):
     test_client, db = api_client
 
-    response = test_client.get(
-        "/api/stock-movements/"
-    )
+    response = test_client.get("/api/stock-movements/")
 
     assert response.status_code == 200
     assert response.json() == []
@@ -197,9 +183,7 @@ def test_get_stock_movements(api_client):
 
     assert create_response.status_code == 201
 
-    response = test_client.get(
-        "/api/stock-movements/"
-    )
+    response = test_client.get("/api/stock-movements/")
 
     assert response.status_code == 200
 
@@ -244,9 +228,7 @@ def test_get_stock_movements_newest_first(api_client):
 
     assert second_response.status_code == 201
 
-    response = test_client.get(
-        "/api/stock-movements/"
-    )
+    response = test_client.get("/api/stock-movements/")
 
     assert response.status_code == 200
 
@@ -285,11 +267,7 @@ def test_get_stock_movements_filter_by_start_date(api_client):
 
     assert second_response.status_code == 201
 
-    movements = (
-        db.query(StockMovement)
-        .order_by(StockMovement.id.asc())
-        .all()
-    )
+    movements = db.query(StockMovement).order_by(StockMovement.id.asc()).all()
 
     movements[0].created_at = datetime(
         2026,
@@ -311,10 +289,7 @@ def test_get_stock_movements_filter_by_start_date(api_client):
 
     db.commit()
 
-    response = test_client.get(
-        "/api/stock-movements/"
-        "?start_date=2026-09-01"
-    )
+    response = test_client.get("/api/stock-movements/?start_date=2026-09-01")
 
     assert response.status_code == 200
 
@@ -351,11 +326,7 @@ def test_get_stock_movements_filter_by_end_date(api_client):
 
     assert second_response.status_code == 201
 
-    movements = (
-        db.query(StockMovement)
-        .order_by(StockMovement.id.asc())
-        .all()
-    )
+    movements = db.query(StockMovement).order_by(StockMovement.id.asc()).all()
 
     movements[0].created_at = datetime(
         2026,
@@ -377,10 +348,7 @@ def test_get_stock_movements_filter_by_end_date(api_client):
 
     db.commit()
 
-    response = test_client.get(
-        "/api/stock-movements/"
-        "?end_date=2026-08-31"
-    )
+    response = test_client.get("/api/stock-movements/?end_date=2026-08-31")
 
     assert response.status_code == 200
 
@@ -415,11 +383,7 @@ def test_get_stock_movements_filter_by_date_range(api_client):
 
         assert response.status_code == 201
 
-    movements = (
-        db.query(StockMovement)
-        .order_by(StockMovement.id.asc())
-        .all()
-    )
+    movements = db.query(StockMovement).order_by(StockMovement.id.asc()).all()
 
     dates = [
         datetime(
@@ -473,9 +437,7 @@ def test_get_stock_movements_filter_by_date_range(api_client):
     db.commit()
 
     response = test_client.get(
-        "/api/stock-movements/"
-        "?start_date=2026-09-01"
-        "&end_date=2026-09-30"
+        "/api/stock-movements/?start_date=2026-09-01&end_date=2026-09-30"
     )
 
     assert response.status_code == 200
@@ -484,10 +446,7 @@ def test_get_stock_movements_filter_by_date_range(api_client):
 
     assert len(data) == 3
 
-    assert [
-        movement["note"]
-        for movement in data
-    ] == [
+    assert [movement["note"] for movement in data] == [
         "September end",
         "September middle",
         "September start",
@@ -500,9 +459,7 @@ def test_get_stock_movements_rejects_invalid_date_range(
     test_client, _ = api_client
 
     response = test_client.get(
-        "/api/stock-movements/"
-        "?start_date=2026-10-01"
-        "&end_date=2026-09-01"
+        "/api/stock-movements/?start_date=2026-10-01&end_date=2026-09-01"
     )
 
     assert response.status_code == 422
@@ -513,9 +470,6 @@ def test_get_stock_movements_rejects_invalid_date_format(
 ):
     test_client, _ = api_client
 
-    response = test_client.get(
-        "/api/stock-movements/"
-        "?start_date=not-a-date"
-    )
+    response = test_client.get("/api/stock-movements/?start_date=not-a-date")
 
     assert response.status_code == 422

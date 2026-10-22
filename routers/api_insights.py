@@ -1,4 +1,3 @@
-
 import os
 from typing import TypedDict
 
@@ -22,6 +21,7 @@ from services.inventory_insights import (
 # ==========================================
 # API RESPONSE DATA TYPES
 # ==========================================
+
 
 class AIInventoryInsightsResponse(TypedDict):
     """
@@ -51,6 +51,7 @@ router: APIRouter = APIRouter(
 # CREATE AI CLIENT
 # ==========================================
 
+
 def get_ai_client() -> OpenAI:
     """
     Return a configured OpenAI client.
@@ -65,17 +66,12 @@ def get_ai_client() -> OpenAI:
     """
 
     # Data type: str | None
-    api_key: str | None = os.getenv(
-        "OPENAI_API_KEY"
-    )
+    api_key: str | None = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
         raise HTTPException(
             status_code=503,
-            detail=(
-                "AI inventory analysis is temporarily "
-                "unavailable."
-            ),
+            detail=("AI inventory analysis is temporarily unavailable."),
         )
 
     # Data type: OpenAI
@@ -89,6 +85,7 @@ def get_ai_client() -> OpenAI:
 # ==========================================
 # GET INVENTORY INSIGHTS
 # ==========================================
+
 
 @router.get(
     "",
@@ -115,16 +112,10 @@ def get_inventory_insights(
     """
 
     # Data type: list[Product]
-    products: list[Product] = (
-        db.query(Product)
-        .order_by(Product.id.asc())
-        .all()
-    )
+    products: list[Product] = db.query(Product).order_by(Product.id.asc()).all()
 
     # Data type: InventoryInsights
-    insights: InventoryInsights = (
-        build_inventory_insights(products)
-    )
+    insights: InventoryInsights = build_inventory_insights(products)
 
     return insights
 
@@ -132,6 +123,7 @@ def get_inventory_insights(
 # ==========================================
 # GET AI INVENTORY INSIGHTS
 # ==========================================
+
 
 @router.get(
     "/ai",
@@ -166,34 +158,23 @@ def get_ai_inventory_insights(
     """
 
     # Data type: list[Product]
-    products: list[Product] = (
-        db.query(Product)
-        .order_by(Product.id.asc())
-        .all()
-    )
+    products: list[Product] = db.query(Product).order_by(Product.id.asc()).all()
 
     # Data type: InventoryInsights
-    insights: InventoryInsights = (
-        build_inventory_insights(products)
-    )
+    insights: InventoryInsights = build_inventory_insights(products)
 
     try:
         # Data type: str
-        ai_analysis: str = (
-            generate_ai_inventory_analysis(
-                insights,
-                client=client,
-                model=get_ai_model(),
-            )
+        ai_analysis: str = generate_ai_inventory_analysis(
+            insights,
+            client=client,
+            model=get_ai_model(),
         )
 
     except Exception as exc:
         raise HTTPException(
             status_code=503,
-            detail=(
-                "AI inventory analysis is temporarily "
-                "unavailable."
-            ),
+            detail=("AI inventory analysis is temporarily unavailable."),
         ) from exc
 
     # Data type: AIInventoryInsightsResponse

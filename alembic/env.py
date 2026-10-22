@@ -13,7 +13,7 @@ from database import Base, DATABASE_URL, engine
 
 # Import models so their tables are registered
 # with Base.metadata for migration autogeneration.
-from models import Product, StockMovement
+from models import Product, StockMovement  # noqa: F401
 
 
 # ==========================================
@@ -42,6 +42,7 @@ target_metadata = Base.metadata
 # OFFLINE MIGRATIONS
 # ==========================================
 
+
 def run_migrations_offline() -> None:
     """
     Run migrations without opening a database connection.
@@ -66,13 +67,13 @@ def run_migrations_offline() -> None:
 # ONLINE MIGRATIONS
 # ==========================================
 
+
 def run_migrations_online() -> None:
     """
     Run migrations using the application's database engine.
     """
 
     with engine.connect() as connection:
-
         context.configure(
             connection=connection,
             target_metadata=target_metadata,

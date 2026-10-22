@@ -1,4 +1,3 @@
-
 from datetime import datetime, timezone
 
 from sqlalchemy import (
@@ -20,6 +19,7 @@ from database import Base
 # ==========================================
 # PRODUCT MODEL
 # ==========================================
+
 
 class Product(Base):
     """
@@ -92,6 +92,7 @@ class Product(Base):
 # STOCK MOVEMENT MODEL
 # ==========================================
 
+
 class StockMovement(Base):
     """
     Represent a stock-in or stock-out transaction.
@@ -150,6 +151,7 @@ class StockMovement(Base):
 # ==========================================
 # AI ANALYSIS MODEL
 # ==========================================
+
 
 class AIAnalysis(Base):
     """

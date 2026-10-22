@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feature/github-actions-ci
+      - feature/ruff-code-quality
 
   pull_request:
     branches:
@@ -12,7 +13,8 @@ on:
 
 jobs:
   test-and-type-check:
-    name: Tests and Type Checking
+    name: Tests and Code Quality
+
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -37,6 +39,14 @@ jobs:
       - name: Check Python syntax
         run: |
           python -m compileall -q database.py models.py schemas.py services routers
+
+      - name: Run Ruff linting
+        run: |
+          python -m ruff check .
+
+      - name: Check Ruff formatting
+        run: |
+          python -m ruff format --check .
 
       - name: Run mypy
         run: |

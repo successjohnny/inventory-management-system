@@ -1,4 +1,3 @@
-
 from datetime import date, datetime, time, timedelta, timezone
 
 from fastapi import (
@@ -36,9 +35,7 @@ router: APIRouter = APIRouter(
     include_in_schema=False,
 )
 
-templates: Jinja2Templates = Jinja2Templates(
-    directory="templates"
-)
+templates: Jinja2Templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/")
@@ -71,9 +68,7 @@ def home(
         if product.category not in category_valuations:
             category_valuations[product.category] = 0
 
-        category_valuations[product.category] += (
-            product.price * product.quantity
-        )
+        category_valuations[product.category] += product.price * product.quantity
 
     # ==========================================
     # Supplier Inventory Valuations
@@ -88,9 +83,7 @@ def home(
         if product.supplier not in supplier_valuations:
             supplier_valuations[product.supplier] = 0
 
-        supplier_valuations[product.supplier] += (
-            product.price * product.quantity
-        )
+        supplier_valuations[product.supplier] += product.price * product.quantity
 
     # ==========================================
     # Low-Stock Insights
@@ -109,11 +102,7 @@ def home(
     from sqlalchemy.orm import joinedload
 
     movements: list[StockMovement] = (
-        db.query(StockMovement)
-        .options(
-            joinedload(StockMovement.product)
-        )
-        .all()
+        db.query(StockMovement).options(joinedload(StockMovement.product)).all()
     )
 
     # ==========================================
@@ -122,34 +111,22 @@ def home(
 
     today: date = datetime.now(timezone.utc).date()
 
-    end_date: date = (
-        trend_end
-        if trend_end is not None
-        else today
-    )
+    end_date: date = trend_end if trend_end is not None else today
 
     start_date: date = (
-        trend_start
-        if trend_start is not None
-        else end_date - timedelta(days=29)
+        trend_start if trend_start is not None else end_date - timedelta(days=29)
     )
 
     if start_date > end_date:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=(
-                "Trend start date cannot be later "
-                "than trend end date."
-            ),
+            detail=("Trend start date cannot be later than trend end date."),
         )
 
     if (end_date - start_date).days >= 365:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=(
-                "The reporting period cannot "
-                "exceed 365 calendar days."
-            ),
+            detail=("The reporting period cannot exceed 365 calendar days."),
         )
 
     start_datetime: datetime = datetime.combine(
@@ -206,11 +183,7 @@ def home(
     if normalized_search:
         products: list[Product] = (
             db.query(Product)
-            .filter(
-                Product.normalized_name.ilike(
-                    f"%{normalized_search}%"
-                )
-            )
+            .filter(Product.normalized_name.ilike(f"%{normalized_search}%"))
             .all()
         )
     else:
@@ -229,21 +202,12 @@ def home(
             "supplier_valuations": supplier_valuations,
             "low_stock_insights": low_stock_insights,
             "total_products": len(all_products),
-            "total_items": sum(
-                product.quantity
-                for product in all_products
-            ),
-            "total_categories": len(
-                {
-                    product.category
-                    for product in all_products
-                }
-            ),
+            "total_items": sum(product.quantity for product in all_products),
+            "total_categories": len({product.category for product in all_products}),
             "low_stock_products": sum(
                 1
                 for product in all_products
-                if product.quantity
-                <= product.low_stock_level
+                if product.quantity <= product.low_stock_level
             ),
             "movements": movements,
             "stock_trends": stock_trends,
@@ -255,9 +219,7 @@ def home(
                 error,
             ),
             "search": search,
-            "csrf_token": get_csrf_token(
-                request
-            ),
+            "csrf_token": get_csrf_token(request),
         },
     )
 
@@ -265,6 +227,7 @@ def home(
 # ==========================================
 # Saved AI Analysis Detail
 # ==========================================
+
 
 @router.get("/ai-analysis/{analysis_id}")
 def ai_analysis_detail(
@@ -278,11 +241,7 @@ def ai_analysis_detail(
         return redirect
 
     analysis: AIAnalysis | None = (
-        db.query(AIAnalysis)
-        .filter(
-            AIAnalysis.id == analysis_id
-        )
-        .first()
+        db.query(AIAnalysis).filter(AIAnalysis.id == analysis_id).first()
     )
 
     if analysis is None:
@@ -303,6 +262,7 @@ def ai_analysis_detail(
 # ==========================================
 # Add Product
 # ==========================================
+
 
 @router.post("/add-product")
 def add_product(
@@ -371,6 +331,7 @@ def add_product(
 # Edit Product Page
 # ==========================================
 
+
 @router.get("/edit-product/{product_id}")
 def edit_product(
     request: Request,
@@ -383,13 +344,7 @@ def edit_product(
     if redirect is not None:
         return redirect
 
-    product: Product | None = (
-        db.query(Product)
-        .filter(
-            Product.id == product_id
-        )
-        .first()
-    )
+    product: Product | None = db.query(Product).filter(Product.id == product_id).first()
 
     if not product:
         return RedirectResponse(
@@ -406,9 +361,7 @@ def edit_product(
                 error,
                 error,
             ),
-            "csrf_token": get_csrf_token(
-                request
-            ),
+            "csrf_token": get_csrf_token(request),
         },
     )
 
@@ -416,6 +369,7 @@ def edit_product(
 # ==========================================
 # Update Product
 # ==========================================
+
 
 @router.post("/edit-product/{product_id}")
 def update_product_route(
@@ -448,10 +402,7 @@ def update_product_route(
 
     if error:
         return RedirectResponse(
-            url=(
-                f"/edit-product/{product_id}"
-                f"?error={error}"
-            ),
+            url=(f"/edit-product/{product_id}?error={error}"),
             status_code=303,
         )
 
@@ -467,10 +418,7 @@ def update_product_route(
 
     if isinstance(result, str):
         return RedirectResponse(
-            url=(
-                f"/edit-product/{product_id}"
-                f"?error={result}"
-            ),
+            url=(f"/edit-product/{product_id}?error={result}"),
             status_code=303,
         )
 
@@ -483,6 +431,7 @@ def update_product_route(
 # ==========================================
 # Delete Product
 # ==========================================
+
 
 @router.post("/delete-product/{product_id}")
 def delete_product_route(

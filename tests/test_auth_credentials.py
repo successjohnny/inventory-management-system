@@ -34,14 +34,15 @@ def test_correct_password_is_accepted():
 
 
 def test_incorrect_password_is_rejected():
-    stored_hash = hash_password(
-        "Example-Test-Password-123!"
-    )
+    stored_hash = hash_password("Example-Test-Password-123!")
 
-    assert verify_password(
-        "Incorrect-Password",
-        stored_hash,
-    ) is False
+    assert (
+        verify_password(
+            "Incorrect-Password",
+            stored_hash,
+        )
+        is False
+    )
 
 
 @pytest.mark.parametrize(
@@ -55,10 +56,13 @@ def test_incorrect_password_is_rejected():
     ],
 )
 def test_malformed_hash_is_rejected(stored_hash):
-    assert verify_password(
-        "Example-Test-Password-123!",
-        stored_hash,
-    ) is False
+    assert (
+        verify_password(
+            "Example-Test-Password-123!",
+            stored_hash,
+        )
+        is False
+    )
 
 
 def test_empty_password_cannot_be_hashed():
@@ -79,10 +83,13 @@ def test_missing_admin_configuration_rejects_login(
         raising=False,
     )
 
-    assert verify_admin_credentials(
-        "admin",
-        "Example-Test-Password-123!",
-    ) is False
+    assert (
+        verify_admin_credentials(
+            "admin",
+            "Example-Test-Password-123!",
+        )
+        is False
+    )
 
 
 def test_valid_admin_credentials(monkeypatch):
@@ -98,10 +105,13 @@ def test_valid_admin_credentials(monkeypatch):
         hash_password(password),
     )
 
-    assert verify_admin_credentials(
-        "admin",
-        password,
-    ) is True
+    assert (
+        verify_admin_credentials(
+            "admin",
+            password,
+        )
+        is True
+    )
 
 
 def test_invalid_admin_password(monkeypatch):
@@ -112,15 +122,16 @@ def test_invalid_admin_password(monkeypatch):
 
     monkeypatch.setenv(
         "ADMIN_PASSWORD_HASH",
-        hash_password(
-            "Example-Test-Password-123!"
-        ),
+        hash_password("Example-Test-Password-123!"),
     )
 
-    assert verify_admin_credentials(
-        "admin",
-        "Wrong-Password",
-    ) is False
+    assert (
+        verify_admin_credentials(
+            "admin",
+            "Wrong-Password",
+        )
+        is False
+    )
 
 
 def test_invalid_admin_username(monkeypatch):
@@ -136,10 +147,13 @@ def test_invalid_admin_username(monkeypatch):
         hash_password(password),
     )
 
-    assert verify_admin_credentials(
-        "another-user",
-        password,
-    ) is False
+    assert (
+        verify_admin_credentials(
+            "another-user",
+            password,
+        )
+        is False
+    )
 
 
 def test_admin_username_is_case_insensitive(monkeypatch):
@@ -155,7 +169,10 @@ def test_admin_username_is_case_insensitive(monkeypatch):
         hash_password(password),
     )
 
-    assert verify_admin_credentials(
-        "ADMIN",
-        password,
-    ) is True
+    assert (
+        verify_admin_credentials(
+            "ADMIN",
+            password,
+        )
+        is True
+    )

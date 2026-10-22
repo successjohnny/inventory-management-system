@@ -1,4 +1,3 @@
-
 import hmac
 import secrets
 
@@ -29,14 +28,13 @@ router: APIRouter = APIRouter(
     include_in_schema=False,
 )
 
-templates: Jinja2Templates = Jinja2Templates(
-    directory="templates"
-)
+templates: Jinja2Templates = Jinja2Templates(directory="templates")
 
 
 # ==========================================
 # CREATE CSRF TOKEN
 # ==========================================
+
 
 def create_csrf_token(
     request: Request,
@@ -57,6 +55,7 @@ def create_csrf_token(
 # VERIFY CSRF TOKEN
 # ==========================================
 
+
 def verify_csrf_token(
     request: Request,
     submitted_token: str,
@@ -66,9 +65,7 @@ def verify_csrf_token(
     against the token stored in the session.
     """
 
-    expected_token: object = request.session.get(
-        "csrf_token"
-    )
+    expected_token: object = request.session.get("csrf_token")
 
     if (
         not isinstance(expected_token, str)
@@ -87,6 +84,7 @@ def verify_csrf_token(
 # ==========================================
 # LOGIN PAGE
 # ==========================================
+
 
 @router.get(
     "/login",
@@ -121,6 +119,7 @@ def login_page(
 # ==========================================
 # LOGIN
 # ==========================================
+
 
 @router.post("/login")
 def login(
@@ -159,9 +158,7 @@ def login(
 
     request.session["authenticated"] = True
 
-    request.session["csrf_token"] = (
-        secrets.token_urlsafe(32)
-    )
+    request.session["csrf_token"] = secrets.token_urlsafe(32)
 
     return RedirectResponse(
         url="/",
@@ -172,6 +169,7 @@ def login(
 # ==========================================
 # LOGOUT
 # ==========================================
+
 
 @router.post("/logout")
 def logout(
