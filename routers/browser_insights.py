@@ -1,4 +1,3 @@
-
 import json
 import os
 from typing import TypedDict
@@ -24,6 +23,7 @@ from services.inventory_ai import (
     get_ai_model,
 )
 from services.inventory_insights import (
+    InventoryInsights,
     build_inventory_insights,
 )
 
@@ -33,7 +33,7 @@ from services.inventory_insights import (
 # ==========================================
 
 class BrowserAIInsightsResponse(TypedDict):
-    insights: dict[str, object]
+    insights: InventoryInsights
     ai_analysis: str
 
 
@@ -83,19 +83,19 @@ def generate_browser_ai_insights(
         .all()
     )
 
-    insights: dict[str, object] = (
+    insights: InventoryInsights = (
         build_inventory_insights(products)
     )
 
     if insights.get("total_products", 0) == 0:
-        response: BrowserAIInsightsResponse = {
+        empty_response: BrowserAIInsightsResponse = {
             "insights": insights,
             "ai_analysis": (
                 "No inventory data is available for AI analysis."
             ),
         }
 
-        return response
+        return empty_response
 
     api_key: str | None = os.getenv("OPENAI_API_KEY")
 
