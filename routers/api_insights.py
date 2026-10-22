@@ -1,7 +1,9 @@
-import os
 
-from openai import OpenAI
+import os
+from typing import TypedDict
+
 from fastapi import APIRouter, Depends, HTTPException
+from openai import OpenAI
 from sqlalchemy.orm import Session
 
 from api_security import require_api_token
@@ -11,22 +13,61 @@ from services.inventory_ai import (
     generate_ai_inventory_analysis,
     get_ai_model,
 )
-from services.inventory_insights import build_inventory_insights
+from services.inventory_insights import (
+    InventoryInsights,
+    build_inventory_insights,
+)
 
 
-router = APIRouter(
+# ==========================================
+# API RESPONSE DATA TYPES
+# ==========================================
+
+class AIInventoryInsightsResponse(TypedDict):
+    """
+    Define the AI inventory insights API response.
+
+    Data types:
+        insights: InventoryInsights
+        ai_analysis: str
+    """
+
+    insights: InventoryInsights
+    ai_analysis: str
+
+
+# ==========================================
+# API ROUTER CONFIGURATION
+# ==========================================
+
+router: APIRouter = APIRouter(
     prefix="/api/insights",
     tags=["Inventory Insights API"],
     dependencies=[Depends(require_api_token)],
 )
 
 
-def get_ai_client():
+# ==========================================
+# CREATE AI CLIENT
+# ==========================================
+
+def get_ai_client() -> OpenAI:
     """
     Return a configured OpenAI client.
+
+    Returns:
+        OpenAI:
+            Configured OpenAI client.
+
+    Raises:
+        HTTPException:
+            If the API key is missing.
     """
 
-    api_key = os.getenv("OPENAI_API_KEY")
+    # Data type: str | None
+    api_key: str | None = os.getenv(
+        "OPENAI_API_KEY"
+    )
 
     if not api_key:
         raise HTTPException(
@@ -37,10 +78,17 @@ def get_ai_client():
             ),
         )
 
-    return OpenAI(
+    # Data type: OpenAI
+    client: OpenAI = OpenAI(
         api_key=api_key,
     )
 
+    return client
+
+
+# ==========================================
+# GET INVENTORY INSIGHTS
+# ==========================================
 
 @router.get(
     "",
@@ -52,19 +100,38 @@ def get_ai_client():
 )
 def get_inventory_insights(
     db: Session = Depends(get_db),
-):
+) -> InventoryInsights:
     """
     Return structured insights for the current inventory.
+
+    Parameters:
+        db (Session):
+            SQLAlchemy database session.
+
+    Returns:
+        InventoryInsights:
+            Structured inventory statistics and
+            recommendations.
     """
 
-    products = (
+    # Data type: list[Product]
+    products: list[Product] = (
         db.query(Product)
         .order_by(Product.id.asc())
         .all()
     )
 
-    return build_inventory_insights(products)
+    # Data type: InventoryInsights
+    insights: InventoryInsights = (
+        build_inventory_insights(products)
+    )
 
+    return insights
+
+
+# ==========================================
+# GET AI INVENTORY INSIGHTS
+# ==========================================
 
 @router.get(
     "/ai",
@@ -76,26 +143,50 @@ def get_inventory_insights(
 )
 def get_ai_inventory_insights(
     db: Session = Depends(get_db),
-    client=Depends(get_ai_client),
-):
+    client: OpenAI = Depends(get_ai_client),
+) -> AIInventoryInsightsResponse:
     """
     Return inventory facts and AI-assisted analysis.
+
+    Parameters:
+        db (Session):
+            SQLAlchemy database session.
+
+        client (OpenAI):
+            Configured OpenAI client.
+
+    Returns:
+        AIInventoryInsightsResponse:
+            Dictionary containing inventory insights
+            and generated AI analysis.
+
+    Raises:
+        HTTPException:
+            If AI analysis cannot be completed.
     """
 
-    products = (
+    # Data type: list[Product]
+    products: list[Product] = (
         db.query(Product)
         .order_by(Product.id.asc())
         .all()
     )
 
-    insights = build_inventory_insights(products)
+    # Data type: InventoryInsights
+    insights: InventoryInsights = (
+        build_inventory_insights(products)
+    )
 
     try:
-        ai_analysis = generate_ai_inventory_analysis(
-            insights,
-            client=client,
-            model=get_ai_model(),
+        # Data type: str
+        ai_analysis: str = (
+            generate_ai_inventory_analysis(
+                insights,
+                client=client,
+                model=get_ai_model(),
+            )
         )
+
     except Exception as exc:
         raise HTTPException(
             status_code=503,
@@ -105,7 +196,10 @@ def get_ai_inventory_insights(
             ),
         ) from exc
 
-    return {
+    # Data type: AIInventoryInsightsResponse
+    response: AIInventoryInsightsResponse = {
         "insights": insights,
         "ai_analysis": ai_analysis,
     }
+
+    return response
