@@ -1,6 +1,8 @@
+
 import csv
 import io
 from datetime import date, datetime, time, timedelta, timezone
+from typing import TypedDict
 
 from fastapi import (
     APIRouter,
@@ -12,6 +14,7 @@ from fastapi import (
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import Query as SQLAlchemyQuery
 
 from api_security import require_api_token
 from database import get_db
@@ -19,12 +22,64 @@ from models import Product, StockMovement
 from schemas import ProductResponse
 
 
-router = APIRouter(
+# ==========================================
+# REPORT DATA TYPES
+# ==========================================
+
+class InventorySummary(TypedDict):
+    total_products: int
+    total_items: int
+    total_categories: int
+    low_stock_products: int
+
+
+class CategorySummary(TypedDict):
+    category: str
+    total_products: int
+    total_items: int
+
+
+class ProductValuation(TypedDict):
+    id: int
+    name: str
+    price: int
+    quantity: int
+    inventory_value: int
+
+
+class InventoryValuation(TypedDict):
+    total_inventory_value: int
+    products: list[ProductValuation]
+
+
+class SupplierSummary(TypedDict):
+    supplier: str
+    total_products: int
+    total_items: int
+    inventory_value: int
+
+
+class CategoryValuation(TypedDict):
+    category: str
+    total_products: int
+    total_items: int
+    inventory_value: int
+
+
+# ==========================================
+# API ROUTER
+# ==========================================
+
+router: APIRouter = APIRouter(
     prefix="/api/reports",
     tags=["Reports API"],
     dependencies=[Depends(require_api_token)],
 )
 
+
+# ==========================================
+# EXPORT INVENTORY CSV
+# ==========================================
 
 @router.get(
     "/inventory.csv",
@@ -35,20 +90,20 @@ router = APIRouter(
 )
 def export_inventory_csv(
     db: Session = Depends(get_db),
-):
+) -> StreamingResponse:
     """
     Export the current product inventory as CSV.
     """
 
-    products = (
+    products: list[Product] = (
         db.query(Product)
         .order_by(Product.id.asc())
         .all()
     )
 
-    output = io.StringIO()
+    output: io.StringIO = io.StringIO()
 
-    fieldnames = [
+    fieldnames: list[str] = [
         "id",
         "name",
         "price",
@@ -58,7 +113,7 @@ def export_inventory_csv(
         "supplier",
     ]
 
-    writer = csv.DictWriter(
+    writer: csv.DictWriter = csv.DictWriter(
         output,
         fieldnames=fieldnames,
     )
@@ -80,7 +135,7 @@ def export_inventory_csv(
 
     output.seek(0)
 
-    headers = {
+    headers: dict[str, str] = {
         "Content-Disposition": (
             'attachment; filename="inventory.csv"'
         ),
@@ -92,6 +147,10 @@ def export_inventory_csv(
         headers=headers,
     )
 
+
+# ==========================================
+# EXPORT STOCK MOVEMENTS CSV
+# ==========================================
 
 @router.get(
     "/stock-movements.csv",
@@ -116,17 +175,12 @@ def export_stock_movements_csv(
         ),
     ),
     db: Session = Depends(get_db),
-):
+) -> StreamingResponse:
     """
     Export the stock movement history as CSV.
 
-    When start_date is supplied, only movements on or after
-    that date are exported.
-
-    When end_date is supplied, only movements on or before
-    that date are exported.
-
-    Newest stock movements are exported first.
+    Dates are inclusive.
+    Newest movements are exported first.
     """
 
     if (
@@ -141,10 +195,10 @@ def export_stock_movements_csv(
             ),
         )
 
-    query = db.query(StockMovement)
+    query: SQLAlchemyQuery = db.query(StockMovement)
 
     if start_date is not None:
-        start_datetime = datetime.combine(
+        start_datetime: datetime = datetime.combine(
             start_date,
             time.min,
             tzinfo=timezone.utc,
@@ -155,7 +209,7 @@ def export_stock_movements_csv(
         )
 
     if end_date is not None:
-        end_datetime = datetime.combine(
+        end_datetime: datetime = datetime.combine(
             end_date + timedelta(days=1),
             time.min,
             tzinfo=timezone.utc,
@@ -165,7 +219,7 @@ def export_stock_movements_csv(
             StockMovement.created_at < end_datetime
         )
 
-    stock_movements = (
+    stock_movements: list[StockMovement] = (
         query
         .order_by(
             StockMovement.created_at.desc(),
@@ -174,9 +228,9 @@ def export_stock_movements_csv(
         .all()
     )
 
-    output = io.StringIO()
+    output: io.StringIO = io.StringIO()
 
-    fieldnames = [
+    fieldnames: list[str] = [
         "id",
         "product_id",
         "movement_type",
@@ -185,7 +239,7 @@ def export_stock_movements_csv(
         "created_at",
     ]
 
-    writer = csv.DictWriter(
+    writer: csv.DictWriter = csv.DictWriter(
         output,
         fieldnames=fieldnames,
     )
@@ -206,7 +260,7 @@ def export_stock_movements_csv(
 
     output.seek(0)
 
-    headers = {
+    headers: dict[str, str] = {
         "Content-Disposition": (
             'attachment; filename="stock-movements.csv"'
         ),
@@ -219,6 +273,10 @@ def export_stock_movements_csv(
     )
 
 
+# ==========================================
+# INVENTORY SUMMARY
+# ==========================================
+
 @router.get(
     "/summary",
     summary="Get inventory summary",
@@ -228,14 +286,14 @@ def export_stock_movements_csv(
 )
 def get_inventory_summary(
     db: Session = Depends(get_db),
-):
+) -> InventorySummary:
     """
     Return summary statistics for the current inventory.
     """
 
-    products = db.query(Product).all()
+    products: list[Product] = db.query(Product).all()
 
-    return {
+    summary: InventorySummary = {
         "total_products": len(products),
         "total_items": sum(
             product.quantity
@@ -255,6 +313,12 @@ def get_inventory_summary(
         ),
     }
 
+    return summary
+
+
+# ==========================================
+# LOW STOCK REPORT
+# ==========================================
 
 @router.get(
     "/low-stock",
@@ -267,13 +331,13 @@ def get_inventory_summary(
 )
 def get_low_stock_report(
     db: Session = Depends(get_db),
-):
+) -> list[Product]:
     """
     Return all products currently at or below
     their configured low-stock level.
     """
 
-    products = (
+    products: list[Product] = (
         db.query(Product)
         .filter(
             Product.quantity
@@ -286,6 +350,10 @@ def get_low_stock_report(
     return products
 
 
+# ==========================================
+# CATEGORY SUMMARY REPORT
+# ==========================================
+
 @router.get(
     "/categories",
     summary="Get category summary report",
@@ -295,13 +363,13 @@ def get_low_stock_report(
 )
 def get_category_summary_report(
     db: Session = Depends(get_db),
-):
+) -> list[CategorySummary]:
     """
     Return product counts and total item quantities
     grouped by category.
     """
 
-    results = (
+    results: list[tuple[str, int, int]] = (
         db.query(
             Product.category,
             func.count(Product.id).label("total_products"),
@@ -312,7 +380,7 @@ def get_category_summary_report(
         .all()
     )
 
-    return [
+    report: list[CategorySummary] = [
         {
             "category": category,
             "total_products": total_products,
@@ -321,6 +389,12 @@ def get_category_summary_report(
         for category, total_products, total_items in results
     ]
 
+    return report
+
+
+# ==========================================
+# INVENTORY VALUATION REPORT
+# ==========================================
 
 @router.get(
     "/valuation",
@@ -332,19 +406,19 @@ def get_category_summary_report(
 )
 def get_inventory_valuation_report(
     db: Session = Depends(get_db),
-):
+) -> InventoryValuation:
     """
     Return product-level inventory valuations
     and the total value of all inventory.
     """
 
-    products = (
+    products: list[Product] = (
         db.query(Product)
         .order_by(Product.id.asc())
         .all()
     )
 
-    product_valuations = [
+    product_valuations: list[ProductValuation] = [
         {
             "id": product.id,
             "name": product.name,
@@ -357,7 +431,7 @@ def get_inventory_valuation_report(
         for product in products
     ]
 
-    return {
+    valuation: InventoryValuation = {
         "total_inventory_value": sum(
             product["inventory_value"]
             for product in product_valuations
@@ -365,6 +439,12 @@ def get_inventory_valuation_report(
         "products": product_valuations,
     }
 
+    return valuation
+
+
+# ==========================================
+# SUPPLIER SUMMARY REPORT
+# ==========================================
 
 @router.get(
     "/suppliers",
@@ -376,13 +456,13 @@ def get_inventory_valuation_report(
 )
 def get_supplier_summary_report(
     db: Session = Depends(get_db),
-):
+) -> list[SupplierSummary]:
     """
     Return product counts, total item quantities,
     and inventory values grouped by supplier.
     """
 
-    results = (
+    results: list[tuple[str, int, int, int]] = (
         db.query(
             Product.supplier,
             func.count(Product.id).label(
@@ -401,7 +481,7 @@ def get_supplier_summary_report(
         .all()
     )
 
-    return [
+    report: list[SupplierSummary] = [
         {
             "supplier": supplier,
             "total_products": total_products,
@@ -416,6 +496,12 @@ def get_supplier_summary_report(
         ) in results
     ]
 
+    return report
+
+
+# ==========================================
+# CATEGORY VALUATION REPORT
+# ==========================================
 
 @router.get(
     "/category-valuations",
@@ -427,13 +513,13 @@ def get_supplier_summary_report(
 )
 def get_category_valuation_report(
     db: Session = Depends(get_db),
-):
+) -> list[CategoryValuation]:
     """
     Return product counts, total item quantities,
     and inventory values grouped by category.
     """
 
-    results = (
+    results: list[tuple[str, int, int, int]] = (
         db.query(
             Product.category,
             func.count(Product.id).label(
@@ -451,7 +537,7 @@ def get_category_valuation_report(
         .all()
     )
 
-    return [
+    report: list[CategoryValuation] = [
         {
             "category": category,
             "total_products": total_products,
@@ -465,3 +551,5 @@ def get_category_valuation_report(
             inventory_value,
         ) in results
     ]
+
+    return report
