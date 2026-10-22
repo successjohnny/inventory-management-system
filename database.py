@@ -6,9 +6,8 @@ from typing import Any
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
-    DeclarativeMeta,
+    DeclarativeBase,
     Session,
-    declarative_base,
     sessionmaker,
 )
 
@@ -17,7 +16,6 @@ from sqlalchemy.orm import (
 # DATABASE CONFIGURATION
 # ==========================================
 
-# Data type: str
 DATABASE_URL: str = os.getenv(
     "DATABASE_URL",
     "sqlite:///./inventory.db",
@@ -28,7 +26,6 @@ DATABASE_URL: str = os.getenv(
 # DATABASE ENGINE
 # ==========================================
 
-# Data type: dict[str, Any]
 engine_options: dict[str, Any] = {}
 
 if DATABASE_URL.startswith("sqlite"):
@@ -37,7 +34,6 @@ if DATABASE_URL.startswith("sqlite"):
     }
 
 
-# Data type: Engine
 engine: Engine = create_engine(
     DATABASE_URL,
     **engine_options,
@@ -48,7 +44,6 @@ engine: Engine = create_engine(
 # DATABASE SESSION
 # ==========================================
 
-# Data type: sessionmaker[Session]
 SessionLocal: sessionmaker[Session] = sessionmaker(
     autocommit=False,
     autoflush=False,
@@ -60,8 +55,15 @@ SessionLocal: sessionmaker[Session] = sessionmaker(
 # DATABASE MODELS BASE
 # ==========================================
 
-# Data type: DeclarativeMeta
-Base: DeclarativeMeta = declarative_base()
+class Base(DeclarativeBase):
+    """
+    Base class for all SQLAlchemy ORM models.
+
+    Provides shared metadata and typed
+    declarative model support.
+    """
+
+    pass
 
 
 # ==========================================
@@ -80,7 +82,6 @@ def get_db() -> Generator[Session, None, None]:
     the request has finished.
     """
 
-    # Data type: Session
     db: Session = SessionLocal()
 
     try:
