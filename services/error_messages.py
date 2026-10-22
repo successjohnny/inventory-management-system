@@ -1,4 +1,21 @@
-ERROR_MESSAGES = {
+
+from typing import Final
+
+
+# ==========================================
+# APPLICATION ERROR MESSAGES
+# ==========================================
+
+# Data type:
+# Final[dict[str, str]]
+#
+# Dictionary keys are error codes (str).
+# Dictionary values are error messages (str).
+#
+# Final prevents a static type checker from
+# accepting reassignment of ERROR_MESSAGES.
+
+ERROR_MESSAGES: Final[dict[str, str]] = {
     "name_required":
         "Please enter a product name.",
 
