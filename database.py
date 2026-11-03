@@ -1,3 +1,4 @@
+
 import os
 from collections.abc import Generator
 from typing import Any
@@ -20,12 +21,33 @@ DATABASE_URL: str = os.getenv(
     "sqlite:///./inventory.db",
 )
 
+# Use psycopg 3 for PostgreSQL connections.
+# Neon provides URLs beginning with postgres://
+# or postgresql://. SQLAlchemy needs the explicit
+# postgresql+psycopg:// driver prefix.
+
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgres://",
+        "postgresql+psycopg://",
+        1,
+    )
+
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgresql://",
+        "postgresql+psycopg://",
+        1,
+    )
+
 
 # ==========================================
 # DATABASE ENGINE
 # ==========================================
 
-engine_options: dict[str, Any] = {}
+engine_options: dict[str, Any] = {
+    "pool_pre_ping": True,
+}
 
 if DATABASE_URL.startswith("sqlite"):
     engine_options["connect_args"] = {
@@ -57,10 +79,7 @@ SessionLocal: sessionmaker[Session] = sessionmaker(
 
 class Base(DeclarativeBase):
     """
-    Base class for all SQLAlchemy ORM models.
-
-    Provides shared metadata and typed
-    declarative model support.
+    Base for all SQLAlchemy ORM models.
     """
 
     pass
@@ -75,11 +94,7 @@ def get_db() -> Generator[Session, None, None]:
     """
     Create a database session for a request.
 
-    Yields:
-        Session:
-            A SQLAlchemy database session.
-
-    The session is automatically closed after
+    Automatically closes the session after
     the request has finished.
     """
 
